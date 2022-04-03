@@ -32,7 +32,6 @@ source("./R/rgrf.R")
 source("./R/rlasgrf.R")
 source("./R/comparison_estimators.R")
 
-# set.seed(123)
 # *** Comparison methods ***
 estimators = list(estimate_coxph_sl = estimate_coxph_sl,
                   estimate_coxph_tl = estimate_coxph_tl,
@@ -54,21 +53,29 @@ estimators = list(estimate_coxph_sl = estimate_coxph_sl,
 
 # *** Setup ***
 out = list()
-n.sim = 20
+n.sim = 20      # change to 30 when "unbalanced"
 n.mc = 10000
 
 # Simulations scenarios
 grid = expand.grid(n = 5000,
-                    p = 25,
-                    n.test = 5000,
-                    p_b = c(1, 25, 25),
-                    f_b = c("NL", "L", "NL"),
-                    dgp = c("fcomplex", "fLNL"),
-                    stringsAsFactors = FALSE)
-grid <- grid[c(4:6, 10, 16), ]
-grid$p_i <- c(1, 1, 25, rep(1, 2))
-grid$f_i <- c(rep("L", 3), "L", "NL")
-rownames(grid) <- 1:5
+                   p = 25,
+                   n.test = 5000,
+                   dgp = c("fcomplex"),
+                   p_b = c(1, 25, 25),
+                   f_b = c("L", "NL", "NL"),
+                   pi = c(0.5),
+                   cen_scale = c(4),
+                   cenM = c("indX"),
+                   stringsAsFactors = FALSE)
+grid$f_i <- c(rep("L", 6), rep("NL", 3))
+grid$p_i <- rep(c(1, 1, 25), 3)
+grid <- rbind(grid, grid[2,], grid[5,], grid[8,])
+grid[10:12, ]$pi <- c(0.01)           # unbalanced design
+grid <- rbind(grid, grid[1,], grid[1,])
+grid[13:14, ]$cen_scale <- c(2, 8)    # vary censoring rate (under indX)
+grid <- rbind(grid, grid[1,])
+grid[15, ]$cenM <- "dX"               # vary censoring generating model (= dX)
+rownames(grid) <- 1:dim(grid)[1]
 
 if(length(args <- commandArgs(T))>0){
   stopifnot(length(args)==1)
@@ -79,33 +86,23 @@ if(length(args <- commandArgs(T))>0){
 n = grid$n[i]
 p = grid$p[i]
 n.test = grid$n.test[i]
+pi = grid$pi[i]
 dgp = grid$dgp[i]
 p_b = grid$p_b[i]; p_i = grid$p_i[i]
 f_b = grid$f_b[i]; f_i = grid$f_i[i]
+cen_scale = grid$cen_scale[i]
+cenM = grid$cenM[i]
+an.error.occured <- rep(NA, n.sim)
 for (sim in 1:n.sim) {
+ # tryCatch( {
   print(paste("sim", sim))
   
-  if (dgp %in% c("fcomplex", "fLNL")){
+  if (dgp %in% c("fcomplex")){
     times = 0.2
     data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, 
-                                           dgp = dgp, n.mc = 10, times = times)
+                                           pi = pi, dgp = dgp, n.mc = 10, times = times)
     data.test = generate_tutorial_survival_data(n = n.test, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
-                                                dgp = dgp, n.mc = n.mc, times = times)
-  }else if (dgp %in% c("RLsurv1", "RLsurv2", "RLsurv3")){
-    if(dgp == "RLsurv1"){
-      times = 3.5
-    }else if(dgp == "RLsurv2"){
-      times = 1
-    }else if(dgp == "RLsurv3"){
-      times = 1
-    }
-    data = generate_R_learner_survival_data(n = n, p = p, dgp = dgp, n.mc = 10, times = times)
-    data.test = generate_R_learner_survival_data(n = n.test, p = p, dgp = dgp, n.mc = n.mc, times = times)
-  }else{
-    data = generate_sprint_survival_data(n = n, p = p, dgp = dgp, n.mc = 10)
-    data$X = data$X[,-17]         # remove "Diabetes" variable as it is 0 for everyone
-    data.test = generate_sprint_survival_data(n = n.test, p = p, dgp = dgp, n.mc = 1)
-    data.test$X = data.test$X[,-17]
+                                                pi = pi, dgp = dgp, n.mc = n.mc, times = times)
   }
   
   data$Y = pmax(rep(0.001, length(data$Y)), data$Y)
@@ -117,41 +114,11 @@ for (sim in 1:n.sim) {
   for (j in 1:length(estimators)) {
     estimator.name = names(estimators)[j]
     print(estimator.name)
-    if (dgp %in% c("fcomplex", "fLNL", "CSF2a1", "CSF2b")){
-      if(dgp == "fcomplex" | dgp == "fLNL"){
-        times = 0.2
-        predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, ps = mean(as.numeric(data$W)),
-                                                                         times = times, meta_learner = TRUE)))
-      }else if(dgp == "type2"){
-        times = 0.15
-        predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, times = times, meta_learner = TRUE)))
-      }else if(dgp == "CSF2b"){
-        times = 1
-        predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, times = times, meta_learner = TRUE)))
-      }
+    if (dgp %in% c("fcomplex")){
+      times = 0.2
+      predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, ps = pi, cen_fit = "survival.forest",
+                                                                       times = times, meta_learner = TRUE)))
       correct.classification = sign(predictions[,j]) == true.catesp.sign
-    }else if (dgp %in% c("RLsurv1", "RLsurv2", "RLsurv3")){
-      if(dgp == "RLsurv2"){
-        times = 1
-        predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, ps = mean(as.numeric(data$W)),
-                                                                         times = times, meta_learner = TRUE)))
-      }else if(dgp == "RLsurv1"){
-        times = 3.5
-        predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, times = times, meta_learner = TRUE)))
-      }else if(dgp == "RLsurv3"){
-        times = 1
-        predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, times = times, meta_learner = TRUE)))
-      }
-      correct.classification = sign(predictions[,j]) == true.catesp.sign
-    }else{
-      if(dgp %in% c("fixHR20", "hteHR20", "fixHR50", "hteHR50")){
-        alpha = 0.05
-      }else{
-        alpha = 0.01                  # use a lower alpha in (causal_)survival_forest for low event rates (5-10%)
-      }
-      predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, ps = mean(as.numeric(data$W)),
-                                                                       times = 365.25*3, alpha = alpha, meta_learner = TRUE)))
-      correct.classification = (2*as.numeric(predictions[,j] > 0.007) - 1) == true.catesp.sign
     }
     
     # calibration slope
@@ -172,18 +139,11 @@ for (sim in 1:n.sim) {
   
   # plot the first replicate result
   if (sim==1){
-    # if (n==5000 & p==25){
-    #   # Density plot of true CATE
-    #   png(paste0("Density_true_cate_",dgp, ".png"), width = 5, height = 5, units = 'in', res = 300)
-    #   plot(density(true.catesp), xlab = "True CATE", main = dgp)
-    #   text(quantile(true.catesp, prob=c(0.8)), 5, paste0("sd = ",round(sd(true.catesp),3)))
-    #   dev.off()
-    # }
     # Scatter plot of pred and true CATEs
     newnames <- str_replace_all(names(estimators), "estimate_", "") 
     newnames <- str_replace_all(newnames, "ipcw_", "")
     names(estimators) <- names(estimators)
-    png(paste0("grid", i, "_", dgp, "_p", p_b, p_i, "_f", f_b, f_i, ".png"), 
+    png(paste0("grid", i, "cen_fit_SF.png"), 
         width = 10, height = 6, units = 'in', res = 300)
     par(mfrow=c(3,5),
         oma = c(4,4,0,0) + 0.1,
@@ -215,6 +175,9 @@ for (sim in 1:n.sim) {
   df$sim = sim
   
   out = c(out, list(df))
+#  }
+#  , error = function(e) {an.error.occured[i] <<- TRUE})
 }
+print(sum(an.error.occured, na.rm = TRUE))
 out.df = do.call(rbind, out)
-write.csv(out.df, gzfile(paste0("./ML_grid_",i,"_fcomplex_p1.csv.gz")), row.names = FALSE)
+write.csv(out.df, gzfile(paste0("./ML_grid_",i,"_fcomplex_p1_SFfit.csv.gz")), row.names = FALSE)

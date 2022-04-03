@@ -33,7 +33,6 @@
 #' }
 #' @export
 rlasso = function(x, w, y, D,
-                  alpha = NULL,
                   k_folds = NULL,
                   foldid = NULL,
                   lambda_y = NULL,
@@ -47,6 +46,9 @@ rlasso = function(x, w, y, D,
                   penalty_factor = NULL,
                   cf = TRUE,
                   times = NULL, 
+                  failure.times = NULL, 
+                  num.trees = 2000,
+                  alpha = NULL,
                   cen_fit = "KM",
                   meta_learner = TRUE){
 
@@ -175,13 +177,42 @@ rlasso = function(x, w, y, D,
       y_fit = NULL
     }
     
+    args.nuisance <- list(failure.times = failure.times,
+                          num.trees = max(50, num.trees / 4),
+                          min.node.size = 15,
+                          honesty = TRUE,
+                          honesty.fraction = 0.5,
+                          honesty.prune.leaves = TRUE,
+                          alpha = alpha,
+                          prediction.type = "Nelson-Aalen",
+                          compute.oob.predictions = TRUE)
+    
+    if (is.null(failure.times)) {
+      Y.grid <- sort(unique(y))
+    } else {
+      Y.grid <- failure.times
+    }
+    
     if (is.null(c_hat)){
+      if (cf){
       if(cen_fit == "KM"){
-        traindat <- data.frame(y, D, w, x)
-        c_fit <- survfit(Surv(traindat$y, 1-traindat$D) ~ 1)
-        cent <- rep(times, length(traindat$y))
-        cent[traindat$D==1] <- traindat$y[traindat$D==1]
-        c_hat <- summary(c_fit, times = cent)$surv
+        traindat <- data.frame(Y = y, D = D)
+        shuffle <- sample(nrow(traindat))
+        kmdat <- traindat[shuffle,]
+        folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
+        c_hat <- rep(NA, nrow(kmdat))
+        for(z in 1:10){
+          testIndexes <- which(folds==z, arr.ind=TRUE)
+          testData <- kmdat[testIndexes, ]
+          trainData <- kmdat[-testIndexes, ]
+          c_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+          cent <- testData$Y
+          cent[testData$D==0] <- times
+          c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
+        }
+        shudat <- cbind(shuffle, c_hat)
+        c_hat <- shudat[order(shuffle), ]$c_hat
+       }
       }else if (cen_fit == "lasso"){
         if (cf){
           traindat <- data.frame(y, D, w, x)
@@ -199,7 +230,6 @@ rlasso = function(x, w, y, D,
           cent <- rep(times, length(traindat$y))
           cent[traindat$D==1] <- traindat$y[traindat$D==1]
           c_hat <- pred_surv_preval(c_fit, S0, times = cent, lambda = c_lambda_min)
-          c_hat[c_hat==0] <- min(c_hat[c_hat!=0])
         } else {
           traindat <- data.frame(y, D, w, x)
           foldid <- sample(rep(seq(k_folds), length = length(w)))
@@ -214,7 +244,16 @@ rlasso = function(x, w, y, D,
           cent <- rep(times, length(traindat$y))
           cent[traindat$D==1] <- traindat$y[traindat$D==1]
           c_hat <- pred_surv(c_fit, S0, x = as.matrix(traindat[,3:dim(traindat)[2]]), times = cent, lambda = c_fit$lambda.min)
-          c_hat[c_hat==0] <- min(c_hat[c_hat!=0])
+        }
+      }else if (cen_fit == "survival.forest"){
+        if (cf){
+        c_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
+        C.hat <- predict(c_fit, failure.times = Y.grid)$predictions
+        cent <- y
+        cent[D==0] <- times
+        cen.times.index <- findInterval(cent, Y.grid)
+        c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
+        c_hat[c_hat==0] <- min(c_hat[c_hat!=0])
         }
       }
     }else {

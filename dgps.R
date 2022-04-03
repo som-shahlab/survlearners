@@ -512,302 +512,6 @@ generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc 
   list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
 }    
 
-# causal survival forest paper (Cui 2022)
-generate_cui_data <- function(n, p, p_b, p_i, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL, 
-                                          dgp = c("simple1", "type1", "type2", "CSF2a", "fcomplex", "fLNL", "type3", "type4")) {
-  #.minp <- c(simple1 = 1, type1 = 5, type2 = 5, type3 = 5, type4 = 5, type5 = 5, type6 = 6, type7 = 7)
-  dgp <- match.arg(dgp)
-  #minp <- .minp[dgp]
-  if (!is.null(X)) {
-    p <- NCOL(X)
-    n <- NROW(X)
-  }
-  # if (p < minp) {
-  #   stop(paste("Selected dgp", dgp, "requires a minimum of", minp, "variables."))
-  # }
-  
-  if (dgp == "simple1") {
-    if (is.null(Y.max)) {
-      Y.max <- 1
-    }
-    if (is.null(X)) {
-      X <- matrix(runif(n * p), n, p)
-    }
-    W <- rbinom(n, 1, 0.5)
-    failure.time <- pmin(rexp(n) * X[, 1] + W, Y.max)
-    censor.time <- 2 * runif(n)
-    Y <- pmin(failure.time, censor.time)
-    D <- as.integer(failure.time <= censor.time)
-    temp <- rexp(n.mc)
-    cate <- rep(NA, n)
-    for (i in 1:n) {
-      cate[i] <- mean(pmin(temp * X[i, 1] + 1, Y.max) - pmin(temp * X[i, 1], Y.max))
-    }
-    cate.sign = rep(1, n)
-  } else if (dgp == "type1") {
-    # Type 1 from https://arxiv.org/abs/2001.09887 (Cox PH censor time)
-    
-    if (is.null(Y.max)) {
-      Y.max <- 1.5
-    }
-    if (is.null(X)) {
-      X <- matrix(runif(n * p), n, p)
-    }
-    e <- (1 + dbeta(X[, 1], 2, 4)) / 4
-    W <- rbinom(n, 1, e)
-    I1 <- X[,1] < 0.5
-    ft <- exp(-1.85 - 0.8 * I1 + 0.7 * sqrt(X[, 2]) + 0.2 * X[, 3] +
-                (0.7 - 0.4 * I1 - 0.4 * sqrt(X[, 2])) * W + rnorm(n))
-    failure.time <- pmin(ft, Y.max)
-    numerator <- -log(runif(n))
-    denominator <- exp(-1.75 - 0.5 * sqrt(X[, 2]) + 0.2 * X[, 3]  + (1.15 + 0.5 * I1 - 0.3 * sqrt(X[, 2])) * W)
-    censor.time <- (numerator / denominator)^(1/2)
-    Y <- pmin(failure.time, censor.time)
-    D <- as.integer(failure.time <= censor.time)
-    #cate <- rep(NA, n)
-    catesp <- rep(NA, n)
-    eps <- rnorm(n.mc)
-    for (i in 1:n) {
-      ft0 <- exp(-1.85 - 0.8 * I1[i] + 0.7 * sqrt(X[i, 2]) + 0.2 * X[i, 3] + eps)
-      ft1 <- exp(-1.85 - 0.8 * I1[i] + 0.7 * sqrt(X[i, 2]) + 0.2 * X[i, 3] +
-                   0.7 - 0.4 * I1[i] - 0.4 * sqrt(X[i, 2]) + eps)
-      catesp[i] <- mean((pmin(ft1, Y.max) > times) - (pmin(ft0, Y.max) > times))
-    }
-    catesp.sign <- sign(catesp)
-    
-  } else if (dgp == "type2") {
-    # Type 2 from https://arxiv.org/abs/2001.09887 (Cox PH failure time)
-    if (is.null(Y.max)) {
-      Y.max <- 2
-    }
-    if (is.null(X)) {
-      X <- matrix(runif(n * p), n, p)
-    }
-    e <- (1 + dbeta(X[, 1], 2, 4)) / 4
-    W <- rbinom(n, 1, e)
-    numerator <- -log(runif(n))
-    cox.ft <- (numerator / exp(X[,1] + (-0.5 + X[,2]) * W))^2; summary(cox.ft)
-    failure.time <- pmin(cox.ft, Y.max)
-    censor.time <- 3 * runif(n)
-    Y <- pmin(failure.time, censor.time); median(Y)
-    D <- as.integer(failure.time <= censor.time); table(D) # event rate ~ 17%
-    cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)    # censoring rate ~ 3%
-    catesp <- rep(NA, n)
-    numerator <- -log(runif(n.mc))
-    for (i in 1:n) {
-      cox.ft0 <- (numerator / exp(X[i, 1] + (-0.5 + X[i, 2]) * 0))^2
-      cox.ft1 <- (numerator / exp(X[i, 1] + (-0.5 + X[i, 2]) * 1))^2
-      catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
-    }
-    catesp.sign <- sign(catesp)
-  } else if (dgp == "CSF2a") {
-    # Modified Type 2 from https://arxiv.org/abs/2001.09887 (Cox PH failure time)
-    # times = 0.3
-    if (is.null(Y.max)) {
-      Y.max <- 2
-    }
-    if (is.null(X)) {
-      X <- matrix(runif(n * p), n, p)
-    }
-    W <- rbinom(n, 1, 0.5)
-    numerator <- -log(runif(n))
-    cox.ft <- (numerator / exp(-1.4 + X[,1] + (-0.2 - 0.7 * X[,2]) * W))^2; summary(cox.ft) #  weak HTE
-    # failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
-    failure.time <- cox.ft; summary(failure.time)
-    rho <- 1
-    censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)  # shape rho = 1, scale lambda = 6, 4, 2, 1
-    Y <- pmin(failure.time, censor.time); median(Y)
-    D <- as.integer(failure.time <= censor.time); table(D)  
-    cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)         # censoring rate = 0.82, 0.65, 0.41, 0.14
-    # event <- ifelse(D == 1 & Y < times, 1, 0); table(event)   # observed event rate = 0.05
-    event <- ifelse(failure.time < times, 1, 0); table(event)   # true event rate = 0.15
-    catesp <- rep(NA, n)
-    numerator <- -log(runif(n.mc))
-    for (i in 1:n) {
-      cox.ft0 <- (numerator / exp(-1 + X[i, 1] + (-0.5 - 0.7 * X[i, 2]) * 0))^2
-      cox.ft1 <- (numerator / exp(-1 + X[i, 1] + (-0.5 - 0.7 * X[i, 2]) * 1))^2
-      catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
-    }
-    catesp.sign <- sign(catesp)
-    }else if (dgp == "fcomplex") {
-      # times = 0.2 
-      if (is.null(Y.max)) {
-        Y.max <- 2
-      }
-      if (is.null(X)) {
-        X <- matrix(rnorm(n * p), n, p)
-      }
-      W <- rbinom(n, 1, 0.5)
-      numerator <- -log(runif(n))
-      if(p_b == 1 & p_i == 1){
-        beta <- 1; gamma <- 1       # coefs for main effects and interactions
-        cox.ft <- (numerator / exp(beta * X[,1] + (-0.5 - gamma * X[,2]) * W))^2; summary(cox.ft) 
-        failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
-        rho <- 2; lambda <- 3       # shape rho & scale lambda
-        censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)  
-      }else if(p_b == p & p_i == 1){
-        beta <- rep(1/sqrt(p_b), p_b); gamma <- 1      
-        cox.ft <- (numerator / exp(X %*% beta + (-0.0 - gamma * X[,2]) * W))^2; summary(cox.ft) 
-        failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
-        rho <- 2; lambda <- 3      
-        censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)   
-      }else if(p_b == p & p_i == p){
-        beta <- rep(1/sqrt(p_b), p_b); gamma <- rep(1/sqrt(p_i), p_i)      
-        cox.ft <- (numerator / exp(X %*% beta + (-0.5 - X %*% gamma) * W))^2; summary(cox.ft) 
-        failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
-        rho <- 2; lambda <- 4      
-        censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)   
-      }
-      Y <- pmin(failure.time, censor.time); median(Y)
-      D <- as.integer(failure.time <= censor.time); table(D); summary(Y[D==1])  
-      cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)       # censoring rate = 0.2
-      event <- ifelse(D == 1 & Y < times, 1, 0); table(event)   # observed event rate = 0.3
-      if(p_b == 1 & p_i == 1){
-        catesp <- rep(NA, n)
-        for (i in 1:n) {
-          beta <- 1; gamma <- 1
-          cox.ft0 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 0))^2
-          cox.ft1 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 1))^2
-          catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
-        }
-      }else if(p_b == p & p_i == 1){
-        catesp <- rep(NA, n)
-        for (i in 1:n) {
-          beta <- rep(1/sqrt(p_b), p_b); gamma <- 1
-          cox.ft0 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - gamma * X[i, 2]) * 0))^2
-          cox.ft1 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - gamma * X[i, 2]) * 1))^2
-          catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
-        }
-      }else if(p_b == p & p_i == p){
-        catesp <- rep(NA, n)
-        for (i in 1:n) {
-          beta <- rep(1/sqrt(p_b), p_b); gamma <- rep(1/sqrt(p_b), p_i)
-          cox.ft0 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 0))^2
-          cox.ft1 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 1))^2
-          catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
-        }
-      }
-      catesp.sign <- sign(catesp)
-    } else if (dgp == "fLNL") {
-      # times = 0.2 
-      if (is.null(Y.max)) {
-        Y.max <- 2
-      }
-      p <- max(p_b, p_i)      
-      if (is.null(X)) {
-        X <- matrix(rnorm(n * p), n, p)
-      }
-      W <- rbinom(n, 1, 0.5)
-      numerator <- -log(runif(n))
-      beta <- 1; gamma <- 1            # coefs for main effects and interactions
-      if(f_b == "NL" & f_i == "L"){
-        cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * X[,2]) * W))^2; summary(cox.ft) 
-        failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
-        rho <- 2; lambda <- 3       # shape rho & scale lambda
-        censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)  
-      }else if(f_b == "L" & f_i == "NL"){   
-        cox.ft <- (numerator / exp(beta * X[,1] + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2; summary(cox.ft)
-        failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
-        rho <- 2; lambda <- 4      
-        censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)   
-      }else if(f_b == "NL" & f_i == "NL"){
-        cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2; summary(cox.ft)
-        failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
-        rho <- 2; lambda <- 3      
-        censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)   
-      }
-      Y <- pmin(failure.time, censor.time); median(Y)
-      D <- as.integer(failure.time <= censor.time); table(D); summary(Y[D==1])  
-      cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)       # censoring rate = 0.2
-      event <- ifelse(D == 1 & Y < times, 1, 0); table(event)   # observed event rate = 0.3
-      if(p==1){
-        catesp <- rep(NA, n)
-        for (i in 1:n) {
-          beta <- 1; gamma <- 1
-          cox.ft0 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 0))^2
-          cox.ft1 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 1))^2
-          catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
-        }
-      }else if(p_b > p_i){
-        catesp <- rep(NA, n)
-        for (i in 1:n) {
-          beta <- rep(1/5, p_b); gamma <- 1
-          cox.ft0 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - gamma * X[i, 2]) * 0))^2
-          cox.ft1 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - gamma * X[i, 2]) * 1))^2
-          catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
-        }
-      }else if(p == 25 & p_b == p_i){
-        catesp <- rep(NA, n)
-        for (i in 1:n) {
-          beta <- rep(1/5, p_b); gamma <- rep(1/5, p_i)
-          cox.ft0 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 0))^2
-          cox.ft1 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 1))^2
-          catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
-        }
-      }
-      catesp.sign <- sign(catesp)
-    } else if (dgp == "type3") {
-    # Type 3 from https://arxiv.org/abs/2001.09887 (Poisson)
-    if (is.null(Y.max)) {
-      Y.max <- 15
-    }
-    if (is.null(X)) {
-      X <- matrix(runif(n * p), n, p)
-    }
-    e <- (1 + dbeta(X[, 1], 2, 4)) / 4
-    W <- rbinom(n, 1, e)
-    lambda.failure <- X[, 2]^2 + X[, 3] + 6 + 2 * (sqrt(X[, 1]) - 0.3) * W
-    failure.time <- pmin(rpois(n, lambda = lambda.failure), Y.max)
-    lambda.censor <- 12 + log(1 + exp(X[, 3]))
-    censor.time <- rpois(n, lambda = lambda.censor)
-    Y <- pmin(failure.time, censor.time)
-    D <- as.integer(failure.time <= censor.time)
-    cate <- rep(NA, n)
-    catesp <- rep(NA, n)
-    lambda.failure.0 <- X[, 2]^2 + X[, 3] + 6
-    lambda.failure.1 <- X[, 2]^2 + X[, 3] + 6 + 2 * (sqrt(X[, 1]) - 0.3)
-    for (i in 1:n) {
-      ft0 <- rpois(n.mc, lambda.failure.0[i])
-      ft1 <- rpois(n.mc, lambda.failure.1[i])
-      cate[i] <- mean(pmin(ft1, Y.max) - pmin(ft0, Y.max))
-      catesp[i] <- mean((pmin(ft1, Y.max) > times) - (pmin(ft0, Y.max) > times))
-    }
-    cate.sign <- sign(sqrt(X[, 1]) - 0.3)
-    catesp.sign <- sign(catesp)
-  } else if (dgp == "type4") {
-    # Type 4 from https://arxiv.org/abs/2001.09887 (Poisson)
-    if (is.null(Y.max)) {
-      Y.max <- 3
-    }
-    if (is.null(X)) {
-      X <- matrix(runif(n * p), n, p)
-    }
-    e <- 1 / ((1 + exp(-X[, 1])) * (1 + exp(-X[, 2])))
-    W <- rbinom(n, 1, e)
-    lambda.failure <- X[,2] + X[, 3] + pmax(0, X[, 1] - 0.3) * W
-    failure.time <- pmin(rpois(n, lambda = lambda.failure), Y.max)
-    lambda.censor <- 1 + log(1 + exp(X[, 3]))
-    censor.time <- rpois(n, lambda = lambda.censor)
-    Y <- pmin(failure.time, censor.time)
-    D <- as.integer(failure.time <= censor.time)
-    cate <- rep(NA, n)
-    catesp <- rep(NA, n)
-    lambda.failure.0 <- X[,2] + X[, 3]
-    lambda.failure.1 <- X[,2] + X[, 3] + pmax(0, X[, 1] - 0.3)
-    for (i in 1:n) {
-      ft0 <- rpois(n.mc, lambda.failure.0[i])
-      ft1 <- rpois(n.mc, lambda.failure.1[i])
-      cate[i] <- mean(pmin(ft1, Y.max) - pmin(ft0, Y.max))
-      catesp[i] <- mean((pmin(ft1, Y.max) > times) - (pmin(ft0, Y.max) > times))
-    }
-    cate.sign <- sign(pmax(0, X[, 1] - 0.3))
-    catesp.sign <- sign(catesp)
-    # For X1 < 0.3 the cate is zero so both (0, 1) are optimal, and we can ignore this subset.
-    cate.sign[X[, 1] < 0.3] <- NA
-  } 
-  list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
-}  
-
 # SPRINT-based simulation by Scotty
 generate_sprint_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL, 
                                           dgp = c("ate0", "fixHR5", "hteHR5", "fixHR10", "hteHR10",
@@ -987,16 +691,311 @@ generate_sprint_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 1
   
   list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
 }
+# causal survival forest paper (Cui 2022)
+generate_cui_data <- function(n, p, p_b, p_i, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL, 
+                              dgp = c("simple1", "type1", "type2", "CSF2a", "fcomplex", "fLNL", "type3", "type4")) {
+  #.minp <- c(simple1 = 1, type1 = 5, type2 = 5, type3 = 5, type4 = 5, type5 = 5, type6 = 6, type7 = 7)
+  dgp <- match.arg(dgp)
+  #minp <- .minp[dgp]
+  if (!is.null(X)) {
+    p <- NCOL(X)
+    n <- NROW(X)
+  }
+  # if (p < minp) {
+  #   stop(paste("Selected dgp", dgp, "requires a minimum of", minp, "variables."))
+  # }
+  
+  if (dgp == "simple1") {
+    if (is.null(Y.max)) {
+      Y.max <- 1
+    }
+    if (is.null(X)) {
+      X <- matrix(runif(n * p), n, p)
+    }
+    W <- rbinom(n, 1, 0.5)
+    failure.time <- pmin(rexp(n) * X[, 1] + W, Y.max)
+    censor.time <- 2 * runif(n)
+    Y <- pmin(failure.time, censor.time)
+    D <- as.integer(failure.time <= censor.time)
+    temp <- rexp(n.mc)
+    cate <- rep(NA, n)
+    for (i in 1:n) {
+      cate[i] <- mean(pmin(temp * X[i, 1] + 1, Y.max) - pmin(temp * X[i, 1], Y.max))
+    }
+    cate.sign = rep(1, n)
+  } else if (dgp == "type1") {
+    # Type 1 from https://arxiv.org/abs/2001.09887 (Cox PH censor time)
+    
+    if (is.null(Y.max)) {
+      Y.max <- 1.5
+    }
+    if (is.null(X)) {
+      X <- matrix(runif(n * p), n, p)
+    }
+    e <- (1 + dbeta(X[, 1], 2, 4)) / 4
+    W <- rbinom(n, 1, e)
+    I1 <- X[,1] < 0.5
+    ft <- exp(-1.85 - 0.8 * I1 + 0.7 * sqrt(X[, 2]) + 0.2 * X[, 3] +
+                (0.7 - 0.4 * I1 - 0.4 * sqrt(X[, 2])) * W + rnorm(n))
+    failure.time <- pmin(ft, Y.max)
+    numerator <- -log(runif(n))
+    denominator <- exp(-1.75 - 0.5 * sqrt(X[, 2]) + 0.2 * X[, 3]  + (1.15 + 0.5 * I1 - 0.3 * sqrt(X[, 2])) * W)
+    censor.time <- (numerator / denominator)^(1/2)
+    Y <- pmin(failure.time, censor.time)
+    D <- as.integer(failure.time <= censor.time)
+    #cate <- rep(NA, n)
+    catesp <- rep(NA, n)
+    eps <- rnorm(n.mc)
+    for (i in 1:n) {
+      ft0 <- exp(-1.85 - 0.8 * I1[i] + 0.7 * sqrt(X[i, 2]) + 0.2 * X[i, 3] + eps)
+      ft1 <- exp(-1.85 - 0.8 * I1[i] + 0.7 * sqrt(X[i, 2]) + 0.2 * X[i, 3] +
+                   0.7 - 0.4 * I1[i] - 0.4 * sqrt(X[i, 2]) + eps)
+      catesp[i] <- mean((pmin(ft1, Y.max) > times) - (pmin(ft0, Y.max) > times))
+    }
+    catesp.sign <- sign(catesp)
+    
+  } else if (dgp == "type2") {
+    # Type 2 from https://arxiv.org/abs/2001.09887 (Cox PH failure time)
+    if (is.null(Y.max)) {
+      Y.max <- 2
+    }
+    if (is.null(X)) {
+      X <- matrix(runif(n * p), n, p)
+    }
+    e <- (1 + dbeta(X[, 1], 2, 4)) / 4
+    W <- rbinom(n, 1, e)
+    numerator <- -log(runif(n))
+    cox.ft <- (numerator / exp(X[,1] + (-0.5 + X[,2]) * W))^2; summary(cox.ft)
+    failure.time <- pmin(cox.ft, Y.max)
+    censor.time <- 3 * runif(n)
+    Y <- pmin(failure.time, censor.time); median(Y)
+    D <- as.integer(failure.time <= censor.time); table(D) # event rate ~ 17%
+    cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)    # censoring rate ~ 3%
+    catesp <- rep(NA, n)
+    numerator <- -log(runif(n.mc))
+    for (i in 1:n) {
+      cox.ft0 <- (numerator / exp(X[i, 1] + (-0.5 + X[i, 2]) * 0))^2
+      cox.ft1 <- (numerator / exp(X[i, 1] + (-0.5 + X[i, 2]) * 1))^2
+      catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
+    }
+    catesp.sign <- sign(catesp)
+  } else if (dgp == "CSF2a") {
+    # Modified Type 2 from https://arxiv.org/abs/2001.09887 (Cox PH failure time)
+    # times = 0.3
+    if (is.null(Y.max)) {
+      Y.max <- 2
+    }
+    if (is.null(X)) {
+      X <- matrix(runif(n * p), n, p)
+    }
+    W <- rbinom(n, 1, 0.5)
+    numerator <- -log(runif(n))
+    cox.ft <- (numerator / exp(-1.4 + X[,1] + (-0.2 - 0.7 * X[,2]) * W))^2; summary(cox.ft) #  weak HTE
+    # failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
+    failure.time <- cox.ft; summary(failure.time)
+    rho <- 1
+    censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)  # shape rho = 1, scale lambda = 6, 4, 2, 1
+    Y <- pmin(failure.time, censor.time); median(Y)
+    D <- as.integer(failure.time <= censor.time); table(D)  
+    cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)         # censoring rate = 0.82, 0.65, 0.41, 0.14
+    # event <- ifelse(D == 1 & Y < times, 1, 0); table(event)   # observed event rate = 0.05
+    event <- ifelse(failure.time < times, 1, 0); table(event)   # true event rate = 0.15
+    catesp <- rep(NA, n)
+    numerator <- -log(runif(n.mc))
+    for (i in 1:n) {
+      cox.ft0 <- (numerator / exp(-1 + X[i, 1] + (-0.5 - 0.7 * X[i, 2]) * 0))^2
+      cox.ft1 <- (numerator / exp(-1 + X[i, 1] + (-0.5 - 0.7 * X[i, 2]) * 1))^2
+      catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
+    }
+    catesp.sign <- sign(catesp)
+  }else if (dgp == "fcomplex") {
+    # times = 0.2 
+    if (is.null(Y.max)) {
+      Y.max <- 2
+    }
+    if (is.null(X)) {
+      X <- matrix(rnorm(n * p), n, p)
+    }
+    W <- rbinom(n, 1, 0.5)
+    numerator <- -log(runif(n))
+    if(p_b == 1 & p_i == 1){
+      beta <- 1; gamma <- 1       # coefs for main effects and interactions
+      cox.ft <- (numerator / exp(beta * X[,1] + (-0.5 - gamma * X[,2]) * W))^2; summary(cox.ft) 
+      failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
+      rho <- 2; lambda <- 3       # shape rho & scale lambda
+      censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)  
+    }else if(p_b == p & p_i == 1){
+      beta <- rep(1/sqrt(p_b), p_b); gamma <- 1      
+      cox.ft <- (numerator / exp(X %*% beta + (-0.0 - gamma * X[,2]) * W))^2; summary(cox.ft) 
+      failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
+      rho <- 2; lambda <- 3      
+      censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)   
+    }else if(p_b == p & p_i == p){
+      beta <- rep(1/sqrt(p_b), p_b); gamma <- rep(1/sqrt(p_i), p_i)      
+      cox.ft <- (numerator / exp(X %*% beta + (-0.5 - X %*% gamma) * W))^2; summary(cox.ft) 
+      failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
+      rho <- 2; lambda <- 4      
+      censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)   
+    }
+    Y <- pmin(failure.time, censor.time); median(Y)
+    D <- as.integer(failure.time <= censor.time); table(D); summary(Y[D==1])  
+    cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)       # censoring rate = 0.2
+    event <- ifelse(D == 1 & Y < times, 1, 0); table(event)   # observed event rate = 0.3
+    if(p_b == 1 & p_i == 1){
+      catesp <- rep(NA, n)
+      for (i in 1:n) {
+        beta <- 1; gamma <- 1
+        cox.ft0 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 0))^2
+        cox.ft1 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 1))^2
+        catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
+      }
+    }else if(p_b == p & p_i == 1){
+      catesp <- rep(NA, n)
+      for (i in 1:n) {
+        beta <- rep(1/sqrt(p_b), p_b); gamma <- 1
+        cox.ft0 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - gamma * X[i, 2]) * 0))^2
+        cox.ft1 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - gamma * X[i, 2]) * 1))^2
+        catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
+      }
+    }else if(p_b == p & p_i == p){
+      catesp <- rep(NA, n)
+      for (i in 1:n) {
+        beta <- rep(1/sqrt(p_b), p_b); gamma <- rep(1/sqrt(p_b), p_i)
+        cox.ft0 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 0))^2
+        cox.ft1 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 1))^2
+        catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
+      }
+    }
+    catesp.sign <- sign(catesp)
+  } else if (dgp == "fLNL") {
+    # times = 0.2 
+    if (is.null(Y.max)) {
+      Y.max <- 2
+    }
+    p <- max(p_b, p_i)      
+    if (is.null(X)) {
+      X <- matrix(rnorm(n * p), n, p)
+    }
+    W <- rbinom(n, 1, 0.5)
+    numerator <- -log(runif(n))
+    beta <- 1; gamma <- 1            # coefs for main effects and interactions
+    if(f_b == "NL" & f_i == "L"){
+      cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * X[,2]) * W))^2; summary(cox.ft) 
+      failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
+      rho <- 2; lambda <- 3       # shape rho & scale lambda
+      censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)  
+    }else if(f_b == "L" & f_i == "NL"){   
+      cox.ft <- (numerator / exp(beta * X[,1] + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2; summary(cox.ft)
+      failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
+      rho <- 2; lambda <- 4      
+      censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)   
+    }else if(f_b == "NL" & f_i == "NL"){
+      cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2; summary(cox.ft)
+      failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
+      rho <- 2; lambda <- 3      
+      censor.time <- (numerator/(lambda^rho))^(1/rho); summary(censor.time)   
+    }
+    Y <- pmin(failure.time, censor.time); median(Y)
+    D <- as.integer(failure.time <= censor.time); table(D); summary(Y[D==1])  
+    cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)       # censoring rate = 0.2
+    event <- ifelse(D == 1 & Y < times, 1, 0); table(event)   # observed event rate = 0.3
+    if(p==1){
+      catesp <- rep(NA, n)
+      for (i in 1:n) {
+        beta <- 1; gamma <- 1
+        cox.ft0 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 0))^2
+        cox.ft1 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 1))^2
+        catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
+      }
+    }else if(p_b > p_i){
+      catesp <- rep(NA, n)
+      for (i in 1:n) {
+        beta <- rep(1/5, p_b); gamma <- 1
+        cox.ft0 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - gamma * X[i, 2]) * 0))^2
+        cox.ft1 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - gamma * X[i, 2]) * 1))^2
+        catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
+      }
+    }else if(p == 25 & p_b == p_i){
+      catesp <- rep(NA, n)
+      for (i in 1:n) {
+        beta <- rep(1/5, p_b); gamma <- rep(1/5, p_i)
+        cox.ft0 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 0))^2
+        cox.ft1 <- (numerator / exp(t(X[i,]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 1))^2
+        catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
+      }
+    }
+    catesp.sign <- sign(catesp)
+  } else if (dgp == "type3") {
+    # Type 3 from https://arxiv.org/abs/2001.09887 (Poisson)
+    if (is.null(Y.max)) {
+      Y.max <- 15
+    }
+    if (is.null(X)) {
+      X <- matrix(runif(n * p), n, p)
+    }
+    e <- (1 + dbeta(X[, 1], 2, 4)) / 4
+    W <- rbinom(n, 1, e)
+    lambda.failure <- X[, 2]^2 + X[, 3] + 6 + 2 * (sqrt(X[, 1]) - 0.3) * W
+    failure.time <- pmin(rpois(n, lambda = lambda.failure), Y.max)
+    lambda.censor <- 12 + log(1 + exp(X[, 3]))
+    censor.time <- rpois(n, lambda = lambda.censor)
+    Y <- pmin(failure.time, censor.time)
+    D <- as.integer(failure.time <= censor.time)
+    cate <- rep(NA, n)
+    catesp <- rep(NA, n)
+    lambda.failure.0 <- X[, 2]^2 + X[, 3] + 6
+    lambda.failure.1 <- X[, 2]^2 + X[, 3] + 6 + 2 * (sqrt(X[, 1]) - 0.3)
+    for (i in 1:n) {
+      ft0 <- rpois(n.mc, lambda.failure.0[i])
+      ft1 <- rpois(n.mc, lambda.failure.1[i])
+      cate[i] <- mean(pmin(ft1, Y.max) - pmin(ft0, Y.max))
+      catesp[i] <- mean((pmin(ft1, Y.max) > times) - (pmin(ft0, Y.max) > times))
+    }
+    cate.sign <- sign(sqrt(X[, 1]) - 0.3)
+    catesp.sign <- sign(catesp)
+  } else if (dgp == "type4") {
+    # Type 4 from https://arxiv.org/abs/2001.09887 (Poisson)
+    if (is.null(Y.max)) {
+      Y.max <- 3
+    }
+    if (is.null(X)) {
+      X <- matrix(runif(n * p), n, p)
+    }
+    e <- 1 / ((1 + exp(-X[, 1])) * (1 + exp(-X[, 2])))
+    W <- rbinom(n, 1, e)
+    lambda.failure <- X[,2] + X[, 3] + pmax(0, X[, 1] - 0.3) * W
+    failure.time <- pmin(rpois(n, lambda = lambda.failure), Y.max)
+    lambda.censor <- 1 + log(1 + exp(X[, 3]))
+    censor.time <- rpois(n, lambda = lambda.censor)
+    Y <- pmin(failure.time, censor.time)
+    D <- as.integer(failure.time <= censor.time)
+    cate <- rep(NA, n)
+    catesp <- rep(NA, n)
+    lambda.failure.0 <- X[,2] + X[, 3]
+    lambda.failure.1 <- X[,2] + X[, 3] + pmax(0, X[, 1] - 0.3)
+    for (i in 1:n) {
+      ft0 <- rpois(n.mc, lambda.failure.0[i])
+      ft1 <- rpois(n.mc, lambda.failure.1[i])
+      cate[i] <- mean(pmin(ft1, Y.max) - pmin(ft0, Y.max))
+      catesp[i] <- mean((pmin(ft1, Y.max) > times) - (pmin(ft0, Y.max) > times))
+    }
+    cate.sign <- sign(pmax(0, X[, 1] - 0.3))
+    catesp.sign <- sign(catesp)
+    # For X1 < 0.3 the cate is zero so both (0, 1) are optimal, and we can ignore this subset.
+    cate.sign[X[, 1] < 0.3] <- NA
+  } 
+  list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
+}  
 
 # New dgps
 generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = NULL, f_i = NULL,
-                                            n.mc = 10000, times = NULL, Y.max = NULL,
-                                            dgp = c("fcomplex", "fLNL")) {
+                                            n.mc = 10000, times = NULL, Y.max = NULL, pi = 0.5, 
+                                            cen_scale = 4, cenM = "indX", dgp = c("fcomplex")) {
   dgp <- match.arg(dgp)
   
   if (dgp == "fcomplex") {
     if (is.null(Y.max)) {
-      Y.max <- 2
+      Y.max <- 2        # consider change this to 8
     }
     X <- matrix(rnorm(n * p), n, p)
     indcator <- function(x){
@@ -1006,7 +1005,7 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
     names(NLX) <- paste0("V", 1:25)
     NLXs <- model.matrix(~ V1 + V2:V3 + V4:V5 + V6:V7 + V8:V9 + V10:V11 + V12:V13 + 
                            V14:V15 + V16:V17 + V18:V19 + V20:V21 + V22:V23 + V24:V25 - 1, NLX)
-    W <- rbinom(n, 1, 0.5)
+    W <- rbinom(n, 1, pi)
     numerator <- -log(runif(n))
     if(f_b == "L" & f_i == "L"){
       if(p_b == 1 & p_i == 1){
@@ -1022,35 +1021,41 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
     }else if(f_b == "NL" & f_i == "L"){
       if(p_b == 1 & p_i == 1){
         beta <- 1; gamma <- 1                                
-        cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * X[,2]) * W))^2
+        cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * X[,2]) * W))^2; summary(cox.ft) 
       }else if(p_b == p & p_i == 1){
         beta <- c(0.99, rep(0.33, (p_b-1)/2)); gamma <- 1 
-        cox.ft <- (numerator / exp(NLXs %*% beta + (-0.5 - gamma * X[,2]) * W))^2
+        cox.ft <- (numerator / exp(NLXs %*% beta + (-0.5 - gamma * X[,2]) * W))^2; summary(cox.ft) 
       }else if(p_b == p & p_i == p){
         beta <- c(0.99, rep(0.33, (p_b-1)/2)); gamma <- rep(1/sqrt(p_i), p_i) 
-        cox.ft <- (numerator / exp(NLXs %*% beta + (-0.5 - X %*% gamma) * W))^2
+        cox.ft <- (numerator / exp(NLXs %*% beta + (-0.5 - X %*% gamma) * W))^2; summary(cox.ft) 
       }
     }else if(f_b == "NL" & f_i == "NL"){
       if(p_b == 1 & p_i == 1){
         beta <- 1; gamma <- 1 
-        cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2
+        cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2; summary(cox.ft) 
       }else if(p_b == p & p_i == 1){
         beta <- c(0.99, rep(0.33, (p_b-1)/2)); gamma <- 1 
-        cox.ft <- (numerator / exp(NLXs %*% beta + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2
+        cox.ft <- (numerator / exp(NLXs %*% beta + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2; summary(cox.ft) 
       }else if(p_b == p & p_i == p){
         beta <- c(0.99, rep(0.33, (p_b-1)/2)); gamma <- c(0.99, rep(0.33, (p_i-1)/2))
-        cox.ft <- (numerator / exp(NLXs %*% beta + (-0.5 - NLXs %*% gamma) * W))^2
+        cox.ft <- (numerator / exp(NLXs %*% beta + (-0.5 - NLXs %*% gamma) * W))^2; summary(cox.ft) 
       }
     }
     failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
-    rho <- 2; lambda <- 4                                     # shape rho & scale lambda
+    
+    # varying censoring rate by changing cen_scale
+    rho <- 2                                     # shape rho & scale 
     numeratorC <- -log(runif(n))
-    censor.time <- (numeratorC/(lambda^rho))^(1/rho); summary(censor.time)
+    if(cenM == "indX"){
+      cen_scale <- cen_scale
+    }else if(cenM == "dX"){
+      cen_scale <- exp(1.2 + 1 * X[,1] + (0.5 + 1 * X[,2]) * W)
+    }
+    censor.time <- (numeratorC/(cen_scale^rho))^(1/rho)
     Y <- pmin(failure.time, censor.time); median(Y)
     D <- as.integer(failure.time <= censor.time); table(D); summary(Y[D==1]) 
-    summary(Y[D==1]); summary(Y[W==1 & D==1]); summary(Y[W==0 & D==1])
-    cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)       # censoring rate = 0.3 at times = 0.2
-    event <- ifelse(D == 1 & Y < times, 1, 0); table(event)   # observed event rate = 0.3 at times = 0.2
+    cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)         # censoring rate = 0.3 at times = 0.2
+    event <- ifelse(D == 1 & Y < times, 1, 0); table(event)     # observed event rate = 0.3 at times = 0.2
     
     # generate true CATEs
     catesp <- rep(NA, n)
@@ -1087,14 +1092,14 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
           }
         }else if(p_b == p & p_i == 1){
           for (i in 1:n) {
-            cox.ft0 <- (numerator / exp(t(NLXs[i, ]) %*% beta + (-0.5 - gamma * X[i, 2]) * 0))^2
-            cox.ft1 <- (numerator / exp(t(NLXs[i, ]) %*% beta + (-0.5 - gamma * X[i, 2]) * 1))^2
+            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% beta + (-0.5 - gamma * X[i, 2]) * 0)))^2
+            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% beta + (-0.5 - gamma * X[i, 2]) * 1)))^2
             catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
           }
         }else if (p_b == p & p_i == p){
           for (i in 1:n) {
-            cox.ft0 <- (numerator / exp(t(NLXs[i, ]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 0))^2
-            cox.ft1 <- (numerator / exp(t(NLXs[i, ]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 1))^2
+            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 0)))^2
+            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% beta + (-0.5 - t(X[i,]) %*% gamma) * 1)))^2
             catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
           }
         }
@@ -1107,20 +1112,20 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
           }
         }else if(p_b == p & p_i == 1){
           for (i in 1:n) {
-            cox.ft0 <- (numerator / exp(t(NLXs[i, ]) %*% beta + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 0))^2
-            cox.ft1 <- (numerator / exp(t(NLXs[i, ]) %*% beta + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 1))^2
+            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% beta + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 0)))^2
+            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% beta + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 1)))^2
             catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
           }
         }else if(p_b == p & p_i == p){
           for (i in 1:n) {
-            cox.ft0 <- (numerator / exp(t(NLXs[i, ]) %*% beta + (-0.5 - t(NLXs[i, ]) %*% gamma) * 0))^2
-            cox.ft1 <- (numerator / exp(t(NLXs[i, ]) %*% beta + (-0.5 - t(NLXs[i, ]) %*% gamma) * 1))^2
+            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% beta + (-0.5 - t(NLXs[i, ]) %*% gamma) * 0)))^2
+            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% beta + (-0.5 - t(NLXs[i, ]) %*% gamma) * 1)))^2
             catesp[i] <- mean((pmin(cox.ft1, Y.max) > times) - (pmin(cox.ft0, Y.max) > times))
           }
         } 
     }
     catesp.sign <- sign(catesp)
-  } 
+  }
   list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
 }  
 

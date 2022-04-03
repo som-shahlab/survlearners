@@ -79,7 +79,7 @@ rgrf = function(x, w, y, D,
                                sample.fraction = sample.fraction, mtry = mtry,
                                min.node.size = 5, honesty = TRUE,
                                honesty.fraction = 0.5, honesty.prune.leaves = TRUE,
-                               alpha = alpha, imbalance.penalty = imbalance.penalty,
+                               alpha = 0.05, imbalance.penalty = imbalance.penalty,
                                ci.group.size = 1, compute.oob.predictions = TRUE,
                                num.threads = num.threads, seed = seed) 
     p_hat <- predict(w_fit)$predictions
@@ -132,10 +132,22 @@ rgrf = function(x, w, y, D,
   args.nuisance$compute.oob.predictions <- TRUE
   if (is.null(c_hat)){
     if(cen_fit == "KM"){
-      c_fit <- survfit(Surv(y, 1 - D) ~ 1)
-      cent <- y
-      cent[D==0] <- times
-      c_hat <- summary(c_fit, times = cent)$surv
+      traindat <- data.frame(Y = y, D = D)
+      shuffle <- sample(nrow(traindat))
+      kmdat <- traindat[shuffle,]
+      folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
+      c_hat <- rep(NA, nrow(kmdat))
+      for(z in 1:10){
+        testIndexes <- which(folds==z, arr.ind=TRUE)
+        testData <- kmdat[testIndexes, ]
+        trainData <- kmdat[-testIndexes, ]
+        c_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+        cent <- testData$Y
+        cent[testData$D==0] <- times
+        c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
+      }
+      shudat <- cbind(shuffle, c_hat)
+      c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
       c_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
       C.hat <- predict(c_fit, failure.times = Y.grid)$predictions
@@ -143,26 +155,11 @@ rgrf = function(x, w, y, D,
       cent[D==0] <- times
       cen.times.index <- findInterval(cent, Y.grid)
       c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
-      c_hat[c_hat==0] <- min(c_hat[c_hat!=0])
     }
   }else{
     c_fit <- NULL
   }
   
-  if (any(c_hat <= 0.05)) {
-    warning(paste("Estimated censoring probabilites go as low as:", min(c_hat),
-                  "- an identifying assumption is that there exists a fixed positive constant M",
-                  "such that the probability of observing an event time past the maximum follow-up time Y.max",
-                  "is at least M. Formally, we assume: P(Y >= Y.max | X) > M.",
-                  "This warning appears when M is less than 0.05, at which point causal survival forest",
-                  "can not be expected to deliver reliable estimates."))
-  } else if (any(c_hat < 0.2 & c_hat > 0.05)) {
-    warning(paste("Estimated censoring probabilites are lower than 0.2.",
-                  "An identifying assumption is that there exists a fixed positive constant M",
-                  "such that the probability of observing an event time past the maximum follow-up time Y.max",
-                  "is at least M. Formally, we assume: P(Y >= Y.max | X) > M."))
-  }
-
   # create binary data
   tempdata <- data.frame(y, D, w, m_hat, p_hat, c_hat, x)
   binary_data <- tempdata[tempdata$D==1|tempdata$y > times,]       # remove subjects who got censored before the time of interest t50
