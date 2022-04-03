@@ -53,7 +53,7 @@ estimators = list(estimate_coxph_sl = estimate_coxph_sl,
 
 # *** Setup ***
 out = list()
-n.sim = 20      # change to 30 when "unbalanced"
+n.sim = 20      # change to 35 when "unbalanced"
 n.mc = 10000
 
 # Simulations scenarios
@@ -70,11 +70,11 @@ grid = expand.grid(n = 5000,
 grid$f_i <- c(rep("L", 6), rep("NL", 3))
 grid$p_i <- rep(c(1, 1, 25), 3)
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,])
-grid[10:12, ]$pi <- c(0.01)           # unbalanced design
+grid[10:12, ]$pi <- c(0.01)               # unbalanced design
 grid <- rbind(grid, grid[1,], grid[1,])
-grid[13:14, ]$cen_scale <- c(2, 8)    # vary censoring rate (under indX)
+grid[13:14, ]$cen_scale <- c(2, 8)        # vary censoring rate (under indX)
 grid <- rbind(grid, grid[1,])
-grid[15, ]$cenM <- "dX"               # vary censoring generating model (= dX)
+grid[15, ]$cenM <- "dX"                   # vary censoring generating model (= dX)
 rownames(grid) <- 1:dim(grid)[1]
 
 if(length(args <- commandArgs(T))>0){
@@ -94,17 +94,15 @@ cen_scale = grid$cen_scale[i]
 cenM = grid$cenM[i]
 an.error.occured <- rep(NA, n.sim)
 for (sim in 1:n.sim) {
- # tryCatch( {
+  tryCatch( {
   print(paste("sim", sim))
-  
-  if (dgp %in% c("fcomplex")){
-    times = 0.2
-    data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, 
-                                           pi = pi, dgp = dgp, n.mc = 10, times = times)
-    data.test = generate_tutorial_survival_data(n = n.test, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
-                                                pi = pi, dgp = dgp, n.mc = n.mc, times = times)
-  }
-  
+  data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, 
+                                         pi = pi, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
+                                         n.mc = 10, times = 0.2)
+  data.test = generate_tutorial_survival_data(n = n.test, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
+                                              pi = pi, cen_scale = cen_scale, cenM = cenM, dgp = dgp, 
+                                              n.mc = n.mc, times = 0.2)
+
   data$Y = pmax(rep(0.001, length(data$Y)), data$Y)
   true.catesp = data.test$catesp
   true.catesp.sign = data.test$catesp.sign
@@ -114,12 +112,9 @@ for (sim in 1:n.sim) {
   for (j in 1:length(estimators)) {
     estimator.name = names(estimators)[j]
     print(estimator.name)
-    if (dgp %in% c("fcomplex")){
-      times = 0.2
-      predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, ps = pi, cen_fit = "survival.forest",
-                                                                       times = times, meta_learner = TRUE)))
-      correct.classification = sign(predictions[,j]) == true.catesp.sign
-    }
+    predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, ps = pi, cen_fit = "KM",
+                                                                     times = 0.2, meta_learner = TRUE)))
+    correct.classification = sign(predictions[,j]) == true.catesp.sign
     
     # calibration slope
     calib_fit <- lm(predictions[,j] ~ true.catesp)
@@ -137,13 +132,12 @@ for (sim in 1:n.sim) {
     estimator.output[[j]] = dfj
   }
   
-  # plot the first replicate result
+  # Scatter plot of pred and true CATEs
   if (sim==1){
-    # Scatter plot of pred and true CATEs
     newnames <- str_replace_all(names(estimators), "estimate_", "") 
     newnames <- str_replace_all(newnames, "ipcw_", "")
     names(estimators) <- names(estimators)
-    png(paste0("grid", i, "cen_fit_SF.png"), 
+    png(paste0("grid", i, "cen_fit_KM.png"), 
         width = 10, height = 6, units = 'in', res = 300)
     par(mfrow=c(3,5),
         oma = c(4,4,0,0) + 0.1,
@@ -175,9 +169,9 @@ for (sim in 1:n.sim) {
   df$sim = sim
   
   out = c(out, list(df))
-#  }
-#  , error = function(e) {an.error.occured[i] <<- TRUE})
+  }
+  , error = function(e) {an.error.occured[sim] <<- TRUE})
 }
 print(sum(an.error.occured, na.rm = TRUE))
 out.df = do.call(rbind, out)
-write.csv(out.df, gzfile(paste0("./ML_grid_",i,"_fcomplex_p1_SFfit.csv.gz")), row.names = FALSE)
+write.csv(out.df, gzfile(paste0("./ML_grid_",i,"_KMfit_p1.csv.gz")), row.names = FALSE)

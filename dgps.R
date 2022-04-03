@@ -1049,7 +1049,7 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
     if(cenM == "indX"){
       cen_scale <- cen_scale
     }else if(cenM == "dX"){
-      cen_scale <- exp(1.2 + 1 * X[,1] + (0.5 + 1 * X[,2]) * W)
+      cen_scale <- exp(0.5 + 2 * X[,1] + (1 + 2 * X[,2]) * W)
     }
     censor.time <- (numeratorC/(cen_scale^rho))^(1/rho)
     Y <- pmin(failure.time, censor.time); median(Y)
