@@ -96,12 +96,13 @@ an.error.occured <- rep(NA, n.sim)
 for (sim in 1:n.sim) {
   tryCatch( {
   print(paste("sim", sim))
+  times = 0.2
   data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, 
                                          pi = pi, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
-                                         n.mc = 10, times = 0.2)
+                                         n.mc = 10, times = times)
   data.test = generate_tutorial_survival_data(n = n.test, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
                                               pi = pi, cen_scale = cen_scale, cenM = cenM, dgp = dgp, 
-                                              n.mc = n.mc, times = 0.2)
+                                              n.mc = n.mc, times = times)
 
   data$Y = pmax(rep(0.001, length(data$Y)), data$Y)
   true.catesp = data.test$catesp
@@ -113,7 +114,7 @@ for (sim in 1:n.sim) {
     estimator.name = names(estimators)[j]
     print(estimator.name)
     predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, ps = pi, cen_fit = "KM",
-                                                                     times = 0.2, meta_learner = TRUE)))
+                                                                     times = times, meta_learner = TRUE)))
     correct.classification = sign(predictions[,j]) == true.catesp.sign
     
     # calibration slope
