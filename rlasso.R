@@ -210,7 +210,7 @@ rlasso = function(x, w, y, D,
           cent[testData$D==0] <- times
           c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
         }
-        shudat <- cbind(shuffle, c_hat)
+        shudat <- data.frame(shuffle, c_hat)
         c_hat <- shudat[order(shuffle), ]$c_hat
        }
       }else if (cen_fit == "lasso"){

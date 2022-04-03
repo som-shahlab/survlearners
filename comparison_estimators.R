@@ -305,7 +305,7 @@ estimate_ipcw_lasso_xl <- function(data, data.test, nfolds = 10, ps = NULL, time
       cent[testData$D==0] <- times
       c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
     }
-    shudat <- cbind(shuffle, c_hat)
+    shudat <- data.frame(shuffle, c_hat)
     c_hat <- shudat[order(shuffle), ]$c_hat
   }else if (cen_fit == "lasso"){
     foldid <- sample(rep(seq(nfolds), length = length(traindat$Y)))
@@ -449,7 +449,7 @@ estimate_ipcw_grf_xl <- function(data, data.test, ps = NULL, times = times,
       cent[testData$D==0] <- times
       C.Y.hat[testIndexes] <- summary(km_fit, times = cent)$surv
     }
-    shudat <- cbind(shuffle, C.Y.hat)
+    shudat <- data.frame(shuffle, C.Y.hat)
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
   }else if (cen_fit == "survival.forest"){
     sf.censor <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
@@ -564,7 +564,7 @@ estimate_ipcw_las_grf_xl <- function(data, data.test, nfolds = 10, ps = NULL, ti
       cent[testData$D==0] <- times
       C.Y.hat[testIndexes] <- summary(km_fit, times = cent)$surv
     }
-    shudat <- cbind(shuffle, C.Y.hat)
+    shudat <- data.frame(shuffle, C.Y.hat)
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
   }else if (cen_fit == "survival.forest"){
     sf.censor <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
@@ -712,7 +712,7 @@ estimate_ipcw_lasso_fl <- function(data, data.test, nfolds = 10, ps = NULL, time
       cent[testData$D==0] <- times
       c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
     }
-    shudat <- cbind(shuffle, c_hat)
+    shudat <- data.frame(shuffle, c_hat)
     c_hat <- shudat[order(shuffle), ]$c_hat
   }else if (cen_fit == "lasso"){
     c_fit <- cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]), 
@@ -798,7 +798,7 @@ estimate_ipcw_grf_fl <- function(data, data.test, ps = NULL, times = times, alph
       cent[testData$D==0] <- times
       C.Y.hat[testIndexes] <- summary(km_fit, times = cent)$surv
     }
-    shudat <- cbind(shuffle, C.Y.hat)
+    shudat <- data.frame(shuffle, C.Y.hat)
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
   }else if (cen_fit == "survival.forest"){
     Y.grid <- seq(min(traindat$Y), max(traindat$Y), (max(traindat$Y) - min(traindat$Y))/100)
