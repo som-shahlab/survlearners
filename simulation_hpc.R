@@ -12,7 +12,7 @@ ccdf <- function(pred, true){
     for (j in (i+1):length(pred)){
       paircum <- paircum + 1
       if(pred[i] >= pred[j] & true[i] >= true[j] | pred[i] < pred[j] & true[i] < true[j]){
-        concordant <- concordant + 1 
+        concordant <- concordant + 1
       }else{
         concordant <- concordant
       }
@@ -30,6 +30,7 @@ source("./R/Fgrf.R")
 source("./R/rlasso.R")
 source("./R/rgrf.R")
 source("./R/rlasgrf.R")
+# <--- Can do library(survlearners) instead of these. Don't know what you want do do about sprint_dgp
 source("./R/comparison_estimators.R")
 
 # *** Comparison methods ***
@@ -38,13 +39,13 @@ estimators = list(estimate_coxph_sl = estimate_coxph_sl,
                   estimate_csf_probs = estimate_csf_probs,
                   estimate_ipcw_las_grf_xl = estimate_ipcw_las_grf_xl,
                   estimate_ipcw_las_grf_rl = estimate_ipcw_las_grf_rl,
-                  
+
                   estimate_lasso_sl = estimate_lasso_sl,
                   estimate_lasso_tl = estimate_lasso_tl,
                   estimate_ipcw_lasso_fl = estimate_ipcw_lasso_fl,
                   estimate_ipcw_lasso_xl = estimate_ipcw_lasso_xl,
                   estimate_ipcw_lasso_rl = estimate_ipcw_lasso_rl,
-                  
+
                   estimate_grf_sl = estimate_grf_sl,
                   estimate_grf_tl = estimate_grf_tl,
                   estimate_ipcw_grf_fl = estimate_ipcw_grf_fl,
@@ -97,17 +98,17 @@ for (sim in 1:n.sim) {
   tryCatch( {
   print(paste("sim", sim))
   times = 0.2
-  data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, 
+  data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
                                          pi = pi, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
                                          n.mc = 10, times = times)
   data.test = generate_tutorial_survival_data(n = n.test, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
-                                              pi = pi, cen_scale = cen_scale, cenM = cenM, dgp = dgp, 
+                                              pi = pi, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
                                               n.mc = n.mc, times = times)
 
   data$Y = pmax(rep(0.001, length(data$Y)), data$Y)
   true.catesp = data.test$catesp
   true.catesp.sign = data.test$catesp.sign
-  
+
   predictions = matrix(NA, n.test, length(estimators))
   estimator.output = list()
   for (j in 1:length(estimators)) {
@@ -116,35 +117,35 @@ for (sim in 1:n.sim) {
     predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, ps = pi, cen_fit = "KM",
                                                                      times = times, meta_learner = TRUE)))
     correct.classification = sign(predictions[,j]) == true.catesp.sign
-    
+
     # calibration slope
     calib_fit <- lm(predictions[,j] ~ true.catesp)
-    
+
     dfj = data.frame(
       estimator.name = estimator.name,
       mse = mean((predictions[,j] - true.catesp)^2),
       bias = mean(abs(predictions[,j] - true.catesp)),
-      rcorr = cor(predictions[,j], true.catesp), 
-      calib_coef = calib_fit$coefficients[2], 
-      concordance = ccdf(predictions[,j], true.catesp), 
+      rcorr = cor(predictions[,j], true.catesp),
+      calib_coef = calib_fit$coefficients[2],
+      concordance = ccdf(predictions[,j], true.catesp),
       classif.rate = mean(correct.classification, na.rm = TRUE) # NA: to ignore X1 < 0.3 in DGP 4.
     )
     dfj$rcorr[is.na(dfj$rcorr)==TRUE] <- 0  # assign correlation to 0 when CATE = ATE
     estimator.output[[j]] = dfj
   }
-  
+
   # Scatter plot of pred and true CATEs
   if (sim==1){
-    newnames <- str_replace_all(names(estimators), "estimate_", "") 
+    newnames <- str_replace_all(names(estimators), "estimate_", "")
     newnames <- str_replace_all(newnames, "ipcw_", "")
     names(estimators) <- names(estimators)
-    png(paste0("grid", i, "cen_fit_KM.png"), 
+    png(paste0("grid", i, "cen_fit_KM.png"),
         width = 10, height = 6, units = 'in', res = 300)
     par(mfrow=c(3,5),
         oma = c(4,4,0,0) + 0.1,
         mar = c(2,1,1,1) + 0.1)
     for (z in 1:length(estimators)){
-      plot(predictions[,z], true.catesp, main = newnames[z], 
+      plot(predictions[,z], true.catesp, main = newnames[z],
            xlim=c(min(true.catesp), max(true.catesp)),
            ylim=c(min(true.catesp), max(true.catesp)),
            axes = FALSE)
@@ -160,7 +161,7 @@ for (sim in 1:n.sim) {
           outer = TRUE, line = 2)
     dev.off()
   }
-  
+
   df = do.call(rbind, estimator.output)
   df$n = n
   df$p = p
@@ -168,7 +169,7 @@ for (sim in 1:n.sim) {
   df$dgp = dgp
   df$horizon = times
   df$sim = sim
-  
+
   out = c(out, list(df))
   }
   , error = function(e) {an.error.occured[sim] <<- TRUE})
