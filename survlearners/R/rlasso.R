@@ -10,13 +10,13 @@
 #' @param alpha tuning parameter for the elastic net
 #' @param k_folds number of folds for cross-fitting
 #' @param foldid user-supplied foldid. Must have length equal to length(w). If provided, it overrides the k_folds option.
-#' @param lambda_y user-supplied lambda sequence for cross validation in learning E[y|x]
-#' @param lambda_w user-supplied lambda sequence for cross validation in learning E[w|x]
-#' @param lambda_tau user-supplied lambda sequence for cross validation in learning the treatment effect E[y(1) - y(0) | x]
+#' @param lambda_y user-supplied lambda sequence for cross validation in learning E(y|x)
+#' @param lambda_w user-supplied lambda sequence for cross validation in learning E(w|x)
+#' @param lambda_tau user-supplied lambda sequence for cross validation in learning the treatment effect E(y(1) - y(0) | x)
 #' @param lambda_choice how to cross-validate for learning the treatment effect tau; choose from "lambda.min" or "lambda.1se"
 #' @param rs whether to use the RS-learner (logical).
-#' @param p_hat user-supplied estimate for E[W|X]
-#' @param m_hat user-supplied estimte for E[Y|X]
+#' @param p_hat user-supplied estimate for E(W|X)
+#' @param m_hat user-supplied estimte for E(Y|X)
 #' @param penalty_factor user-supplied penalty factor, a vector of length the same as the number of covariates in x.
 #' @return an rlasso object
 #'
@@ -45,8 +45,8 @@ rlasso = function(x, w, y, D,
                   c_hat = NULL,
                   penalty_factor = NULL,
                   cf = TRUE,
-                  times = NULL, 
-                  failure.times = NULL, 
+                  times = NULL,
+                  failure.times = NULL,
                   num.trees = 2000,
                   alpha = NULL,
                   cen_fit = "KM",
@@ -106,7 +106,7 @@ rlasso = function(x, w, y, D,
     }
 
     if (is.null(p_hat)){
-      
+
         if (cf){
           w_fit = glmnet::cv.glmnet(x, w,
                                     foldid = foldid,
@@ -116,7 +116,7 @@ rlasso = function(x, w, y, D,
                                     lambda = lambda_w,
                                     alpha = alpha,
                                     penalty.factor = penalty_factor_nuisance_w)
-          
+
           w_lambda_min = w_fit$lambda[which.min(w_fit$cvm[!is.na(colSums(w_fit$fit.preval))])]
           theta_hat = w_fit$fit.preval[,!is.na(colSums(w_fit$fit.preval))][, w_fit$lambda[!is.na(colSums(w_fit$fit.preval))] == w_lambda_min]
           p_hat = 1/(1 + exp(-theta_hat))
@@ -128,14 +128,14 @@ rlasso = function(x, w, y, D,
                                     lambda = lambda_w,
                                     alpha = alpha,
                                     penalty.factor = penalty_factor_nuisance_w)
-          
+
           theta_hat = as.vector(predict(w_fit, newx = x, s = w_fit$lambda.min))
           p_hat = 1/(1 + exp(-theta_hat))
         }
     }else{
       w_fit = NULL
     }
-    
+
     if (is.null(m_hat)){
       if (cf){
         tempdat <- data.frame(y, D, w, x)
@@ -146,7 +146,7 @@ rlasso = function(x, w, y, D,
           testdat1 <- testdat; testdat1$w <- 1
           testdat0 <- testdat; testdat0$w <- 0
           traindat <- tempdat[!foldid==k, ]
-          y_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]), 
+          y_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]),
                                      Surv(traindat$y, traindat$D),
                                      family = "cox",
                                      nfolds = k_folds,
@@ -161,7 +161,7 @@ rlasso = function(x, w, y, D,
           traindat <- data.frame(y, D, w, x)
           testdat1 <- traindat; testdat1$w <- 1
           testdat0 <- traindat; testdat0$w <- 0
-          y_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]), 
+          y_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]),
                                      Surv(traindat$y, traindat$D),
                                      family = "cox",
                                      nfolds = k_folds,
@@ -172,11 +172,11 @@ rlasso = function(x, w, y, D,
           survt1 <- pred_surv(y_fit, S0, as.matrix(cbind(testdat1[,3:dim(testdat1)[2]])), times = times, lambda = y_fit$lambda.min)
           survt0 <- pred_surv(y_fit, S0, as.matrix(cbind(testdat0[,3:dim(testdat0)[2]])), times = times, lambda = y_fit$lambda.min)
       }
-      m_hat  <- p_hat * survt1 + (1 - p_hat) * survt0 
+      m_hat  <- p_hat * survt1 + (1 - p_hat) * survt0
     }else {
       y_fit = NULL
     }
-    
+
     args.nuisance <- list(failure.times = failure.times,
                           num.trees = max(50, num.trees / 4),
                           min.node.size = 15,
@@ -186,13 +186,13 @@ rlasso = function(x, w, y, D,
                           alpha = alpha,
                           prediction.type = "Nelson-Aalen",
                           compute.oob.predictions = TRUE)
-    
+
     if (is.null(failure.times)) {
       Y.grid <- sort(unique(y))
     } else {
       Y.grid <- failure.times
     }
-    
+
     if (is.null(c_hat)){
       if(cen_fit == "KM"){
         traindat <- data.frame(Y = y, D = D)
@@ -215,7 +215,7 @@ rlasso = function(x, w, y, D,
         if (cf){
           traindat <- data.frame(y, D, w, x)
           foldid <- sample(rep(seq(k_folds), length = length(w)))
-          c_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]), 
+          c_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]),
                                      Surv(traindat$y, 1-traindat$D),
                                      family = "cox",
                                      foldid = foldid,
@@ -231,7 +231,7 @@ rlasso = function(x, w, y, D,
         } else {
           traindat <- data.frame(y, D, w, x)
           foldid <- sample(rep(seq(k_folds), length = length(w)))
-          c_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]), 
+          c_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]),
                                      Surv(traindat$y, 1-traindat$D),
                                      family = "cox",
                                      foldid = foldid,
@@ -260,17 +260,17 @@ rlasso = function(x, w, y, D,
     binary_data <- tempdat[tempdat$D==1|tempdat$y > times,]          # remove subjects who got censored before the time of interest t50
     binary_data$D[binary_data$D==1 & binary_data$y > times] <- 0     # recode the event status for subjects who had events after t50
     binary_data <- binary_data[complete.cases(binary_data),]
-    
-    weights = 1/binary_data$c_hat     # the treatment weight is already accounted 
+
+    weights = 1/binary_data$c_hat     # the treatment weight is already accounted
     y_tilde = (1 - binary_data$D) - binary_data$m_hat
     x_scl = binary_data[, 8:dim(binary_data)[2]]
     foldid2 = sample(rep(seq(k_folds), length = length(binary_data$w)))
-    
+
     if (rs){
       x_scl_tilde = cbind(as.numeric(binary_data$w - binary_data$p_hat) * cbind(1, x_scl), x_scl)
       x_scl_pred = cbind(1, x_scl, x_scl * 0)
     }else{
-      x_scl_tilde = cbind(as.numeric(binary_data$w - binary_data$p_hat) * cbind(1, x_scl))  
+      x_scl_tilde = cbind(as.numeric(binary_data$w - binary_data$p_hat) * cbind(1, x_scl))
       x_scl_pred = cbind(1, x_scl)
     }
 
@@ -294,7 +294,7 @@ rlasso = function(x, w, y, D,
       tau_beta = as.vector(t(tau_fit$coefficients[-1]))
       tau_hat = as.matrix(x_scl_pred) %*% tau_beta
     }
-    
+
     ret = list(tau_fit = tau_fit,
                tau_beta = tau_beta,
                w_fit = w_fit,

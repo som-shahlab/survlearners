@@ -29,3 +29,8 @@ Collate:
     'scoxph.R'
     'slasso_surv.R'
 VignetteBuilder: knitr
+Imports:
+    MASS,
+    caret,
+    glmnet,
+    stringr
