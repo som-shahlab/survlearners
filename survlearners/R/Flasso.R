@@ -35,18 +35,18 @@
 #'y = rowMeans(x) + tx * tx_effect + rnorm(n, sd = 0.001) # simulate response
 #'
 #'# Estimate PTO forest model
-#'fit_pto = PTOforest(x, tx, y)
-#'pred_pto = predict(fit_pto, newx = x)
+#'#fit_pto = PTOforest(x, tx, y)
+#'#pred_pto = predict(fit_pto, newx = x)
 #'
 #'# Visualize results
-#'plot(tx_effect, pred_pto, main = 'PTO forest',
-#'  xlab = 'True treatment effect', ylab = 'Estimated treatment effect')
-#'abline(0, 1, lty = 2)
+#'#plot(tx_effect, pred_pto, main = 'PTO forest',
+#'#  xlab = 'True treatment effect', ylab = 'Estimated treatment effect')
+#'#abline(0, 1, lty = 2)
 #'
 #' @export
 
 
-Flasso = function(x, tx, y, pscore = rep(.5, nrow(x)), 
+Flasso = function(x, tx, y, pscore = rep(.5, nrow(x)),
                   nfolds = NULL, alpha=NULL, weight,
                   meta_learner = TRUE, verbose = FALSE) {
 
@@ -74,24 +74,24 @@ Flasso = function(x, tx, y, pscore = rep(.5, nrow(x)),
   colnames(x) = paste('X', 1:ncol(x), sep = '')
   fit = list(x = x, pscore = pscore, ipcw = weight)
 
-  z = tx * y / pscore - (1 - tx) * y / (1 - pscore) 
+  z = tx * y / pscore - (1 - tx) * y / (1 - pscore)
 
   if (verbose) cat('fitting IPW treatment lasso\n')
-  
+
   data = data.frame(y = z, x = x)
   colnames(data) = c('y', colnames(x))
-  
+
   if (meta_learner){
-    fit$tau_fit <- cv.glmnet(as.matrix(data[,2:dim(data)[2]]), 
+    fit$tau_fit <- cv.glmnet(as.matrix(data[,2:dim(data)[2]]),
                              data$y,
                              family = "gaussian",
-                             weights = weight, 
+                             weights = weight,
                              nfolds = nfolds,
                              alpha = alpha)
   }else{
     fit$tau_fit <- glm(y ~., family = "gaussian", data = data)
   }
-  
+
   class(fit) = 'Flasso'
   fit
 }
@@ -105,6 +105,5 @@ predict.Flasso = function(object, newx, lambda_choice = "lambda.min", meta_learn
     colnames(newdata) = paste('X', 1:ncol(newdata), sep = '')
     return(predict(object$tau_fit, newdata = newdata))
   }
-   
-}
 
+}

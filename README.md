@@ -1,3 +1,5 @@
+[![ci](https://github.com/som-shahlab/Metalearners-Benchmark/actions/workflows/main.yml/badge.svg)](https://github.com/som-shahlab/Metalearners-Benchmark/actions/workflows/main.yml)
+
 # Metalearners
 
 
