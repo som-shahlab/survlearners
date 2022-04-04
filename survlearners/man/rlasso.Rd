@@ -40,19 +40,19 @@ rlasso(
 
 \item{foldid}{user-supplied foldid. Must have length equal to length(w). If provided, it overrides the k_folds option.}
 
-\item{lambda_y}{user-supplied lambda sequence for cross validation in learning E\link{y|x}}
+\item{lambda_y}{user-supplied lambda sequence for cross validation in learning E(y|x)}
 
-\item{lambda_w}{user-supplied lambda sequence for cross validation in learning E\link{w|x}}
+\item{lambda_w}{user-supplied lambda sequence for cross validation in learning E(w|x)}
 
-\item{lambda_tau}{user-supplied lambda sequence for cross validation in learning the treatment effect E\link{y(1) - y(0) | x}}
+\item{lambda_tau}{user-supplied lambda sequence for cross validation in learning the treatment effect E(y(1) - y(0) | x)}
 
 \item{lambda_choice}{how to cross-validate for learning the treatment effect tau; choose from "lambda.min" or "lambda.1se"}
 
 \item{rs}{whether to use the RS-learner (logical).}
 
-\item{p_hat}{user-supplied estimate for E\link{W|X}}
+\item{p_hat}{user-supplied estimate for E(W|X)}
 
-\item{m_hat}{user-supplied estimte for E\link{Y|X}}
+\item{m_hat}{user-supplied estimte for E(Y|X)}
 
 \item{penalty_factor}{user-supplied penalty factor, a vector of length the same as the number of covariates in x.}
 

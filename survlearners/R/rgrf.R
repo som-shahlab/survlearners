@@ -8,8 +8,8 @@
 #' @param w the treatment variable (0 or 1)
 #' @param y the observed response (real valued)
 #' @param k_folds number of folds used for cross fitting and cross validation
-#' @param p_hat pre-computed estimates on E[W|X] corresponding to the input x. rboost will compute it internally if not provided.
-#' @param m_hat pre-computed estimates on E[Y|X] corresponding to the input x. rboost will compute it internally if not provided.
+#' @param p_hat pre-computed estimates on E(W|X) corresponding to the input x. rboost will compute it internally if not provided.
+#' @param m_hat pre-computed estimates on E(Y|X) corresponding to the input x. rboost will compute it internally if not provided.
 #' @param ntrees_max the maximum number of trees to grow for xgboost
 #' @param num_search_rounds the number of random sampling of hyperparameter combinations for cross validating on xgboost trees
 #' @param print_every_n the number of iterations (in each iteration, a tree is grown) by which the code prints out information
@@ -35,8 +35,8 @@ rgrf = function(x, w, y, D,
                 k_folds = NULL,
                 p_hat = NULL,
                 m_hat = NULL,
-                c_hat = NULL,      # censoring weight 
-                failure.times = NULL, 
+                c_hat = NULL,      # censoring weight
+                failure.times = NULL,
                 num.trees = 2000,
                 sample.weights = NULL,
                 clusters = NULL,
@@ -55,7 +55,7 @@ rgrf = function(x, w, y, D,
                 compute.oob.predictions = TRUE,
                 num.threads = NULL,
                 seed = runif(1, 0, .Machine$integer.max),
-                cen_fit = "KM", 
+                cen_fit = "KM",
                 meta_learner = TRUE,
                 verbose = FALSE){
 
@@ -71,7 +71,7 @@ rgrf = function(x, w, y, D,
   if (is.null(k_folds)) {
     k_folds = floor(max(3, min(10,length(y)/4)))
   }
-  
+
   if (is.null(p_hat)){
     w_fit <- regression_forest(x, w, num.trees = max(50, num.trees / 4),
                                sample.weights = sample.weights, clusters = clusters,
@@ -81,7 +81,7 @@ rgrf = function(x, w, y, D,
                                honesty.fraction = 0.5, honesty.prune.leaves = TRUE,
                                alpha = 0.05, imbalance.penalty = imbalance.penalty,
                                ci.group.size = 1, compute.oob.predictions = TRUE,
-                               num.threads = num.threads, seed = seed) 
+                               num.threads = num.threads, seed = seed)
     p_hat <- predict(w_fit)$predictions
   }else if (length(p_hat) == 1) {
     w_fit = NULL
@@ -89,7 +89,7 @@ rgrf = function(x, w, y, D,
   }else if (length(p_hat) != nrow(x)){
     stop("p_hat has incorrect length.")
   }
-  
+
   args.nuisance <- list(failure.times = failure.times,
                         num.trees = max(50, num.trees / 4),
                         sample.weights = sample.weights,
@@ -106,7 +106,7 @@ rgrf = function(x, w, y, D,
                         compute.oob.predictions = FALSE,
                         num.threads = num.threads,
                         seed = seed)
-  
+
   if (is.null(m_hat)){
     y_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = D), args.nuisance))
     y_fit[["X.orig"]][, ncol(x) + 1] <- rep(1, nrow(x))
@@ -114,15 +114,15 @@ rgrf = function(x, w, y, D,
     y_fit[["X.orig"]][, ncol(x) + 1] <- rep(0, nrow(x))
     S0.hat <- predict(y_fit)$predictions
     y_fit[["X.orig"]][, ncol(x) + 1] <- w
-    
+
     times.index <- findInterval(times, y_fit$failure.times)
     surf1 <- S1.hat[, times.index]
     surf0 <- S0.hat[, times.index]
-    m_hat  <- p_hat * surf1 + (1 - p_hat) * surf0 
+    m_hat  <- p_hat * surf1 + (1 - p_hat) * surf0
   }else {
     y_fit = NULL
   }
-  
+
   if (is.null(failure.times)) {
     Y.grid <- sort(unique(y))
   } else {
@@ -159,21 +159,21 @@ rgrf = function(x, w, y, D,
   }else{
     c_fit <- NULL
   }
-  
+
   # create binary data
   tempdata <- data.frame(y, D, w, m_hat, p_hat, c_hat, x)
   binary_data <- tempdata[tempdata$D==1|tempdata$y > times,]       # remove subjects who got censored before the time of interest t50
   binary_data$D[binary_data$D==1 & binary_data$y > times] <- 0     # recode the event status for subjects who had events after t50
   binary_data <- binary_data[complete.cases(binary_data),]
-  
+
   y_tilde <- (1 - binary_data$D) - binary_data$m_hat
   w_tilde <-  binary_data$w - binary_data$p_hat
   pseudo_outcome <- y_tilde/w_tilde
-  weights <- w_tilde^2/binary_data$c_hat  
-  
+  weights <- w_tilde^2/binary_data$c_hat
+
   tau_dat <- data.frame(pseudo_outcome, binary_data[,7:dim(binary_data)[2]])
   if (meta_learner){
-    tau_fit <- regression_forest(tau_dat[, 2:dim(tau_dat)[2]], 
+    tau_fit <- regression_forest(tau_dat[, 2:dim(tau_dat)[2]],
                                  tau_dat$pseudo_outcome,
                                  sample.weights = weights,
                                  num.trees = num.trees,
@@ -236,7 +236,7 @@ rgrf = function(x, w, y, D,
 predict.rgrf <- function(object,
                          newx = NULL,
                          tau_only = TRUE,
-                         meta_learner = TRUE, 
+                         meta_learner = TRUE,
                           ...) {
   if (!is.null(newx)){
     newx = sanitize_x(newx)

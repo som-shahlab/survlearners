@@ -51,9 +51,9 @@ rlasgrf(
 
 \item{k_folds}{number of folds used for cross fitting and cross validation}
 
-\item{p_hat}{pre-computed estimates on E\link{W|X} corresponding to the input x. rboost will compute it internally if not provided.}
+\item{p_hat}{pre-computed estimates on E(W|X) corresponding to the input x. rboost will compute it internally if not provided.}
 
-\item{m_hat}{pre-computed estimates on E\link{Y|X} corresponding to the input x. rboost will compute it internally if not provided.}
+\item{m_hat}{pre-computed estimates on E(Y|X) corresponding to the input x. rboost will compute it internally if not provided.}
 
 \item{verbose}{boolean; whether to print statistic}
 
