@@ -194,7 +194,6 @@ rlasso = function(x, w, y, D,
     }
     
     if (is.null(c_hat)){
-      if (cf){
       if(cen_fit == "KM"){
         traindat <- data.frame(Y = y, D = D)
         shuffle <- sample(nrow(traindat))
@@ -212,7 +211,6 @@ rlasso = function(x, w, y, D,
         }
         shudat <- data.frame(shuffle, c_hat)
         c_hat <- shudat[order(shuffle), ]$c_hat
-       }
       }else if (cen_fit == "lasso"){
         if (cf){
           traindat <- data.frame(y, D, w, x)
@@ -246,15 +244,12 @@ rlasso = function(x, w, y, D,
           c_hat <- pred_surv(c_fit, S0, x = as.matrix(traindat[,3:dim(traindat)[2]]), times = cent, lambda = c_fit$lambda.min)
         }
       }else if (cen_fit == "survival.forest"){
-        if (cf){
         c_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
         C.hat <- predict(c_fit, failure.times = Y.grid)$predictions
         cent <- y
         cent[D==0] <- times
         cen.times.index <- findInterval(cent, Y.grid)
         c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
-        c_hat[c_hat==0] <- min(c_hat[c_hat!=0])
-        }
       }
     }else {
       c_fit = NULL
