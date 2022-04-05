@@ -73,7 +73,7 @@ rgrf = function(x, w, y, D,
   }
 
   if (is.null(p_hat)){
-    w_fit <- regression_forest(x, w, num.trees = max(50, num.trees / 4),
+    w_fit <- grf::regression_forest(x, w, num.trees = max(50, num.trees / 4),
                                sample.weights = sample.weights, clusters = clusters,
                                equalize.cluster.weights = equalize.cluster.weights,
                                sample.fraction = sample.fraction, mtry = mtry,
@@ -173,7 +173,7 @@ rgrf = function(x, w, y, D,
 
   tau_dat <- data.frame(pseudo_outcome, binary_data[,7:dim(binary_data)[2]])
   if (meta_learner){
-    tau_fit <- regression_forest(tau_dat[, 2:dim(tau_dat)[2]],
+    tau_fit <- grf::regression_forest(tau_dat[, 2:dim(tau_dat)[2]],
                                  tau_dat$pseudo_outcome,
                                  sample.weights = weights,
                                  num.trees = num.trees,

@@ -89,7 +89,7 @@ estimate_grf_sl <- function(data, data.test, times = times, alpha = 0.05, ps = N
 
   Y.grid <- seq(min(traindat$Y), max(traindat$Y), (max(traindat$Y) - min(traindat$Y))/100)
   index <- findInterval(times, Y.grid)
-  grffit <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
+  grffit <- grf::survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
                             traindat$Y,
                             traindat$D,
                             alpha = alpha,
@@ -137,7 +137,7 @@ estimate_lasso_tl <- function(data, data.test, nfolds = 10, times = times, ps = 
 
   # Model for W = 1
   foldid <- sample(rep(seq(nfolds), length = length(traindat1$Y)))
-  lasso_fit1 <- cv.glmnet(as.matrix(traindat1[,3:dim(traindat1)[2]]),
+  lasso_fit1 <- glmnet::cv.glmnet(as.matrix(traindat1[,3:dim(traindat1)[2]]),
                           Surv(traindat1$Y, traindat1$D),
                           family = "cox",
                           alpha = 1,
@@ -171,7 +171,7 @@ estimate_lasso_tl <- function(data, data.test, nfolds = 10, times = times, ps = 
 
   # Model for W = 0
   foldid <- sample(rep(seq(nfolds), length = length(traindat0$Y)))
-  lasso_fit0 <- cv.glmnet(as.matrix(traindat0[,3:dim(traindat0)[2]]),
+  lasso_fit0 <- glmnet::cv.glmnet(as.matrix(traindat0[,3:dim(traindat0)[2]]),
                           Surv(traindat0$Y, traindat0$D),
                           family = "cox",
                           alpha = 1,
@@ -217,7 +217,7 @@ estimate_grf_tl <- function(data, data.test, times = times, alpha = 0.05, ps = N
   index <- findInterval(times, Y.grid)
 
   # Model for W = 1
-  grffit1 <- survival_forest(as.matrix(traindat1[,3:dim(traindat1)[2]]),
+  grffit1 <- grf::survival_forest(as.matrix(traindat1[,3:dim(traindat1)[2]]),
                              traindat1$Y,
                              traindat1$D,
                              alpha = alpha,
@@ -226,7 +226,7 @@ estimate_grf_tl <- function(data, data.test, times = times, alpha = 0.05, ps = N
   surf1 <- predict(grffit1, data.test$X)$predictions[, index]
 
   # Model for W = 0
-  grffit0 <- survival_forest(as.matrix(traindat0[,3:dim(traindat0)[2]]),
+  grffit0 <- grf::survival_forest(as.matrix(traindat0[,3:dim(traindat0)[2]]),
                              traindat0$Y,
                              traindat0$D,
                              alpha = alpha,
@@ -250,7 +250,7 @@ estimate_ipcw_lasso_xl <- function(data, data.test, nfolds = 10, ps = NULL, time
   # fit model on W==1 (cross-fitted using 'preval' in glmnet)
   train1 <- traindat[traindat$W==1, !colnames(traindat) %in% c("W")]
   foldid1 <- sample(rep(seq(nfolds), length = length(train1$Y)))
-  lasso_fit1 <- cv.glmnet(as.matrix(train1[,3:dim(train1)[2]]),
+  lasso_fit1 <- glmnet::cv.glmnet(as.matrix(train1[,3:dim(train1)[2]]),
                           Surv(train1$Y, train1$D),
                           family = "cox",
                           alpha = 1,
@@ -270,7 +270,7 @@ estimate_ipcw_lasso_xl <- function(data, data.test, nfolds = 10, ps = NULL, time
   # fit model on W==0 (cross-fitted using 'preval' in glmnet)
   train0 <- traindat[traindat$W==0, !colnames(traindat) %in% c("W")]
   foldid0 <- sample(rep(seq(nfolds), length = length(train0$Y)))
-  lasso_fit0 <- cv.glmnet(as.matrix(train0[,3:dim(train0)[2]]),
+  lasso_fit0 <- glmnet::cv.glmnet(as.matrix(train0[,3:dim(train0)[2]]),
                           Surv(train0$Y, train0$D),
                           family = "cox",
                           alpha = 1,
@@ -309,7 +309,7 @@ estimate_ipcw_lasso_xl <- function(data, data.test, nfolds = 10, ps = NULL, time
     c_hat <- shudat[order(shuffle), ]$c_hat
   }else if (cen_fit == "lasso"){
     foldid <- sample(rep(seq(nfolds), length = length(traindat$Y)))
-    c_fit <- cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]),
+    c_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]),
                        Surv(traindat$Y, 1-traindat$D),
                        family = "cox",
                        foldid = foldid,
@@ -322,7 +322,7 @@ estimate_ipcw_lasso_xl <- function(data, data.test, nfolds = 10, ps = NULL, time
     c_hat <- pred_surv_preval(c_fit, S0, times = cent, lambda = c_lambda_min)
   }else if (cen_fit == "survival.forest"){
     Y.grid <- seq(min(traindat$Y), max(traindat$Y), (max(traindat$Y) - min(traindat$Y))/100)
-    c_fit <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
+    c_fit <- grf::survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
                              traindat$Y,
                              1 - traindat$D,
                              failure.times = Y.grid,
@@ -338,7 +338,7 @@ estimate_ipcw_lasso_xl <- function(data, data.test, nfolds = 10, ps = NULL, time
   # Propensity score (cross-fitted using 'preval' in glmnet)
   if (is.null(ps)){
     foldid <- sample(rep(seq(nfolds), length = length(traindat$Y)))
-    w_fit <- cv.glmnet(data$X,
+    w_fit <- glmnet::cv.glmnet(data$X,
                        traindat$W,
                        family="binomial",
                        type.measure="deviance",
@@ -366,7 +366,7 @@ estimate_ipcw_lasso_xl <- function(data, data.test, nfolds = 10, ps = NULL, time
 
   if (meta_learner){
     foldid <- sample(rep(seq(nfolds), length = nrow(binary_data[binary_data$W==1,])))
-    XLfit1 <- cv.glmnet(as.matrix(binary_data[binary_data$W==1, 5:(ncol(binary_data)-2)]),
+    XLfit1 <- glmnet::cv.glmnet(as.matrix(binary_data[binary_data$W==1, 5:(ncol(binary_data)-2)]),
                         binary_data$D[binary_data$W==1] - binary_data$Tlasso0[binary_data$W==1],
                         weights = binary_data$weight[binary_data$W==1],
                         foldid = foldid,
@@ -374,7 +374,7 @@ estimate_ipcw_lasso_xl <- function(data, data.test, nfolds = 10, ps = NULL, time
     XLtau1 <- as.vector(-predict(XLfit1, data.test$X, s = lambda_choice))
 
     foldid <- sample(rep(seq(nfolds), length = nrow(binary_data[binary_data$W==0,])))
-    XLfit0 <- cv.glmnet(as.matrix(binary_data[binary_data$W==0, 5:(ncol(binary_data)-2)]),
+    XLfit0 <- glmnet::cv.glmnet(as.matrix(binary_data[binary_data$W==0, 5:(ncol(binary_data)-2)]),
                         binary_data$Tlasso1[binary_data$W==0] - binary_data$D[binary_data$W==0],
                         weights = binary_data$weight[binary_data$W==0],
                         foldid = foldid,
@@ -409,7 +409,7 @@ estimate_ipcw_grf_xl <- function(data, data.test, ps = NULL, times = times,
 
   # fit model on W==1
   train1 <- traindat[traindat$W==1, !colnames(traindat) %in% c("W")]
-  grffit1 <- survival_forest(as.matrix(train1[,3:dim(train1)[2]]),
+  grffit1 <- grf::survival_forest(as.matrix(train1[,3:dim(train1)[2]]),
                              train1$Y,
                              train1$D,
                              alpha = alpha,
@@ -421,7 +421,7 @@ estimate_ipcw_grf_xl <- function(data, data.test, ps = NULL, times = times,
 
   # fit model on W==0
   train0 <- traindat[traindat$W==0, !colnames(traindat) %in% c("W")]
-  grffit0 <- survival_forest(as.matrix(train0[,3:dim(train0)[2]]),
+  grffit0 <- grf::survival_forest(as.matrix(train0[,3:dim(train0)[2]]),
                              train0$Y,
                              train0$D,
                              alpha = alpha,
@@ -452,7 +452,7 @@ estimate_ipcw_grf_xl <- function(data, data.test, ps = NULL, times = times,
     shudat <- data.frame(shuffle, C.Y.hat)
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
   }else if (cen_fit == "survival.forest"){
-    sf.censor <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
+    sf.censor <- grf::survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
                                  traindat$Y,
                                  1 - traindat$D,
                                  failure.times = Y.grid,
@@ -468,7 +468,7 @@ estimate_ipcw_grf_xl <- function(data, data.test, ps = NULL, times = times,
 
   # Propensity score
   if (is.null(ps)){
-    psfit <- regression_forest(data$X, data$W, alpha = alpha)
+    psfit <- grf::regression_forest(data$X, data$W, alpha = alpha)
     ps.train <- psfit$predictions
     ps_test <- predict(psfit, data.test$X)$predictions
   }else{
@@ -486,12 +486,12 @@ estimate_ipcw_grf_xl <- function(data, data.test, ps = NULL, times = times,
   binary_data <- binary_data[complete.cases(binary_data), ]
 
   if (meta_learner){
-    XLfit1 <- regression_forest(as.matrix(binary_data[binary_data$W==1, 5:(ncol(binary_data)-2)]),
+    XLfit1 <- grf::regression_forest(as.matrix(binary_data[binary_data$W==1, 5:(ncol(binary_data)-2)]),
                                 binary_data$D[binary_data$W==1] - binary_data$Tgbm0[binary_data$W==1],
                                 sample.weights = binary_data$weight[binary_data$W==1])
     XLtau1 <- -predict(XLfit1, data.frame(data.test$X))
 
-    XLfit0 <- regression_forest(as.matrix(binary_data[binary_data$W==0, 5:(ncol(binary_data)-2)]),
+    XLfit0 <- grf::regression_forest(as.matrix(binary_data[binary_data$W==0, 5:(ncol(binary_data)-2)]),
                                 binary_data$Tgbm1[binary_data$W==0] - binary_data$D[binary_data$W==0],
                                 sample.weights = binary_data$weight[binary_data$W==0])
     XLtau0 <- -predict(XLfit0, data.frame(data.test$X))
@@ -524,7 +524,7 @@ estimate_ipcw_las_grf_xl <- function(data, data.test, nfolds = 10, ps = NULL, ti
 
   # fit model on W==1
   train1 <- traindat[traindat$W==1, !colnames(traindat) %in% c("W")]
-  grffit1 <- survival_forest(as.matrix(train1[,3:dim(train1)[2]]),
+  grffit1 <- grf::survival_forest(as.matrix(train1[,3:dim(train1)[2]]),
                              train1$Y,
                              train1$D,
                              alpha = alpha,
@@ -536,7 +536,7 @@ estimate_ipcw_las_grf_xl <- function(data, data.test, nfolds = 10, ps = NULL, ti
 
   # fit model on W==0
   train0 <- traindat[traindat$W==0, !colnames(traindat) %in% c("W")]
-  grffit0 <- survival_forest(as.matrix(train0[,3:dim(train0)[2]]),
+  grffit0 <- grf::survival_forest(as.matrix(train0[,3:dim(train0)[2]]),
                              train0$Y,
                              train0$D,
                              alpha = alpha,
@@ -567,7 +567,7 @@ estimate_ipcw_las_grf_xl <- function(data, data.test, nfolds = 10, ps = NULL, ti
     shudat <- data.frame(shuffle, C.Y.hat)
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
   }else if (cen_fit == "survival.forest"){
-    sf.censor <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
+    sf.censor <- grf::survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
                                  traindat$Y,
                                  1 - traindat$D,
                                  failure.times = Y.grid,
@@ -583,7 +583,7 @@ estimate_ipcw_las_grf_xl <- function(data, data.test, nfolds = 10, ps = NULL, ti
 
   # Propensity score
   if (is.null(ps)){
-    psfit <- regression_forest(data$X, data$W, alpha = alpha)
+    psfit <- grf::regression_forest(data$X, data$W, alpha = alpha)
     ps.train <- psfit$predictions
     ps_test <- predict(psfit, data.test$X)$predictions
   }else{
@@ -602,7 +602,7 @@ estimate_ipcw_las_grf_xl <- function(data, data.test, nfolds = 10, ps = NULL, ti
 
   if (meta_learner){
     foldid <- sample(rep(seq(nfolds), length = nrow(binary_data[binary_data$W==1,])))
-    XLfit1 <- cv.glmnet(as.matrix(binary_data[binary_data$W==1, 5:(ncol(binary_data)-2)]),
+    XLfit1 <- glmnet::cv.glmnet(as.matrix(binary_data[binary_data$W==1, 5:(ncol(binary_data)-2)]),
                         binary_data$D[binary_data$W==1] - binary_data$Tgbm0[binary_data$W==1],
                         weights = binary_data$weight[binary_data$W==1],
                         foldid = foldid,
@@ -610,7 +610,7 @@ estimate_ipcw_las_grf_xl <- function(data, data.test, nfolds = 10, ps = NULL, ti
     XLtau1 <- as.vector(-predict(XLfit1, data.test$X, s = lambda_choice))
 
     foldid <- sample(rep(seq(nfolds), length = length(binary_data[binary_data$W==0,]$Y)))
-    XLfit0 <- cv.glmnet(as.matrix(binary_data[binary_data$W==0, 5:(ncol(binary_data)-2)]),
+    XLfit0 <- glmnet::cv.glmnet(as.matrix(binary_data[binary_data$W==0, 5:(ncol(binary_data)-2)]),
                         binary_data$Tgbm1[binary_data$W==0] - binary_data$D[binary_data$W==0],
                         weights = binary_data$weight[binary_data$W==0],
                         foldid = foldid,
@@ -715,7 +715,7 @@ estimate_ipcw_lasso_fl <- function(data, data.test, nfolds = 10, ps = NULL, time
     shudat <- data.frame(shuffle, c_hat)
     c_hat <- shudat[order(shuffle), ]$c_hat
   }else if (cen_fit == "lasso"){
-    c_fit <- cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]),
+    c_fit <- glmnet::cv.glmnet(as.matrix(traindat[,3:dim(traindat)[2]]),
                        Surv(traindat$Y, 1-traindat$D),
                        family = "cox",
                        foldid = foldid,
@@ -729,7 +729,7 @@ estimate_ipcw_lasso_fl <- function(data, data.test, nfolds = 10, ps = NULL, time
     c_hat <- pred_surv_preval(c_fit, S0, times = cent, lambda = c_lambda_min)
   }else if (cen_fit == "survival.forest"){
     Y.grid <- seq(min(traindat$Y), max(traindat$Y), (max(traindat$Y) - min(traindat$Y))/100)
-    c_fit <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
+    c_fit <- grf::survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
                                  traindat$Y,
                                  1 - traindat$D,
                                  failure.times = Y.grid,
@@ -745,7 +745,7 @@ estimate_ipcw_lasso_fl <- function(data, data.test, nfolds = 10, ps = NULL, time
 
   # Propensity score
   if (is.null(ps)){
-    w_fit <- cv.glmnet(data$X,
+    w_fit <- glmnet::cv.glmnet(data$X,
                        data$W,
                        family="binomial",
                        type.measure="deviance",
@@ -802,7 +802,7 @@ estimate_ipcw_grf_fl <- function(data, data.test, ps = NULL, times = times, alph
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
   }else if (cen_fit == "survival.forest"){
     Y.grid <- seq(min(traindat$Y), max(traindat$Y), (max(traindat$Y) - min(traindat$Y))/100)
-    sf.censor <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
+    sf.censor <- grf::survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
                                  traindat$Y,
                                  1 - traindat$D,
                                  failure.times = Y.grid,
@@ -818,7 +818,7 @@ estimate_ipcw_grf_fl <- function(data, data.test, ps = NULL, times = times, alph
 
   # Propensity score
   if (is.null(ps)){
-    psfit <- regression_forest(as.matrix(traindat[,4:dim(traindat)[2]]),
+    psfit <- grf::regression_forest(as.matrix(traindat[,4:dim(traindat)[2]]),
                                traindat$W,
                                alpha = alpha)
     pscore <- psfit$predictions
@@ -847,7 +847,7 @@ estimate_ipcw_grf_fl <- function(data, data.test, ps = NULL, times = times, alph
 # Causal survival forest
 estimate_csf_probs <- function(data, data.test, ps = NULL, times = times, alpha = 0.05, cen_fit = "KM", meta_learner = TRUE) {
   Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
-  fit <- causal_survival_forest(X = data$X,
+  fit <- grf::causal_survival_forest(X = data$X,
                                 Y = data$Y,
                                 W = data$W,
                                 D = data$D,

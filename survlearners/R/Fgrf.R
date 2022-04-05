@@ -82,7 +82,7 @@ Fgrf = function(x, tx, y, pscore = rep(.5, nrow(x)),
   colnames(data) <- c('y', colnames(x))
 
   if (meta_learner){
-    fit$tau_fit <- regression_forest(as.matrix(data[,2:dim(data)[2]]),
+    fit$tau_fit <- grf::regression_forest(as.matrix(data[,2:dim(data)[2]]),
                                      data$y,
                                      sample.weights = weight)
   }else{

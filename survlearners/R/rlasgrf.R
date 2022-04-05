@@ -99,7 +99,7 @@ rlasgrf = function(x, w, y, D,
   }
 
   if (is.null(p_hat)){
-    w_fit <- regression_forest(x, w, num.trees = max(50, num.trees / 4),
+    w_fit <- grf::regression_forest(x, w, num.trees = max(50, num.trees / 4),
                                sample.weights = sample.weights, clusters = clusters,
                                equalize.cluster.weights = equalize.cluster.weights,
                                sample.fraction = sample.fraction, mtry = mtry,

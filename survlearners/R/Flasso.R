@@ -82,7 +82,7 @@ Flasso = function(x, tx, y, pscore = rep(.5, nrow(x)),
   colnames(data) = c('y', colnames(x))
 
   if (meta_learner){
-    fit$tau_fit <- cv.glmnet(as.matrix(data[,2:dim(data)[2]]),
+    fit$tau_fit <- glmnet::cv.glmnet(as.matrix(data[,2:dim(data)[2]]),
                              data$y,
                              family = "gaussian",
                              weights = weight,
