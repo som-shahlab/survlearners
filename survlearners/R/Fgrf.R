@@ -52,7 +52,7 @@ Fgrf = function(x, tx, y, pscore = rep(.5, nrow(x)),
 
   # Input sanitization
 
-  x = as.matrix(x)
+  x <- as.matrix(x)
 
   if (nrow(x) != length(tx)) {
     stop('nrow(x) does not match length(tx)')
