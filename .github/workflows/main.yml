@@ -26,10 +26,10 @@ jobs:
           chmod 0755 run.sh
           ./run.sh bootstrap
 
-      # - name: Dependencies
-      #   working-directory: survlearners
-      #   run: ./run.sh install_all
-      #
+      - name: Dependencies
+        working-directory: survlearners
+        run: ./run.sh install_all
+      
       # - name: Test
       #   working-directory: survlearners
       #   run: ./run.sh run_tests
