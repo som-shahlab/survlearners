@@ -36,5 +36,4 @@ jobs:
       - name: Print logs
         if: failure()
         working-directory: survlearners
-        run: |
-          ./run.sh dump_logs
+        run: ./run.sh dump_logs
