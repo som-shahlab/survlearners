@@ -31,12 +31,11 @@ jobs:
 
       - name: Test
         working-directory: survlearners
-        run: |
-          ./run.sh run_tests && ./run.sh dump_logs_by_extension "fail"
+        run: ./run.sh run_tests
 
       - name: Print logs
         if: failure()
         working-directory: survlearners
         run: |
           ./run.sh dump_logs_by_extension "fail"
-          cat /Users/runner/work/Metalearners-Benchmark/Metalearners-Benchmark/survlearners/survlearners.Rcheck/00check.log
+          cat /Users/runner/work/Metalearners-Benchmark/Metalearners-Benchmark/survlearners/survlearners.Rcheck/00install.out
