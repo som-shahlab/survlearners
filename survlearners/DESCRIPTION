@@ -1,0 +1,27 @@
+Package: survlearners
+Title: Survival Metalearners
+Version: 0.0.1
+Authors@R: c(
+    person("Yizhe", "Xu", role = c("aut", "cre"), email = "yizhex@stanford.edu"),
+    person("Nikolaos", "Ignatiadis", role = "aut"),
+    person("Erik", "Sverdrup", role = "aut"),
+    person("Scott", "Fleming", role = "aut"),
+    person("Stefan", "Wager", role = "aut"),
+    person("Nigam", "Shah", role = "aut"))
+Description: Benchmark survival-metalearners.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Imports:
+    MASS,
+    mvtnorm,
+    caret,
+    glmnet,
+    stringr
