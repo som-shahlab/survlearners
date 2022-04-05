@@ -50,4 +50,4 @@ jobs:
           mv docs/ ../docs
           git add --force ../docs/
           git commit --allow-empty -m "Update gh-pages"
-          git push --force https://$(SURVLEARNER_TOKEN)@github.com/som-shahlab/Metalearners-Benchmark.git HEAD:gh-pages
+          git push --force https://$(SURVLEARNER_TOKEN)@github.com/som-shahlab/survmetabench.git HEAD:gh-pages
