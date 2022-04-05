@@ -4,23 +4,20 @@ name: ci
 
 on:
   push:
+    branches: master
   pull_request:
-
-env:
-  USE_BSPM: "true"
-  _R_CHECK_FORCE_SUGGESTS_: "false"
+    branches: master
 
 jobs:
   ci:
-    strategy:
-      matrix:
-        include:
-          - {os: macOS-latest}
-
-    runs-on: ${{ matrix.os }}
-
+    runs-on: macOS-latest
+    env:
+      USE_BSPM: "true"
+      _R_CHECK_FORCE_SUGGESTS_: "false"
+      GITHUB_PAT: ${{ secrets.SURVLEARNER_TOKEN }}
     steps:
       - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-pandoc@v1 # For pkgdown page
 
       - name: Bootstrap
         working-directory: survlearners
@@ -40,4 +37,16 @@ jobs:
       - name: Print logs
         if: failure()
         working-directory: survlearners
-        run: ./run.sh dump_logs_by_extension "fail"
+        run: ./run.sh dump_logs
+
+      - name: GitHub pages
+        if: github.ref == 'refs/heads/master'
+        working-directory: survlearners
+        run: |
+          sudo Rscript -e "install.packages('pkgdown')"
+          git config --local user.name "GITHUB_ACTIONS"
+          git config --local user.email "GITHUB_ACTIONS@users.noreply.github.com"
+          Rscript -e "pkgdown::build_site()"
+          git add --all
+          git commit --allow-empty -m "Update gh-pages"
+          git push --force https://$(SURVLEARNER_TOKEN)@github.com/som-shahlab/Metalearners-Benchmark.git HEAD:gh-pages
