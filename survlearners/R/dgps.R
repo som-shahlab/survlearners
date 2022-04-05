@@ -51,7 +51,7 @@
 #' data2 <- generate_causal_data(100, 5, dgp = "aw2")
 #' }
 #' @export
-generate_causal_data <- function(n, p, sigma.m = 1, sigma.tau = 0.1, sigma.noise = 1,  
+generate_causal_data <- function(n, p, sigma.m = 1, sigma.tau = 0.1, sigma.noise = 1,
                                  dgp = c("simple", "aw1", "aw2", "aw3", "aw3reverse",
                                          "ai1", "ai2", "kunzel", "nw1", "nw2", "nw3", "nw4")) {
   # To add an additonal DGP, fill in the template below and add an entry to `dgp` and `.minp`.
@@ -240,14 +240,14 @@ generate_causal_data <- function(n, p, sigma.m = 1, sigma.tau = 0.1, sigma.noise
 
 # Simulation from Recursively Imputed Survival Trees (Zhu and Kosorok 2012)
 library(mvtnorm)
-generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL, 
+generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL,
                                           dgp = c("scenario1", "scenario2", "scenario3", "scenario4", "scenario5")) {
   dgp <- match.arg(dgp)
   if (!is.null(X)) {
     p <- NCOL(X)
     n <- NROW(X)
   }
-  
+
   if (dgp == "scenario1") {
     # p = 25; times = 0.8
     if (is.null(Y.max)) {
@@ -283,7 +283,7 @@ generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 100
     if (is.null(Y.max)) {
       Y.max <- 6
     }
- 
+
     if (is.null(X)) {
       X <- matrix(runif(n * p), n, p)
     }
@@ -299,7 +299,7 @@ generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 100
     for (i in 1:n) {
       ft1 <- pmin(rexp(n.mc, sin(X[i, 1]*pi) + 2*abs(X[i,2]-0.5) + X[i, 3]^3), Y.max)
       ft0 <- pmin(rexp(n.mc, sin(X[i, 1]*pi) + 2*abs(X[i,2]-0.5) + X[i, 3]^3 + (0.5 + sin(X[i, 1]*pi) + 2*abs(X[i,2]-0.5) + X[i, 3]^3)), Y.max)
-      catesp[i] <- mean((ft1 > times) - (ft0 > times))  
+      catesp[i] <- mean((ft1 > times) - (ft0 > times))
     }
     catesp.sign <- sign(catesp)
   } else if (dgp == "scenario3") {
@@ -307,7 +307,7 @@ generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 100
     if (is.null(Y.max)) {
       Y.max <- 10
     }
-    
+
     if (is.null(X)) {
       rho <- 0.75
       sigma <- matrix(NA, p, p)
@@ -338,7 +338,7 @@ generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 100
       if (is.null(Y.max)) {
         Y.max <- 4
       }
-    
+
       if (is.null(X)) {
         rho <- 0.75
         sigma <- matrix(NA, p, p)
@@ -361,7 +361,7 @@ generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 100
       for (i in 1:n) {
         ft0 <- pmin(rlnorm(n.mc, 0.1*abs(rowSums(X[, 1:5])) + 0.1*abs(rowSums(X[, 21:25]))), Y.max)
         ft1 <- pmin(rlnorm(n.mc, 0.1*abs(rowSums(X[, 1:5])) + 0.1*abs(rowSums(X[, 21:25]))) + abs(0.1 + 0.5*X[, 1] + 0.5*X[, 21]), Y.max)
-        catesp[i] <- mean((ft1 > times) - (ft0 > times)) 
+        catesp[i] <- mean((ft1 > times) - (ft0 > times))
       }
       catesp.sign <- sign(catesp)
   } else if (dgp == "scenario5") {
@@ -369,7 +369,7 @@ generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 100
     if (is.null(Y.max)) {
       Y.max <- 2
     }
-    
+
     if (is.null(X)) {
       rho <- 0.2
       sigma <- matrix(NA, p, p)
@@ -385,7 +385,7 @@ generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 100
     mu <- exp(rowSums(X[, 1:3]) + (0.5 + X[, 1] + X[, 2])*abs(W-1))/(1+exp(rowSums(X[, 1:3]) + (0.5 + X[, 1] + X[, 2])*abs(W-1)))
     failure.time <- pmin(rexp(n, mu), Y.max)
     censor.time <- rbinom(n, 1, mu/2)*failure.time/3
-    censor.time[censor.time==0] <- failure.time[censor.time==0] + 1  # check with Nikos on this 
+    censor.time[censor.time==0] <- failure.time[censor.time==0] + 1  # check with Nikos on this
     Y <- pmin(failure.time, censor.time)
     D <- as.integer(failure.time <= censor.time)  # censoring rate = 42%
     catesp <- rep(NA, n)
@@ -396,19 +396,19 @@ generate_survival_tree_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 100
       catesp[i] <- mean((ft1 > times) - (ft0 > times)) # times = 0.5
     }
     catesp.sign <- sign(catesp)
-  }         
+  }
     list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
-}    
+}
 
-# R-learner simulation (survival version) 
-generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL, 
+# R-learner simulation (survival version)
+generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL,
                                              dgp = c("RLsurv1", "RLsurv2", "RLsurv3", "RLsurv4")) {
   dgp <- match.arg(dgp)
   if (!is.null(X)) {
     p <- NCOL(X)
     n <- NROW(X)
   }
-  
+
   if (dgp == "RLsurv1") {
     # p = 25; times = 3.5
     if (is.null(Y.max)) {
@@ -430,7 +430,7 @@ generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc 
     for (i in 1:n) {
       ft1 <- pmin(exp(b0[i] + (1 - 0.5) * tau[i] + rnorm(n.mc)), Y.max)
       ft0 <- pmin(exp(b0[i] + (0 - 0.5) * tau[i] + rnorm(n.mc)), Y.max)
-      catesp[i] <- mean((ft1 > times) - (ft0 > times)) 
+      catesp[i] <- mean((ft1 > times) - (ft0 > times))
     }
     catesp.sign <- sign(catesp)
   } else if (dgp == "RLsurv2") {
@@ -443,7 +443,7 @@ generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc 
     }
     W <- rbinom(n, 1, 0.5)
     b0 <- pmax((X[,1] + X[,2]), X[, 3], 0) + pmax(X[, 4] + X[, 5], 0)
-    tau <- X[, 1] + log(1 + exp(X[, 2])) 
+    tau <- X[, 1] + log(1 + exp(X[, 2]))
     numerator <- -log(runif(n))
     failure.time <- pmin(numerator/(0.1 * exp(b0 + (0.5 - W) * tau)), Y.max)
     censor.time <- numerator/(0.2 * exp(X[,1] + X[,2] + X[,4] + X[,5]))
@@ -455,7 +455,7 @@ generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc 
     for (i in 1:n) {
       ft1 <- pmin(numerator / (0.1 * exp(b0[i] + (0.5 - 1) * tau[i])), Y.max)
       ft0 <- pmin(numerator / (0.1 * exp(b0[i] + (0.5 - 0) * tau[i])), Y.max)
-      catesp[i] <- mean((ft1 > times) - (ft0 > times))  
+      catesp[i] <- mean((ft1 > times) - (ft0 > times))
     }
     catesp.sign <- sign(catesp)
   } else if (dgp == "RLsurv3") {
@@ -468,7 +468,7 @@ generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc 
     }
     e <- 1/(1 + exp(X[, 2] + X[, 3]))
     W <- rbinom(n, 1, e)
-    b0 <- 2 * log(1 + exp(X[,1] + X[,2] + X[, 3]))  
+    b0 <- 2 * log(1 + exp(X[,1] + X[,2] + X[, 3]))
     tau <- 1
     numerator <- -log(runif(n))
     failure.time <- pmin(numerator^(1/2)/(0.1 * exp(b0 + (0.5 - W) * tau)), Y.max)  # rho = 2, increasing hazard function
@@ -481,7 +481,7 @@ generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc 
     for (i in 1:n) {
       ft1 <- pmin(numerator^(1/2) / (0.1 * exp(b0[i] + (0.5 - 1) * tau)), Y.max)
       ft0 <- pmin(numerator^(1/2) / (0.1 * exp(b0[i] + (0.5 - 0) * tau)), Y.max)
-      catesp[i] <- mean((ft1 > times) - (ft0 > times))  
+      catesp[i] <- mean((ft1 > times) - (ft0 > times))
     }
     catesp.sign <- sign(catesp)
   }else if (dgp == "RLsurv4") {
@@ -489,7 +489,7 @@ generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc 
     if (is.null(Y.max)) {
       Y.max <- 6
     }
-    
+
     if (is.null(X)) {
       X <- matrix(rnorm(n * p), n, p)
     }
@@ -505,32 +505,32 @@ generate_R_learner_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc 
     for (i in 1:n) {
       ft1 <- pmin(exp(b0[i] + (1 - 0.5) * tau[i] + rnorm(n.mc)), Y.max)
       ft0 <- pmin(exp(b0[i] + (0 - 0.5) * tau[i] + rnorm(n.mc)), Y.max)
-      catesp[i] <- mean((ft1 > times) - (ft0 > times))  
+      catesp[i] <- mean((ft1 > times) - (ft0 > times))
     }
     catesp.sign <- sign(catesp)
-  }       
+  }
   list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
-}    
+}
 
 # SPRINT-based simulation by Scotty
-generate_sprint_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL, 
+generate_sprint_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL,
                                           dgp = c("ate0", "fixHR5", "hteHR5", "fixHR10", "hteHR10",
                                                   "fixHR20", "hteHR20", "fixHR50", "hteHR50")) {
   if (dgp == "ate0") {
-    # sprint simulator by Scotty, ATE = 0 
+    # sprint simulator by Scotty, ATE = 0
     results_dict <- simulate_parametric_SPRINT_data(n = n,
                                                     e = 0.5,
-                                                    fixed_treatment_effect_strength = 0, # reflect HR = 1 
+                                                    fixed_treatment_effect_strength = 0, # reflect HR = 1
                                                     variable_treatment_effect_type = 'ascvd_correlated',
                                                     variable_treatment_effect_strength = 0,
                                                     use_fit_with_treatment_interactions = FALSE,
-                                                    end_time=365.25*3, 
+                                                    end_time=365.25*3,
                                                     event_rate_multiplier = 1.0)
     X <- as.matrix(results_dict$X)
     Y <- results_dict$Y
     W <- results_dict$W
     D <- results_dict$D
-    Y.max <- NULL  
+    Y.max <- NULL
     catesp <- results_dict$tau_sc_diff
     catesp.sign <- 2 * as.numeric(catesp > 0.007) - 1  # ATE is positive, methods that can only estimate ATE show perfect classification if use 0 as the cutoff
     cate <- NULL
@@ -541,15 +541,15 @@ generate_sprint_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 1
                                                     e = 0.5,
                                                     fixed_treatment_effect_strength = -0.3, # reflect HR = 0.75 in SPRINT (NEJM 2015)
                                                     variable_treatment_effect_type = 'ascvd_correlated',
-                                                    variable_treatment_effect_strength = 0, # CATE does not depend on X via ASCVD risk 
-                                                    use_fit_with_treatment_interactions = FALSE, # HR is constant across subjects 
-                                                    end_time=365.25*3, 
+                                                    variable_treatment_effect_strength = 0, # CATE does not depend on X via ASCVD risk
+                                                    use_fit_with_treatment_interactions = FALSE, # HR is constant across subjects
+                                                    end_time=365.25*3,
                                                     event_rate_multiplier = 1.0)
     X <- as.matrix(results_dict$X)
     Y <- results_dict$Y
     W <- results_dict$W
     D <- results_dict$D
-    Y.max <- NULL  
+    Y.max <- NULL
     catesp <- results_dict$tau_sc_diff
     catesp.sign <- 2 * as.numeric(catesp > 0.007) - 1
     cate <- NULL
@@ -561,138 +561,138 @@ generate_sprint_survival_data <- function(n, p, Y.max = NULL, X = NULL, n.mc = 1
                                                     fixed_treatment_effect_strength = -0.3, # reflect HR = 0.75 in SPRINT (NEJM 2015)
                                                     variable_treatment_effect_type = 'ascvd_correlated',
                                                     variable_treatment_effect_strength = 0,
-                                                    use_fit_with_treatment_interactions = TRUE, # HR varies across subjects, directly depends on X 
-                                                    end_time = 365.25*3, 
-                                                    event_rate_multiplier = 1.3) # adjust this to ensure 5% event rate 
+                                                    use_fit_with_treatment_interactions = TRUE, # HR varies across subjects, directly depends on X
+                                                    end_time = 365.25*3,
+                                                    event_rate_multiplier = 1.3) # adjust this to ensure 5% event rate
     X <- as.matrix(results_dict$X)
     Y <- results_dict$Y
     W <- results_dict$W
     D <- results_dict$D
-    Y.max <- NULL  
+    Y.max <- NULL
     catesp <- results_dict$tau_sc_diff
     catesp.sign <- 2 * as.numeric(catesp > 0.007) - 1
     cate <- NULL
     cate.sign <- NULL
   }else if (dgp == "fixHR10") {
-    # Heterogeneity on HR = 0, ~10% event rate 
+    # Heterogeneity on HR = 0, ~10% event rate
     results_dict <- simulate_parametric_SPRINT_data(n = n,
                                                     e = 0.5,
                                                     fixed_treatment_effect_strength = -0.3, # reflect HR = 0.75 in SPRINT (NEJM 2015)
                                                     variable_treatment_effect_type = 'ascvd_correlated',
                                                     variable_treatment_effect_strength = 0,
                                                     use_fit_with_treatment_interactions = FALSE,
-                                                    end_time=365.25*3, 
-                                                    event_rate_multiplier = 2)  # higher event rate 
+                                                    end_time=365.25*3,
+                                                    event_rate_multiplier = 2)  # higher event rate
     X <- as.matrix(results_dict$X)
     Y <- results_dict$Y
     W <- results_dict$W
     D <- results_dict$D
-    Y.max <- NULL  
+    Y.max <- NULL
     catesp <- results_dict$tau_sc_diff
     catesp.sign <- 2*as.numeric(catesp>0.007)-1
     cate <- NULL
     cate.sign <- NULL
   }else if (dgp == "hteHR10") {
-    # Heterogeneity on HR is NOT 0, 10% event rate 
+    # Heterogeneity on HR is NOT 0, 10% event rate
     results_dict <- simulate_parametric_SPRINT_data(n = n,
                                                     e = 0.5,
                                                     fixed_treatment_effect_strength = -0.3, # reflect HR = 0.75 in SPRINT (NEJM 2015)
                                                     variable_treatment_effect_type = 'ascvd_correlated',
                                                     variable_treatment_effect_strength = 0,
                                                     use_fit_with_treatment_interactions = TRUE,
-                                                    end_time=365.25*3, 
+                                                    end_time=365.25*3,
                                                     event_rate_multiplier = 2.5)
     X <- as.matrix(results_dict$X)
     Y <- results_dict$Y
     W <- results_dict$W
     D <- results_dict$D
-    Y.max <- NULL  
+    Y.max <- NULL
     catesp <- results_dict$tau_sc_diff
     catesp.sign <- 2*as.numeric(catesp>0.007)-1
     cate <- NULL
     cate.sign <- NULL
   }else if (dgp == "fixHR20") {
-    # Heterogeneity on HR = 0, ~20% event rate 
+    # Heterogeneity on HR = 0, ~20% event rate
     results_dict <- simulate_parametric_SPRINT_data(n = n,
                                                     e = 0.5,
                                                     fixed_treatment_effect_strength = -0.3, # reflect HR = 0.75 in SPRINT (NEJM 2015)
                                                     variable_treatment_effect_type = 'ascvd_correlated',
                                                     variable_treatment_effect_strength = 0,
                                                     use_fit_with_treatment_interactions = FALSE,
-                                                    end_time=365.25*3, 
-                                                    event_rate_multiplier = 3.5)  # higher event rate 
+                                                    end_time=365.25*3,
+                                                    event_rate_multiplier = 3.5)  # higher event rate
     X <- as.matrix(results_dict$X)
     Y <- results_dict$Y
     W <- results_dict$W
     D <- results_dict$D
-    Y.max <- NULL  
+    Y.max <- NULL
     catesp <- results_dict$tau_sc_diff
     catesp.sign <- 2*as.numeric(catesp>0.007)-1
     cate <- NULL
     cate.sign <- NULL
   }else if (dgp == "hteHR20") {
-    # Heterogeneity on HR is NOT 0, 20% event rate 
+    # Heterogeneity on HR is NOT 0, 20% event rate
     results_dict <- simulate_parametric_SPRINT_data(n = n,
                                                     e = 0.5,
                                                     fixed_treatment_effect_strength = -0.3, # reflect HR = 0.75 in SPRINT (NEJM 2015)
                                                     variable_treatment_effect_type = 'ascvd_correlated',
                                                     variable_treatment_effect_strength = 0,
                                                     use_fit_with_treatment_interactions = TRUE,
-                                                    end_time=365.25*3, 
+                                                    end_time=365.25*3,
                                                     event_rate_multiplier = 5.2)
     X <- as.matrix(results_dict$X)
     Y <- results_dict$Y
     W <- results_dict$W
     D <- results_dict$D
-    Y.max <- NULL  
+    Y.max <- NULL
     catesp <- results_dict$tau_sc_diff
     catesp.sign <- 2*as.numeric(catesp>0.007)-1
     cate <- NULL
     cate.sign <- NULL
   }else if (dgp == "fixHR50") {
-    # Heterogeneity on HR = 0, ~50% event rate 
+    # Heterogeneity on HR = 0, ~50% event rate
     results_dict <- simulate_parametric_SPRINT_data(n = n,
                                                     e = 0.5,
                                                     fixed_treatment_effect_strength = -0.3, # reflect HR = 0.75 in SPRINT (NEJM 2015)
                                                     variable_treatment_effect_type = 'ascvd_correlated',
                                                     variable_treatment_effect_strength = 0,
                                                     use_fit_with_treatment_interactions = FALSE,
-                                                    end_time=365.25*3, 
-                                                    event_rate_multiplier = 10)  # higher event rate 
+                                                    end_time=365.25*3,
+                                                    event_rate_multiplier = 10)  # higher event rate
     X <- as.matrix(results_dict$X)
     Y <- results_dict$Y
     W <- results_dict$W
     D <- results_dict$D
-    Y.max <- NULL  
+    Y.max <- NULL
     catesp <- results_dict$tau_sc_diff
     catesp.sign <- 2*as.numeric(catesp>0.007)-1
     cate <- NULL
     cate.sign <- NULL
   }else if (dgp == "hteHR50") {
-    # Heterogeneity on HR is NOT 0, 50% event rate 
+    # Heterogeneity on HR is NOT 0, 50% event rate
     results_dict <- simulate_parametric_SPRINT_data(n = n,
                                                     e = 0.5,
                                                     fixed_treatment_effect_strength = -0.3, # reflect HR = 0.75 in SPRINT (NEJM 2015)
                                                     variable_treatment_effect_type = 'ascvd_correlated',
                                                     variable_treatment_effect_strength = 0,
                                                     use_fit_with_treatment_interactions = TRUE,
-                                                    end_time=365.25*3, 
+                                                    end_time=365.25*3,
                                                     event_rate_multiplier = 17)
     X <- as.matrix(results_dict$X)
     Y <- results_dict$Y
     W <- results_dict$W
     D <- results_dict$D
-    Y.max <- NULL  
+    Y.max <- NULL
     catesp <- results_dict$tau_sc_diff
     catesp.sign <- 2*as.numeric(catesp>0.007)-1
     cate <- NULL
     cate.sign <- NULL
   }
-  
+
   list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
 }
 # causal survival forest paper (Cui 2022)
-generate_cui_data <- function(n, p, p_b, p_i, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL, 
+generate_cui_data <- function(n, p, p_b, p_i, Y.max = NULL, X = NULL, n.mc = 10000, times = NULL,
                               dgp = c("simple1", "type1", "type2", "type3", "type4")) {
   #.minp <- c(simple1 = 1, type1 = 5, type2 = 5, type3 = 5, type4 = 5, type5 = 5, type6 = 6, type7 = 7)
   dgp <- match.arg(dgp)
@@ -704,7 +704,7 @@ generate_cui_data <- function(n, p, p_b, p_i, Y.max = NULL, X = NULL, n.mc = 100
   # if (p < minp) {
   #   stop(paste("Selected dgp", dgp, "requires a minimum of", minp, "variables."))
   # }
-  
+
   if (dgp == "simple1") {
     if (is.null(Y.max)) {
       Y.max <- 1
@@ -725,7 +725,7 @@ generate_cui_data <- function(n, p, p_b, p_i, Y.max = NULL, X = NULL, n.mc = 100
     cate.sign = rep(1, n)
   } else if (dgp == "type1") {
     # Type 1 from https://arxiv.org/abs/2001.09887 (Cox PH censor time)
-    
+
     if (is.null(Y.max)) {
       Y.max <- 1.5
     }
@@ -753,7 +753,7 @@ generate_cui_data <- function(n, p, p_b, p_i, Y.max = NULL, X = NULL, n.mc = 100
       catesp[i] <- mean((pmin(ft1, Y.max) > times) - (pmin(ft0, Y.max) > times))
     }
     catesp.sign <- sign(catesp)
-    
+
   } else if (dgp == "type2") {
     # Type 2 from https://arxiv.org/abs/2001.09887 (Cox PH failure time)
     if (is.null(Y.max)) {
@@ -837,20 +837,20 @@ generate_cui_data <- function(n, p, p_b, p_i, Y.max = NULL, X = NULL, n.mc = 100
     catesp.sign <- sign(catesp)
     # For X1 < 0.3 the cate is zero so both (0, 1) are optimal, and we can ignore this subset.
     cate.sign[X[, 1] < 0.3] <- NA
-  } 
+  }
   list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
-}  
+}
 
 # Metalearners-Benchmark dgps
 generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = NULL, f_i = NULL,
-                                            n.mc = 10000, times = NULL, Y.max = NULL, pi = 0.5, 
-                                            beta = 1, gamma = 1, rho = 2, cen_scale = 4, 
+                                            n.mc = 10000, times = NULL, Y.max = NULL, pi = 0.5,
+                                            beta = 1, gamma = 1, rho = 2, cen_scale = 4,
                                             cenM = "indX", dgp = "fcomplex") {
   dgp <- match.arg(dgp)
-  
+
   if (dgp == "fcomplex") {
     if (is.null(Y.max)) {
-      Y.max <- 2       
+      Y.max <- 2
     }
     X <- matrix(rnorm(n * p), n, p)
     indcator <- function(x){
@@ -858,7 +858,7 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
     }
     NLX <- data.frame(apply(X, 2, FUN = indcator))           # nonlinear/binary version of X
     names(NLX) <- paste0("V", 1:25)
-    NLXs <- model.matrix(~ V1 + V2:V3 + V4:V5 + V6:V7 + V8:V9 + V10:V11 + V12:V13 + 
+    NLXs <- model.matrix(~ V1 + V2:V3 + V4:V5 + V6:V7 + V8:V9 + V10:V11 + V12:V13 +
                            V14:V15 + V16:V17 + V18:V19 + V20:V21 + V22:V23 + V24:V25 - 1, NLX)
     W <- rbinom(n, 1, pi)
     numerator <- -log(runif(n))
@@ -866,10 +866,10 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
       if(p_b == 1 & p_i == 1){
         cox.ft <- (numerator / exp(beta * X[,1] + (-0.5 - gamma * X[,2]) * W))^2
       }else if(p_b == p & p_i == 1){
-        betah <- rep(beta/sqrt(p_b), p_b)   
+        betah <- rep(beta/sqrt(p_b), p_b)
         cox.ft <- (numerator / exp(X %*% betah + (-0.5 - gamma * X[,2]) * W))^2
       }else if(p_b == p & p_i == p){
-        betah <- rep(beta/sqrt(p_b), p_b); gammah <- rep(gamma/sqrt(p_i), p_i)      
+        betah <- rep(beta/sqrt(p_b), p_b); gammah <- rep(gamma/sqrt(p_i), p_i)
         cox.ft <- (numerator / exp(X %*% betah + (-0.5 - X %*% gammah) * W))^2
       }
     }else if(f_b == "NL" & f_i == "L"){
@@ -879,14 +879,14 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
         betah <- c(0.99, rep(0.33, (p_b-1)/2))
         cox.ft <- (numerator / exp(NLXs %*% betah + (-0.5 - gamma * X[,2]) * W))^2
       }else if(p_b == p & p_i == p){
-        betah <- c(0.99, rep(0.33, (p_b-1)/2)); gammah <- rep(gamma/sqrt(p_i), p_i) 
+        betah <- c(0.99, rep(0.33, (p_b-1)/2)); gammah <- rep(gamma/sqrt(p_i), p_i)
         cox.ft <- (numerator / exp(NLXs %*% betah + (-0.5 - X %*% gammah) * W))^2
       }
     }else if(f_b == "NL" & f_i == "NL"){
       if(p_b == 1 & p_i == 1){
-        cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2 
+        cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2
       }else if(p_b == p & p_i == 1){
-        betah <- c(0.99, rep(0.33, (p_b-1)/2)) 
+        betah <- c(0.99, rep(0.33, (p_b-1)/2))
         cox.ft <- (numerator / exp(NLXs %*% betah + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2
       }else if(p_b == p & p_i == p){
         betah <- c(0.99, rep(0.33, (p_b-1)/2)); gammah <- c(0.99, rep(0.33, (p_i-1)/2))
@@ -894,18 +894,18 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
       }
     }
     failure.time <- pmin(cox.ft, Y.max); summary(failure.time)
-    
-    # varying censoring rate by changing cen_scale and rho                                     
+
+    # varying censoring rate by changing cen_scale and rho
     numeratorC <- -log(runif(n))
     if(cenM == "dX"){
       cen_scale <- exp(0.5 + 2 * X[,1] + (1 + 2 * X[,2]) * W)
     }
     censor.time <- (numeratorC/(cen_scale^rho))^(1/rho)
     Y <- pmin(failure.time, censor.time); median(Y)
-    D <- as.integer(failure.time <= censor.time); table(D); summary(Y[D==1]) 
+    D <- as.integer(failure.time <= censor.time); table(D); summary(Y[D==1])
     cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)         # censoring rate = 0.3 at times = 0.2
     event <- ifelse(D == 1 & Y < times, 1, 0); table(event)     # observed event rate = 0.3 at times = 0.2
-    
+
     # generate true CATEs
     mu0sp <- mu1sp <- catesp <- rep(NA, n)
     numerator <- -log(runif(n.mc))
@@ -916,7 +916,7 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
           cox.ft1 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 1))^2
           mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
           mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
-          catesp[i] <- mu1sp[i] - mu0sp[i]        
+          catesp[i] <- mu1sp[i] - mu0sp[i]
           }
       }else if(p_b == p & p_i == 1){
         for (i in 1:n) {
@@ -986,17 +986,10 @@ generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = 
             mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
-        } 
+        }
       }
-    sd(catesp)/sd(mu0sp)        # heterogeneity of CATE relative to variation in baseline 
+    sd(catesp)/sd(mu0sp)        # heterogeneity of CATE relative to variation in baseline
     catesp.sign <- sign(catesp)
   }
   list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
-}  
-
-
-
-
-
-
-
+}

@@ -35,12 +35,12 @@ sanitize_input = function(x,w,y,D) {
   if (is.numeric(D) & all(D %in% c(0,1))) {
     D = D==1
   }
-  
+
 	# make sure the dimensions align
 	if (length(y)!=nrow(x) | length(w)!=nrow(x) | length(D)!=nrow(x)) {
 		stop("nrow(x), length(w), length(y), and length(D) should all be equal")
 	}
-  
+
 	return(list(x=x,
 	            w=w,
 	            y=y,

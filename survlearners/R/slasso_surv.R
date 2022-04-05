@@ -38,35 +38,35 @@ slasso_surv = function(x, w, y, D, times,
   w = input$w
   y = input$y
   D = input$D
-  
+
   standardization = caret::preProcess(x, method=c("center", "scale")) # get the standardization params
   x_scl = predict(standardization, x)							 # standardize the input
   x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
-  
+
   lambda_choice = match.arg(lambda_choice)
-  
+
   nobs = nrow(x_scl)
   pobs = ncol(x_scl)
-  
+
   if (is.null(foldid) || length(foldid) != length(w)) {
-    
+
     if (!is.null(foldid) && length(foldid) != length(w)) {
       warning("supplied foldid does not have the same length ")
     }
-    
+
     if (is.null(k_folds)) {
       k_folds = floor(max(3, min(10,length(w)/4)))
     }
-    
+
     # fold ID for cross-validation; balance treatment assignments
     foldid = sample(rep(seq(k_folds), length = length(w)))
-    
+
   }
-  
+
   x_scl_tilde = cbind(as.numeric(2 * w - 1) * cbind(1, x_scl), x_scl)
   x_scl_pred1 = cbind(1, x_scl, x_scl)
   x_scl_pred0 = cbind(0, 0 * x_scl, x_scl)
-  
+
   if (is.null(penalty_factor) || (length(penalty_factor) != pobs)) {
     if (!is.null(penalty_factor) && length(penalty_factor) != 2 * pobs + 1) {
       warning("penalty_factor supplied is not 1 plus 2 times the number of columns in x. Using all ones instead.")
@@ -74,38 +74,38 @@ slasso_surv = function(x, w, y, D, times,
     penalty_factor = c(0, rep(1, 2 * pobs))
   }
 
-  s_fit <- glmnet::cv.glmnet(x_scl_tilde, 
+  s_fit <- glmnet::cv.glmnet(x_scl_tilde,
                              Surv(y, D),
                              family = "cox",
-                             foldid = foldid, 
+                             foldid = foldid,
                              lambda = lambda,
                              penalty.factor = penalty_factor,
-                             standardize = FALSE, 
+                             standardize = FALSE,
                              alpha = alpha)
 
   s_beta <- as.vector(t(coef(s_fit, s = lambda_choice)))
-  s_beta_adj <- c(0.5 * s_beta[1:(1 + dim(x)[2])], s_beta[(2 + dim(x)[2]):dim(x_scl_tilde)[2]])  
-  
+  s_beta_adj <- c(0.5 * s_beta[1:(1 + dim(x)[2])], s_beta[(2 + dim(x)[2]):dim(x_scl_tilde)[2]])
+
   link1 <- exp(x_scl_pred1 %*% s_beta_adj)
   link0 <- exp(x_scl_pred0 %*% s_beta_adj)
   link <- exp(x_scl_tilde %*% s_beta_adj)
-  
-  d <- data.frame(table(y[D == 1]))[,2]  # number of events at each unique time                               
+
+  d <- data.frame(table(y[D == 1]))[,2]  # number of events at each unique time
   h0 <- rep(NA, length(sort(unique(y[D == 1]))))
   for(l in 1:length(sort(unique(y[D == 1])))){
     h0[l] <- d[l] / sum(exp(x_scl_tilde[y >= sort(unique(y[D == 1]))[l], ] %*% s_beta))
-  }    
+  }
   S0 <- exp(-cumsum(h0))
   S0_t <- S0[sort(unique(y[D == 1]))>=times][1]
-  
+
   surv1 <- S0_t^exp(link1)
   surv0 <- S0_t^exp(link0)
- 
+
   tau_hat <- as.numeric(surv1 - surv0)
 
   ret = list(s_fit = s_fit,
-             x_org = x_scl_tilde, 
-             y_org = y, 
+             x_org = x_scl_tilde,
+             y_org = y,
              D_org = D,
              beta_org = s_beta,
              s_beta = s_beta_adj,
@@ -153,18 +153,18 @@ predict.slasso_surv <- function(object,
 
     link1 <- exp(newx_scl_pred1 %*% object$s_beta)
     link0 <- exp(newx_scl_pred0 %*% object$s_beta)
-    
-    d <- data.frame(table(object$y_org[object$D_org == 1]))[,2]                                
+
+    d <- data.frame(table(object$y_org[object$D_org == 1]))[,2]
     h0 <- rep(NA, length(sort(unique(object$y_org[object$D_org == 1]))))
     for(l in 1:length(sort(unique(object$y_org[object$D_org == 1])))){
       h0[l] <- d[l] / sum(exp(object$x_org[object$y_org >= sort(unique(object$y_org[object$D_org == 1]))[l], ] %*% object$beta_org))
-    }    
+    }
     S0 <- exp(-cumsum(h0))
     S0_t <- S0[sort(unique(object$y_org[object$D_org == 1]))>=times][1]
-    
+
     surv1 <- S0_t^exp(link1)
     surv0 <- S0_t^exp(link0)
-    
+
     tau_hat <- as.numeric(surv1 - surv0)
   }
   else {
