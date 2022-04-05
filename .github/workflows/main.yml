@@ -47,6 +47,6 @@ jobs:
           git config --local user.name "GITHUB_ACTIONS"
           git config --local user.email "GITHUB_ACTIONS@users.noreply.github.com"
           Rscript -e "pkgdown::build_site()"
-          git add --all
+          git add --force docs/
           git commit --allow-empty -m "Update gh-pages"
           git push --force https://$(SURVLEARNER_TOKEN)@github.com/som-shahlab/Metalearners-Benchmark.git HEAD:gh-pages
