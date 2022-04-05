@@ -34,5 +34,6 @@ jobs:
         run: ./run.sh run_tests
 
       - name: Print logs
+        if: failure()
         working-directory: survlearners
         run: ./run.sh dump_logs_by_extension "fail"
