@@ -65,17 +65,25 @@ grid = expand.grid(n = 5000,
                    p_b = c(1, 25, 25),
                    f_b = c("L", "NL", "NL"),
                    pi = c(0.5),
+                   gamma = 1,
+                   rho = c(2),
                    cen_scale = c(4),
                    cenM = c("indX"),
+                   times = (0.2),
                    stringsAsFactors = FALSE)
 grid$f_i <- c(rep("L", 6), rep("NL", 3))
 grid$p_i <- rep(c(1, 1, 25), 3)
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,])
 grid[10:12, ]$pi <- c(0.01)               # unbalanced design
 grid <- rbind(grid, grid[1,], grid[1,])
-grid[13:14, ]$cen_scale <- c(2, 8)        # vary censoring rate (under indX)
-grid <- rbind(grid, grid[1,])
-grid[15, ]$cenM <- "dX"                   # vary censoring generating model (= dX)
+grid[13:14, ]$cen_scale <- c(8, 8)        # vary censoring rate (under indX): 30% (default), 70% (early censor), 65%
+grid[13, ]$rho <- 1
+grid <- rbind(grid, grid[1,])             # vary censoring generating model (= dX)
+grid[15, ]$cenM <- "dX"
+grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary heterogeneity: sd(CATE)/sd(mu0sp) 0.17, 0.55, 0.9 (baseline)
+grid[16:21, ]$gamma <- c(rep(0.46,3), rep(0,3))
+grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary event rate
+grid[22:27, ]$times <- c(rep(0.02,3), rep(0.001,3))
 rownames(grid) <- 1:dim(grid)[1]
 
 if(length(args <- commandArgs(T))>0){
@@ -91,18 +99,21 @@ pi = grid$pi[i]
 dgp = grid$dgp[i]
 p_b = grid$p_b[i]; p_i = grid$p_i[i]
 f_b = grid$f_b[i]; f_i = grid$f_i[i]
+gamma = grid$gamma[i]
+rho = grid$rho[i]
 cen_scale = grid$cen_scale[i]
 cenM = grid$cenM[i]
+times = grid$times[i]
 an.error.occured <- rep(NA, n.sim)
 for (sim in 1:n.sim) {
   tryCatch( {
   print(paste("sim", sim))
-  times = 0.2
-  data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
-                                         pi = pi, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
+
+  data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, pi = pi,
+                                         gamma = gamma, rho = rho, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
                                          n.mc = 10, times = times)
-  data.test = generate_tutorial_survival_data(n = n.test, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
-                                              pi = pi, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
+  data.test = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, pi = pi,
+                                              gamma = gamma, rho = rho, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
                                               n.mc = n.mc, times = times)
 
   data$Y = pmax(rep(0.001, length(data$Y)), data$Y)
@@ -125,7 +136,9 @@ for (sim in 1:n.sim) {
       estimator.name = estimator.name,
       mse = mean((predictions[,j] - true.catesp)^2),
       bias = mean(abs(predictions[,j] - true.catesp)),
+
       rcorr = cor(predictions[,j], true.catesp),
+      #taucorr = cor(predictions[,j], true.catesp, method = "kendall"),  # use Kendall's tau for next round run
       calib_coef = calib_fit$coefficients[2],
       concordance = ccdf(predictions[,j], true.catesp),
       classif.rate = mean(correct.classification, na.rm = TRUE) # NA: to ignore X1 < 0.3 in DGP 4.

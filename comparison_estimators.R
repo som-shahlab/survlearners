@@ -703,7 +703,7 @@ estimate_ipcw_lasso_fl <- function(data, data.test, nfolds = 10, ps = NULL, time
     kmdat <- traindat[shuffle,]
     folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
     c_hat <- rep(NA, nrow(kmdat))
-    for(z in 1:10){
+    for (z in 1:10){
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
       trainData <- kmdat[-testIndexes, ]
