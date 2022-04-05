@@ -29,16 +29,16 @@ jobs:
       - name: Dependencies
         working-directory: survlearners
         run: ./run.sh install_all
+
+      - name: Test
+        working-directory: survlearners
+        run: ./run.sh run_tests
+
+      - name: Print logs
+        if: failure()
+        working-directory: survlearners
+        run: ./run.sh dump_logs
       
-      # - name: Test
-      #   working-directory: survlearners
-      #   run: ./run.sh run_tests
-      #
-      # - name: Print logs
-      #   if: failure()
-      #   working-directory: survlearners
-      #   run: ./run.sh dump_logs
-      #
       # - name: GitHub pages
       #   if: github.ref == "refs/heads/master"
       #   working-directory: survlearners
