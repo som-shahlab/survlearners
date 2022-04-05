@@ -26,27 +26,27 @@ jobs:
           chmod 0755 run.sh
           ./run.sh bootstrap
 
-      - name: Dependencies
-        working-directory: survlearners
-        run: ./run.sh install_all
-
-      - name: Test
-        working-directory: survlearners
-        run: ./run.sh run_tests
-
-      - name: Print logs
-        if: failure()
-        working-directory: survlearners
-        run: ./run.sh dump_logs
-
-      - name: GitHub pages
-        if: github.ref == "refs/heads/master"
-        working-directory: survlearners
-        run: |
-          sudo Rscript -e "install.packages('pkgdown')"
-          git config --local user.name "GITHUB_ACTIONS"
-          git config --local user.email "GITHUB_ACTIONS@users.noreply.github.com"
-          Rscript -e "pkgdown::build_site()"
-          git add --all
-          git commit --allow-empty -m "Update gh-pages ***NO_CI***"
-          git push --force https://$(SURVLEARNER_TOKEN)@github.com/som-shahlab/Metalearners-Benchmark.git HEAD:gh-pages
+      # - name: Dependencies
+      #   working-directory: survlearners
+      #   run: ./run.sh install_all
+      #
+      # - name: Test
+      #   working-directory: survlearners
+      #   run: ./run.sh run_tests
+      #
+      # - name: Print logs
+      #   if: failure()
+      #   working-directory: survlearners
+      #   run: ./run.sh dump_logs
+      #
+      # - name: GitHub pages
+      #   if: github.ref == "refs/heads/master"
+      #   working-directory: survlearners
+      #   run: |
+      #     sudo Rscript -e "install.packages('pkgdown')"
+      #     git config --local user.name "GITHUB_ACTIONS"
+      #     git config --local user.email "GITHUB_ACTIONS@users.noreply.github.com"
+      #     Rscript -e "pkgdown::build_site()"
+      #     git add --all
+      #     git commit --allow-empty -m "Update gh-pages ***NO_CI***"
+      #     git push --force https://$(SURVLEARNER_TOKEN)@github.com/som-shahlab/Metalearners-Benchmark.git HEAD:gh-pages
