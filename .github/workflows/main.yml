@@ -46,7 +46,7 @@ jobs:
           sudo Rscript -e "install.packages('pkgdown')"
           git config --local user.name "GITHUB_ACTIONS"
           git config --local user.email "GITHUB_ACTIONS@users.noreply.github.com"
-          # Rscript -e "pkgdown::build_site()"
+          Rscript -e "pkgdown::build_site()"
           git add --all
           git commit --allow-empty -m "Update gh-pages ***NO_CI***"
           git push --force https://$(SURVLEARNER_TOKEN)@github.com/som-shahlab/Metalearners-Benchmark.git HEAD:gh-pages
