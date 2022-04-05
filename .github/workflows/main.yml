@@ -31,8 +31,8 @@ jobs:
         run: ./run.sh install_all
 
       - name: Test
-       working-directory: survlearners
-       run: ./run.sh run_tests
+        working-directory: survlearners
+        run: ./run.sh run_tests
 
       - name: Print logs
         if: failure()
