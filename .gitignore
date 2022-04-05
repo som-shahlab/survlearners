@@ -1,6 +1,32 @@
+# OS X files
+*.DS_Store
+
+# emacs files
+*~
+
+# R
 .Rproj.user
 .Rhistory
-.RData
-.Ruserdata
-.DS_Store
-docs
+*.RData
+*.Rout
+*.Rcheck
+
+inst/doc
+docs/
+
+# compiled object files
+*.so
+*.slo
+*.lo
+*.o
+*.obj
+*.dll
+
+# package artifacts
+*.tar.gz
+
+# clion files
+.idea/
+
+# temporary files
+tmp_*
