@@ -37,5 +37,4 @@ jobs:
         if: failure()
         working-directory: survlearners
         run: |
-          ./run.sh dump_logs_by_extension "fail"
-          cat /Users/runner/work/Metalearners-Benchmark/Metalearners-Benchmark/survlearners/survlearners.Rcheck/00install.out
+          ./run.sh dump_logs
