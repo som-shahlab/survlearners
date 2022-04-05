@@ -11,28 +11,28 @@ on:
 jobs:
   ci:
     runs-on: macOS-latest
-  env:
-    USE_BSPM: "true"
-    _R_CHECK_FORCE_SUGGESTS_: "false"
-    GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-  steps:
-    - uses: actions/checkout@v2
+    env:
+      USE_BSPM: "true"
+      _R_CHECK_FORCE_SUGGESTS_: "false"
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
 
-    - name: Bootstrap
-      working-directory: survlearners
-      run: |
-        curl -OLs https://eddelbuettel.github.io/r-ci/run.sh
-        chmod 0755 run.sh
-        ./run.sh bootstrap
+      - name: Bootstrap
+        working-directory: survlearners
+        run: |
+          curl -OLs https://eddelbuettel.github.io/r-ci/run.sh
+          chmod 0755 run.sh
+          ./run.sh bootstrap
 
-    - name: Dependencies
-      working-directory: survlearners
-      run: ./run.sh install_all
+      - name: Dependencies
+        working-directory: survlearners
+        run: ./run.sh install_all
 
-    - name: Test
-      working-directory: survlearners
-      run: ./run.sh run_tests
+      - name: Test
+        working-directory: survlearners
+        run: ./run.sh run_tests
 
-    - name: Print logs
-      working-directory: survlearners
-      run: ./run.sh dump_logs_by_extension "fail"
+      - name: Print logs
+        working-directory: survlearners
+        run: ./run.sh dump_logs_by_extension "fail"
