@@ -4,40 +4,35 @@ name: ci
 
 on:
   push:
+    branches: master
   pull_request:
-
-env:
-  USE_BSPM: "true"
-  _R_CHECK_FORCE_SUGGESTS_: "false"
+    branches: master
 
 jobs:
   ci:
-    strategy:
-      matrix:
-        include:
-          - {os: macOS-latest}
+    runs-on: macOS-latest
+  env:
+    USE_BSPM: "true"
+    _R_CHECK_FORCE_SUGGESTS_: "false"
+    GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+  steps:
+    - uses: actions/checkout@v2
 
-    runs-on: ${{ matrix.os }}
+    - name: Bootstrap
+      working-directory: survlearners
+      run: |
+        curl -OLs https://eddelbuettel.github.io/r-ci/run.sh
+        chmod 0755 run.sh
+        ./run.sh bootstrap
 
-    steps:
-      - uses: actions/checkout@v2
+    - name: Dependencies
+      working-directory: survlearners
+      run: ./run.sh install_all
 
-      - name: Bootstrap
-        working-directory: survlearners
-        run: |
-          curl -OLs https://eddelbuettel.github.io/r-ci/run.sh
-          chmod 0755 run.sh
-          ./run.sh bootstrap
+    - name: Test
+      working-directory: survlearners
+      run: ./run.sh run_tests
 
-      - name: Dependencies
-        working-directory: survlearners
-        run: ./run.sh install_all
-
-      - name: Test
-        working-directory: survlearners
-        run: ./run.sh run_tests
-
-      - name: Print logs
-        if: failure()
-        working-directory: survlearners
-        run: ./run.sh dump_logs_by_extension "fail"
+    - name: Print logs
+      working-directory: survlearners
+      run: ./run.sh dump_logs_by_extension "fail"
