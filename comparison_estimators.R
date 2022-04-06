@@ -80,26 +80,6 @@ estimate_lasso_sl <- function(data, data.test, times = times, ps = NULL, alpha =
   pred_S_lasso
 }
 
-estimate_grf_sl <- function(data, data.test, times = times, alpha = 0.05, ps = NULL, cen_fit = "KM", meta_learner = TRUE){
-  traindat <- data.frame(data$Y, data$D, data$W, data$X)
-  testdat <- data.frame(data.test$Y, data.test$D, data.test$W, data.test$X)
-  colnames(traindat)[1:3] <-colnames(testdat)[1:3] <- c("Y", "D", "W")
-  testdat1 <- testdat; testdat1$W <- 1
-  testdat0 <- testdat; testdat0$W <- 0
-
-  Y.grid <- seq(min(traindat$Y), max(traindat$Y), (max(traindat$Y) - min(traindat$Y))/100)
-  index <- findInterval(times, Y.grid)
-  grffit <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
-                            traindat$Y,
-                            traindat$D,
-                            alpha = alpha,
-                            prediction.type = "Nelson-Aalen",
-                            failure.times = Y.grid)
-  surf1 <- predict(grffit, as.matrix(testdat1[,3:dim(testdat1)[2]]))$predictions[, index]
-  surf0 <- predict(grffit, as.matrix(testdat0[,3:dim(testdat0)[2]]))$predictions[, index]
-  pred_S_grf <- surf1 - surf0
-  pred_S_grf
-}
 
 # T-learner
 estimate_coxph_tl <- function(data, data.test, times, ps = NULL, alpha = 0.05, cen_fit = "KM", meta_learner = TRUE){

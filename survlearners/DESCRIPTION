@@ -13,7 +13,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Suggests:
     testthat,
     knitr,
@@ -24,5 +24,16 @@ Imports:
     mvtnorm,
     caret,
     glmnet,
-    stringr,
-    grf
+    grf,
+    stringr
+Collate: 
+    'Fgrf.R'
+    'Flasso.R'
+    'dgps.R'
+    'utils.R'
+    'rgrf.R'
+    'rlasgrf.R'
+    'rlasso.R'
+    'scoxph.R'
+    'slasso_surv.R'
+    'surv_s_grf.R'
