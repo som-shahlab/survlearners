@@ -841,7 +841,7 @@ estimate_ipcw_grf_fl <- function(data, data.test, ps = NULL, times = times, alph
                    alpha = alpha,
                    meta_learner = meta_learner)
   pred_fgrf <- -predict(fgrf_fit, data.frame(data.test$X), meta_learner = meta_learner)
-  pred_fgrf
+  pred_fgrf  
 }
 
 # Causal survival forest
