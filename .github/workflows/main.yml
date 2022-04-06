@@ -30,8 +30,9 @@ jobs:
         working-directory: survlearners
         run: |
           ./run.sh install_all
-          Rscript -e "install.packages('devtools')"
-          Rscript -e "devtools::install_github('erikcs/grf', subdir = 'r-package/grf', ref = 'survpredict')" # Use GRF devel verion for now
+          git clone http://github.com/erikcs/grf.git && cd grf/r-package/grf
+          git checkout survpredict
+          R CMD build . && R CMD install .
 
       - name: Test
         working-directory: survlearners
