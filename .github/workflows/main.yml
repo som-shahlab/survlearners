@@ -30,7 +30,7 @@ jobs:
         working-directory: survlearners
         run: |
           ./run.sh install_all
-          remotes::install_github("erikcs/grf", subdir = "r-package/grf", ref = "survpredict") # Use GRF devel verion for now
+          Rscript -e 'remotes::install_github("erikcs/grf", subdir = "r-package/grf", ref = "survpredict")' # Use GRF devel verion for now
 
       - name: Test
         working-directory: survlearners
