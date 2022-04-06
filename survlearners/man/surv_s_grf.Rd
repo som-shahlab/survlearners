@@ -4,7 +4,7 @@
 \alias{surv_s_grf}
 \title{S-learner for survival data implemented via grf::survival_forest}
 \usage{
-surv_s_grf(data, data.test, time, alpha = 0.05, propensity = 0.5)
+surv_s_grf(data, data.test, time, alpha = 0.05)
 }
 \arguments{
 \item{data}{training data}

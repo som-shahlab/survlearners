@@ -10,7 +10,7 @@
 #'
 surv_s_grf <- function(data, data.test, time, alpha = 0.05) {
 
-  m <- survival_forest(cbind(data$W, data$X), data$Y,
+  m <- grf::survival_forest(cbind(data$W, data$X), data$Y,
                        data$D, alpha = alpha, prediction.type = "Nelson-Aalen",
                        failure.times = seq(min(data$Y), max(data$Y), length.out = 101))
 

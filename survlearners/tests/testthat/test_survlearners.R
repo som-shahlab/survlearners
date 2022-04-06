@@ -1,5 +1,5 @@
 library(survlearners)
-
+library(grf)
 
 n = 5000
 p = 25
@@ -10,12 +10,12 @@ f_b = "NL"
 f_i = "NL"
 dgp = "fcomplex"
 
-t0 = 0.2
-data = survlearners:::generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
-                                       dgp = dgp, n.mc = 10, times = times)
+t0 <- 0.2
+data <- survlearners:::generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
+                                       dgp = dgp, n.mc = 10, times = t0)
 
-data.test = survlearners:::generate_tutorial_survival_data(n = n.test, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
-                                            dgp = dgp, n.mc = 10000, times = times)
+data.test <- survlearners:::generate_tutorial_survival_data(n = n.test, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
+                                            dgp = dgp, n.mc = 10000, times = t0)
 
 
 # surv_s_grf: Compare new implementation against Crystal's previous one
