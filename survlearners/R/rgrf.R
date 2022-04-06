@@ -73,18 +73,8 @@ rgrf = function(x, w, y, D,
   }
 
   if (is.null(p_hat)){
-    w_fit <- grf::regression_forest(x, w, num.trees = max(50, num.trees / 4),
-                               sample.weights = sample.weights, clusters = clusters,
-                               equalize.cluster.weights = equalize.cluster.weights,
-                               sample.fraction = sample.fraction, mtry = mtry,
-                               min.node.size = 5, honesty = TRUE,
-                               honesty.fraction = 0.5, honesty.prune.leaves = TRUE,
-                               alpha = 0.05, imbalance.penalty = imbalance.penalty,
-                               ci.group.size = 1, compute.oob.predictions = TRUE,
-                               num.threads = num.threads, seed = seed)
-    p_hat <- predict(w_fit)$predictions
+    stop("propensity score needs to be supplied")
   }else if (length(p_hat) == 1) {
-    w_fit = NULL
     p_hat <- rep(p_hat, nrow(x))
   }else if (length(p_hat) != nrow(x)){
     stop("p_hat has incorrect length.")
@@ -172,29 +162,22 @@ rgrf = function(x, w, y, D,
   weights <- w_tilde^2/binary_data$c_hat
 
   tau_dat <- data.frame(pseudo_outcome, binary_data[,7:dim(binary_data)[2]])
-  if (meta_learner){
-    tau_fit <- grf::regression_forest(tau_dat[, 2:dim(tau_dat)[2]],
-                                 tau_dat$pseudo_outcome,
-                                 sample.weights = weights,
-                                 num.trees = num.trees,
-                                 clusters = clusters,
-                                 sample.fraction = sample.fraction,
-                                 mtry = mtry,
-                                 min.node.size = min.node.size,
-                                 honesty = honesty,
-                                 honesty.fraction = honesty.fraction,
-                                 honesty.prune.leaves = honesty.prune.leaves,
-                                 imbalance.penalty = imbalance.penalty,
-                                 ci.group.size = ci.group.size,
-                                 compute.oob.predictions = compute.oob.predictions,
-                                 num.threads = num.threads,
-                                 seed = seed)
-  }else{
-    tau_fit = glm(pseudo_outcome ~ .,
-                  family = "gaussian",
-                  weights = weights,
-                  data = tau_dat)
-  }
+  tau_fit <- grf::regression_forest(tau_dat[, 2:dim(tau_dat)[2]],
+                               tau_dat$pseudo_outcome,
+                               sample.weights = weights,
+                               num.trees = num.trees,
+                               clusters = clusters,
+                               sample.fraction = sample.fraction,
+                               mtry = mtry,
+                               min.node.size = min.node.size,
+                               honesty = honesty,
+                               honesty.fraction = honesty.fraction,
+                               honesty.prune.leaves = honesty.prune.leaves,
+                               imbalance.penalty = imbalance.penalty,
+                               ci.group.size = ci.group.size,
+                               compute.oob.predictions = compute.oob.predictions,
+                               num.threads = num.threads,
+                               seed = seed)
 
   ret <- list(tau_fit = tau_fit,
               pseudo_outcome = pseudo_outcome,
@@ -242,28 +225,13 @@ predict.rgrf <- function(object,
     newx = sanitize_x(newx)
   }
   if (tau_only) {
-    if (meta_learner){
-      return(predict(object$tau_fit, newx)$predictions)
-    }else{
-      tau_beta = as.vector(t(object$tau_fit$coefficients[-1]))
-      return(as.matrix(newx) %*% tau_beta)
-    }
+    return(predict(object$tau_fit, newx)$predictions)
   } else {
-    if (meta_learner){
-      tau <- predict(object$tau_fit, newx)$predictions
-      e = predict(object$w_fit, newx)$predictions
-      m = predict(object$y_fit, newx)$predictions
-      mu1 = m + (1-e) * tau
-      mu0 = m - e * tau
-      return(list(tau=tau, e=e, m=m, mu1 = mu1, mu0 = mu0))
-    }else{
-      tau_beta = as.vector(t(object$tau_fit$coefficients[-1]))
-      tau = as.matrix(newx) %*% tau_beta
-      e = predict(object$w_fit, newx = data.frame(newx))
-      m = predict(object$y_fit, newx = data.frame(newx))
-      mu1 = m + (1-e) * tau
-      mu0 = m - e * tau
-      return(list(tau=tau, e=e, m=m, mu1 = mu1, mu0 = mu0))
-    }
+    tau <- predict(object$tau_fit, newx)$predictions
+    e = predict(object$w_fit, newx)$predictions
+    m = predict(object$y_fit, newx)$predictions
+    mu1 = m + (1-e) * tau
+    mu0 = m - e * tau
+    return(list(tau=tau, e=e, m=m, mu1 = mu1, mu0 = mu0))
   }
 }

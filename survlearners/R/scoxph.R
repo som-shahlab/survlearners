@@ -1,25 +1,33 @@
 #' @include utils.R
 #'
-#' @title S-learner, implemented via glmnet (lasso)
+#' @title S-learner of Cox PH
 #'
-#' @description  S-learner, as proposed by Imai and Ratkovic (2013), implemented via glmnet (lasso)
+#' @description  S-learner, implemented via Cox proportional hazard models
 #'
-#' @param x the input features
-#' @param w the treatment variable (0 or 1)
-#' @param y the observed response (real valued)
-#' @param D event indicator
-#' @param times prediction time of interest
+#' @param x The baseline covariates
+#' @param w The treatment variable (0 or 1)
+#' @param y The follow-up time
+#' @param D The event indicator
+#' @param times The prediction time of interest
 #' @examples
 #' \dontrun{
-#' n = 100; p = 10
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
 #'
-#' x = matrix(rnorm(n*p), n, p)
-#' w = rbinom(n, 1, 0.5)
-#' y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-#'
-#' slasso_fit = slasso(x, w, y)
-#' slasso_est = predict(slasso_fit, x)
+#' scoxph_fit = scoxph(x, w, y, D, times)
+#' scoxph_cate = predict(scoxph_fit, x, times)
 #' }
+#' @return a scoxph object
 #' @export
 scoxph = function(x, w, y, D, times){
 
@@ -42,7 +50,6 @@ scoxph = function(x, w, y, D, times){
   index <- findInterval(times, bh_dat$time)
   bh <- bh_dat[index, 1]
 
-  # Adjust the coefficients for treatment and interaction terms by multiply by 2
   link1 <- exp(as.matrix(x_pred1) %*% s_fit$coefficients)
   link0 <- exp(as.matrix(x_pred0) %*% s_fit$coefficients)
 
@@ -62,26 +69,32 @@ scoxph = function(x, w, y, D, times){
 
 #' predict for scoxph
 #'
-#' get estimated tau(x) using the trained slasso model
+#' get estimated tau(x) using the trained scoxph model
 #'
-#' @param object a slasso object
-#' @param newx covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data
-#' @param ... additional arguments (currently not used)
+#' @param object A scoxph object
+#' @param newx Covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data
+#' @param times The prediction time of interest
+#' @param ... Additional arguments (currently not used)
 #'
 #' @examples
 #' \dontrun{
-#' n = 100; p = 10
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
 #'
-#' x = matrix(rnorm(n*p), n, p)
-#' w = rbinom(n, 1, 0.5)
-#' y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-#'
-#' slasso_fit = slasso(x, w, y)
-#' slasso_est = predict(slasso_fit, x)
+#' scoxph_fit = scoxph(x, w, y, D, times)
+#' scoxph_cate = predict(scoxph_fit, x, times)
 #' }
-#'
-#'
-#' @return vector of predictions
+#' @return vector of estimated conditional average treatment effects
 #' @export
 predict.scoxph <- function(object,
                            newx = NULL,
