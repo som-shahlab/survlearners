@@ -25,11 +25,12 @@ jobs:
           curl -OLs https://eddelbuettel.github.io/r-ci/run.sh
           chmod 0755 run.sh
           ./run.sh bootstrap
-          remotes::install_github("erikcs/grf", subdir = "r-package/grf", ref = "survpredict") # Use GRF devel verion for now
 
       - name: Dependencies
         working-directory: survlearners
-        run: ./run.sh install_all
+        run: |
+          ./run.sh install_all
+          remotes::install_github("erikcs/grf", subdir = "r-package/grf", ref = "survpredict") # Use GRF devel verion for now
 
       - name: Test
         working-directory: survlearners
