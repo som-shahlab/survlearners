@@ -1,5 +1,3 @@
-#' @include utils.R
-#'
 #' @title T-learner of Cox PH
 #'
 #' @description  T-learner, implemented via Cox proportional hazard models
