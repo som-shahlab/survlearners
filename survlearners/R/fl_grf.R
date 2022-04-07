@@ -1,5 +1,3 @@
-#' @include utils.R
-#'
 #' @title F-learner of grf
 #'
 #' @description  F-learner, implemented via survival_forest in the grf package

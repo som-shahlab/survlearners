@@ -1,5 +1,3 @@
-#' @include utils.R
-#'
 #' @title R-learner, implemented via xgboost (boosting)
 #'
 #' @description  R-learner, as proposed by Nie and Wager (2017), implemented via xgboost (boosting)
