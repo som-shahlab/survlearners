@@ -11,8 +11,6 @@ Fgrf(
   pscore = rep(0.5, nrow(x)),
   weight,
   num.trees = 2000,
-  alpha = 0.05,
-  meta_learner = TRUE,
   verbose = FALSE
 )
 }

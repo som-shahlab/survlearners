@@ -2,77 +2,88 @@
 % Please edit documentation in R/rlasso.R
 \name{rlasso}
 \alias{rlasso}
-\title{R-learner, implemented via glmnet (lasso)}
+\title{R-learner of lasso}
 \usage{
 rlasso(
   x,
   w,
   y,
   D,
-  k_folds = NULL,
+  k_folds = 10,
   foldid = NULL,
   lambda_y = NULL,
-  lambda_w = NULL,
   lambda_tau = NULL,
-  lambda_choice = c("lambda.min", "lambda.1se"),
-  rs = FALSE,
+  lambda_choice = "lambda.min",
   p_hat = NULL,
   m_hat = NULL,
   c_hat = NULL,
   penalty_factor = NULL,
-  cf = TRUE,
   times = NULL,
   failure.times = NULL,
   num.trees = 2000,
-  alpha = NULL,
-  cen_fit = "KM",
-  meta_learner = TRUE
+  alpha = 0.05,
+  cen_fit = "KM"
 )
 }
 \arguments{
-\item{x}{the input features}
+\item{x}{The baseline covariates}
 
-\item{w}{the treatment variable (0 or 1)}
+\item{w}{The treatment variable (0 or 1)}
 
-\item{y}{the observed response (real valued)}
+\item{y}{The follow-up time}
 
-\item{k_folds}{number of folds for cross-fitting}
+\item{D}{The event indicator}
 
-\item{foldid}{user-supplied foldid. Must have length equal to length(w). If provided, it overrides the k_folds option.}
+\item{k_folds}{Number of folds for cross validation}
 
-\item{lambda_y}{user-supplied lambda sequence for cross validation in learning E(y|x)}
+\item{foldid}{User-supplied foldid. Must have length equal to length(w). If provided, it overrides the k_folds option.}
 
-\item{lambda_w}{user-supplied lambda sequence for cross validation in learning E(w|x)}
+\item{lambda_y}{User-supplied lambda sequence for cross validation in the outcome model}
 
-\item{lambda_tau}{user-supplied lambda sequence for cross validation in learning the treatment effect E(y(1) - y(0) | x)}
+\item{lambda_tau}{User-supplied lambda sequence for cross validation in the cate model}
 
-\item{lambda_choice}{how to cross-validate for learning the treatment effect tau; choose from "lambda.min" or "lambda.1se"}
+\item{lambda_choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
 
-\item{rs}{whether to use the RS-learner (logical).}
+\item{p_hat}{Propensity score}
 
-\item{p_hat}{user-supplied estimate for E(W|X)}
+\item{m_hat}{Conditional mean outcome E\link{Y|X}}
 
-\item{m_hat}{user-supplied estimte for E(Y|X)}
+\item{c_hat}{Censoring weights}
 
-\item{penalty_factor}{user-supplied penalty factor, a vector of length the same as the number of covariates in x.}
+\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in x}
 
-\item{alpha}{tuning parameter for the elastic net}
+\item{times}{The prediction time of interest}
+
+\item{failure.times}{A vector of event times to fit the survival curve at.}
+
+\item{num.trees}{Number of trees grown in the forest}
+
+\item{alpha}{Imbalance tuning parameter for a split in a tree}
+
+\item{cen_fit}{The choice of model fitting for censoring}
 }
 \value{
-an rlasso object
+a rlasso_surv object
 }
 \description{
-R-learner, as proposed by Nie and Wager (2017), implemented via glmnet (lasso)
+R-learner, implemented via glmnet (lasso)
 }
 \examples{
 \dontrun{
-n = 100; p = 10
+n = 1000; p = 25
+times = 0.2
+Y.max <- 2
+X <- matrix(rnorm(n * p), n, p)
+W <- rbinom(n, 1, 0.5)
+numeratorT <- -log(runif(n))
+T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+failure.time <- pmin(T, Y.max)
+numeratorC <- -log(runif(n))
+censor.time <- (numeratorC/(4^2))^(1/2)
+Y <- pmin(failure.time, censor.time)
+D <- as.integer(failure.time <= censor.time)
 
-x = matrix(rnorm(n*p), n, p)
-w = rbinom(n, 1, 0.5)
-y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-
-rlasso_fit = rlasso(x, w, y)
-rlasso_est = predict(rlasso_fit, x)
+rlasso_fit = rlasso(x, w, y, D, times)
+rlasso_cate = predict(rlasso_fit, x, times)
 }
 }
