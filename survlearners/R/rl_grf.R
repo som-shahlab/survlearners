@@ -25,7 +25,7 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' rlasso_surv_cate = estimate_ipcw_lasso_rl(data, data.test, times, ps = 0.5)
+#' rgrf_surv_cate = estimate_ipcw_grf_rl(data, data.test, times, ps = 0.5)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export

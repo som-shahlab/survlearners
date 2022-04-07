@@ -1,32 +1,54 @@
-#' @title R-learner, implemented via grf
+#' @title R-learner of grf
 #'
-#' @description  R-learner, as proposed by Nie and Wager (2017), implemented via xgboost (boosting)
+#' @description  R-learner, implemented via grf package
 #'
-#' @param x the input features
-#' @param w the treatment variable (0 or 1)
-#' @param y the observed response (real valued)
-#' @param k_folds number of folds used for cross fitting and cross validation
-#' @param p_hat pre-computed estimates on E(W|X) corresponding to the input x. rboost will compute it internally if not provided.
-#' @param m_hat pre-computed estimates on E(Y|X) corresponding to the input x. rboost will compute it internally if not provided.
-#' @param ntrees_max the maximum number of trees to grow for xgboost
-#' @param num_search_rounds the number of random sampling of hyperparameter combinations for cross validating on xgboost trees
-#' @param print_every_n the number of iterations (in each iteration, a tree is grown) by which the code prints out information
-#' @param early_stopping_rounds the number of rounds the test error stops decreasing by which the cross validation in finding the optimal number of trees stops
-#' @param nthread the number of threads to use. The default is NULL, which uses all available threads
-#' @param verbose boolean; whether to print statistic
-#'
+#' @param x The baseline covariates
+#' @param w The treatment variable (0 or 1)
+#' @param y The follow-up time
+#' @param D The event indicator
+#' @param times The prediction time of interest
+#' @param p_hat Propensity score
+#' @param m_hat Conditional mean outcome E[Y|X]
+#' @param c_hat Censoring weights
+#' @param failure.times A vector of event times to fit the survival curve at.
+#' @param num.trees Number of trees grown in the forest
+#' @param sample.weights See grf documentation
+#' @param clusters See grf documentation
+#' @param equalize.cluster.weights See grf documentation
+#' @param sample.fraction See grf documentation
+#' @param mtry See grf documentation
+#' @param honesty See grf documentation
+#' @param honesty.fraction See grf documentation
+#' @param honesty.prune.leaves See grf documentation
+#' @param alpha Imbalance tuning parameter for a split in a tree
+#' @param imbalance.penalty See grf documentation
+#' @param stabilize.splits See grf documentation
+#' @param ci.group.size See grf documentation
+#' @param tune.parameters See grf documentation
+#' @param compute.oob.predictions See grf documentation
+#' @param num.threads See grf documentation
+#' @param seed See grf documentation
+#' @param verbose See grf documentation
+#' @param cen_fit The choice of model fitting for censoring
 #' @examples
 #' \dontrun{
-#' n = 100; p = 10
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
 #'
-#' x = matrix(rnorm(n*p), n, p)
-#' w = rbinom(n, 1, 0.5)
-#' y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-#'
-#' rboost_fit = rboost(x, w, y)
-#' rboost_est = predict(rboost_fit, x)
+#' rgrf_fit = rgrf(x, w, y, D, times)
+#' rgrf_cate = predict(rgrf_fit, x, times)
 #' }
-#'
+#' @return a rgrf object
 #' @export
 rgrf = function(x, w, y, D,
                 times = NULL,
@@ -53,10 +75,8 @@ rgrf = function(x, w, y, D,
                 compute.oob.predictions = TRUE,
                 num.threads = NULL,
                 seed = runif(1, 0, .Machine$integer.max),
-                cen_fit = "KM",
-                meta_learner = TRUE,
-                verbose = FALSE){
-
+                verbose = FALSE,
+                cen_fit = "KM"){
 
   input = sanitize_input(x,w,y,D)
   x = input$x
@@ -120,9 +140,8 @@ rgrf = function(x, w, y, D,
   args.nuisance$compute.oob.predictions <- TRUE
   if (is.null(c_hat)){
     if(cen_fit == "KM"){
-      traindat <- data.frame(Y = y, D = D)
-      shuffle <- sample(nrow(traindat))
-      kmdat <- traindat[shuffle,]
+      shuffle <- sample(length(y))
+      kmdat <- data.frame(Y = y[shuffle], D = D[shuffle])
       folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
       c_hat <- rep(NA, nrow(kmdat))
       for(z in 1:10){
@@ -161,26 +180,25 @@ rgrf = function(x, w, y, D,
 
   tau_dat <- data.frame(pseudo_outcome, binary_data[,7:dim(binary_data)[2]])
   tau_fit <- grf::regression_forest(tau_dat[, 2:dim(tau_dat)[2]],
-                               tau_dat$pseudo_outcome,
-                               sample.weights = weights,
-                               num.trees = num.trees,
-                               clusters = clusters,
-                               sample.fraction = sample.fraction,
-                               mtry = mtry,
-                               min.node.size = min.node.size,
-                               honesty = honesty,
-                               honesty.fraction = honesty.fraction,
-                               honesty.prune.leaves = honesty.prune.leaves,
-                               imbalance.penalty = imbalance.penalty,
-                               ci.group.size = ci.group.size,
-                               compute.oob.predictions = compute.oob.predictions,
-                               num.threads = num.threads,
-                               seed = seed)
+                                    tau_dat$pseudo_outcome,
+                                    sample.weights = weights,
+                                    num.trees = num.trees,
+                                    clusters = clusters,
+                                    sample.fraction = sample.fraction,
+                                    mtry = mtry,
+                                    min.node.size = min.node.size,
+                                    honesty = honesty,
+                                    honesty.fraction = honesty.fraction,
+                                    honesty.prune.leaves = honesty.prune.leaves,
+                                    imbalance.penalty = imbalance.penalty,
+                                    ci.group.size = ci.group.size,
+                                    compute.oob.predictions = compute.oob.predictions,
+                                    num.threads = num.threads,
+                                    seed = seed)
 
   ret <- list(tau_fit = tau_fit,
               pseudo_outcome = pseudo_outcome,
               weights = weights,
-              w_fit = w_fit,
               y_fit = y_fit,
               c_fit = c_fit,
               p_hat = p_hat,
@@ -201,23 +219,29 @@ rgrf = function(x, w, y, D,
 #'
 #' @examples
 #' \dontrun{
-#' n = 100; p = 10
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
 #'
-#' x = matrix(rnorm(n*p), n, p)
-#' w = rbinom(n, 1, 0.5)
-#' y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-#'
-#' rboost_fit = rboost(x, w, y)
-#' rboost_est = predict(rboost_fit, x)
+#' rgrf_fit = rgrf(x, w, y, D, times)
+#' rgrf_cate = predict(rgrf_fit, x, times)
 #' }
 #'
 #'
-#' @return vector of predictions
+#' @return A vector of predicted conditional average treatment effects
 #' @export
 predict.rgrf <- function(object,
                          newx = NULL,
                          tau_only = TRUE,
-                         meta_learner = TRUE,
                           ...) {
   if (!is.null(newx)){
     newx = sanitize_x(newx)

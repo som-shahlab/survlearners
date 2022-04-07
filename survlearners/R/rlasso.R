@@ -141,8 +141,8 @@ rlasso = function(x, w, y, D,
 
     if (is.null(c_hat)){
     if(cen_fit == "KM"){
-      shuffle <- sample(length(data$Y))
-      kmdat <- data.frame(Y = data$Y[shuffle], D = data$D[shuffle])
+      shuffle <- sample(length(y))
+      kmdat <- data.frame(Y = y[shuffle], D = D[shuffle])
       folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
       c_hat <- rep(NA, nrow(kmdat))
       for(z in 1:10){
@@ -157,15 +157,15 @@ rlasso = function(x, w, y, D,
       shudat <- data.frame(shuffle, c_hat)
       c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
-      Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
-      c_fit <- grf::survival_forest(cbind(data$W, data$X),
-                                    data$Y,
-                                    1 - data$D,
+      Y.grid <- seq(min(y), max(y), (max(y) - min(y))/100)
+      c_fit <- grf::survival_forest(cbind(w, x),
+                                    y,
+                                    1 - D,
                                     failure.times = Y.grid,
                                     alpha = alpha,
                                     prediction.type = "Nelson-Aalen")
       C.hat <- predict(c_fit)$predictions
-      cent <- data$Y; cent[data$D==0] <- times
+      cent <- y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c_fit$failure.times)
       c_hat <- C.hat[cbind(1:length(data$Y), cen.times.index)]
      }
