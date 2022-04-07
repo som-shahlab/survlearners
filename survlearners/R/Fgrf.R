@@ -47,8 +47,7 @@
 
 
 Fgrf = function(x, tx, y, pscore = rep(.5, nrow(x)),
-                weight, num.trees = 2000, alpha = 0.05,
-                meta_learner = TRUE, verbose = FALSE) {
+                weight, num.trees = 2000, verbose = FALSE) {
 
   # Input sanitization
 
@@ -81,22 +80,14 @@ Fgrf = function(x, tx, y, pscore = rep(.5, nrow(x)),
   data <- data.frame(y = z, x = x)
   colnames(data) <- c('y', colnames(x))
 
-  if (meta_learner){
-    fit$tau_fit <- regression_forest(as.matrix(data[,2:dim(data)[2]]),
-                                     data$y,
-                                     sample.weights = weight)
-  }else{
-    fit$tau_fit <- glm(y ~., family = "gaussian", data = data)
-  }
+  fit$tau_fit <- grf::regression_forest(as.matrix(data[,2:dim(data)[2]]),
+                                        data$y,
+                                        sample.weights = weight)
 
   class(fit) = 'Fgrf'
   fit
 }
 
 predict.Fgrf = function(object, newx, meta_learner=TRUE, ...) {
-  if (meta_learner){
-    return(predict(object$tau_fit, newdata = as.matrix(newx))$predictions)
-  }else{
-    return(predict(object$tau_fit, newx))
-  }
+  return(predict(object$tau_fit, newdata = as.matrix(newx))$predictions)
 }

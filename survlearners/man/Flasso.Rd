@@ -9,10 +9,9 @@ Flasso(
   tx,
   y,
   pscore = rep(0.5, nrow(x)),
-  nfolds = NULL,
-  alpha = NULL,
+  nfolds = 10,
+  alpha = 1,
   weight,
-  meta_learner = TRUE,
   verbose = FALSE
 )
 }

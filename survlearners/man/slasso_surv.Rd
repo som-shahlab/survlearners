@@ -2,7 +2,7 @@
 % Please edit documentation in R/slasso_surv.R
 \name{slasso_surv}
 \alias{slasso_surv}
-\title{S-learner, implemented via glmnet (lasso)}
+\title{S-learner of lasso}
 \usage{
 slasso_surv(
   x,
@@ -14,41 +14,55 @@ slasso_surv(
   k_folds = NULL,
   foldid = NULL,
   lambda = NULL,
-  lambda_choice = c("lambda.min", "lambda.1se"),
+  lambda_choice = "lambda.min",
   penalty_factor = NULL
 )
 }
 \arguments{
-\item{x}{the input features}
+\item{x}{The baseline covariates}
 
-\item{w}{the treatment variable (0 or 1)}
+\item{w}{The treatment variable (0 or 1)}
 
-\item{y}{the observed response (real valued)}
+\item{y}{The follow-up time}
 
-\item{alpha}{tuning parameter for the elastic net}
+\item{D}{The event indicator}
 
-\item{k_folds}{number of folds for cross validation}
+\item{times}{The prediction time of interest}
 
-\item{foldid}{user-supplied foldid. Must have length equal to length(w). If provided, it overrides the k_folds option.}
+\item{alpha}{Mix tuning parameter for the elastic net}
 
-\item{lambda}{user-supplied lambda sequence for cross validation}
+\item{k_folds}{Number of folds for cross validation}
 
-\item{lambda_choice}{how to cross-validate; choose from "lambda.min" or "lambda.1se"}
+\item{foldid}{User-supplied foldid. Must have length equal to length(w). If provided, it overrides the k_folds option.}
 
-\item{penalty_factor}{user-supplied penalty factor, must be of length the same as number of features in x}
+\item{lambda}{User-supplied lambda sequence for cross validation}
+
+\item{lambda_choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
+
+\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in x}
+}
+\value{
+a slasso_surv object
 }
 \description{
-S-learner, as proposed by Imai and Ratkovic (2013), implemented via glmnet (lasso)
+S-learner, implemented via glmnet (lasso)
 }
 \examples{
 \dontrun{
-n = 100; p = 10
+n = 1000; p = 25
+times = 0.2
+Y.max <- 2
+X <- matrix(rnorm(n * p), n, p)
+W <- rbinom(n, 1, 0.5)
+numeratorT <- -log(runif(n))
+T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+failure.time <- pmin(T, Y.max)
+numeratorC <- -log(runif(n))
+censor.time <- (numeratorC/(4^2))^(1/2)
+Y <- pmin(failure.time, censor.time)
+D <- as.integer(failure.time <= censor.time)
 
-x = matrix(rnorm(n*p), n, p)
-w = rbinom(n, 1, 0.5)
-y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-
-slasso_fit = slasso(x, w, y)
-slasso_est = predict(slasso_fit, x)
+slasso_surv_fit = slasso_surv(x, w, y, D, times)
+slasso_surv_cate = predict(slasso_surv_fit, x, times)
 }
 }

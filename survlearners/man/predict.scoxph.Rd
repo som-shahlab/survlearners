@@ -7,29 +7,36 @@
 \method{predict}{scoxph}(object, newx = NULL, times, ...)
 }
 \arguments{
-\item{object}{a slasso object}
+\item{object}{A scoxph object}
 
-\item{newx}{covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data}
+\item{newx}{Covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data}
 
-\item{...}{additional arguments (currently not used)}
+\item{times}{The prediction time of interest}
+
+\item{...}{Additional arguments (currently not used)}
 }
 \value{
-vector of predictions
+vector of estimated conditional average treatment effects
 }
 \description{
-get estimated tau(x) using the trained slasso model
+get estimated tau(x) using the trained scoxph model
 }
 \examples{
 \dontrun{
-n = 100; p = 10
+n = 1000; p = 25
+times = 0.2
+Y.max <- 2
+X <- matrix(rnorm(n * p), n, p)
+W <- rbinom(n, 1, 0.5)
+numeratorT <- -log(runif(n))
+T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+failure.time <- pmin(T, Y.max)
+numeratorC <- -log(runif(n))
+censor.time <- (numeratorC/(4^2))^(1/2)
+Y <- pmin(failure.time, censor.time)
+D <- as.integer(failure.time <= censor.time)
 
-x = matrix(rnorm(n*p), n, p)
-w = rbinom(n, 1, 0.5)
-y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-
-slasso_fit = slasso(x, w, y)
-slasso_est = predict(slasso_fit, x)
+scoxph_fit = scoxph(x, w, y, D, times)
+scoxph_cate = predict(scoxph_fit, x, times)
 }
-
-
 }

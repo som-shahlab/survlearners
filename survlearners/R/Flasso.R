@@ -47,8 +47,8 @@
 
 
 Flasso = function(x, tx, y, pscore = rep(.5, nrow(x)),
-                  nfolds = NULL, alpha=NULL, weight,
-                  meta_learner = TRUE, verbose = FALSE) {
+                  nfolds = 10, alpha = 1, weight,
+                  verbose = FALSE) {
 
   # Input sanitization
 
@@ -81,29 +81,16 @@ Flasso = function(x, tx, y, pscore = rep(.5, nrow(x)),
   data = data.frame(y = z, x = x)
   colnames(data) = c('y', colnames(x))
 
-  if (meta_learner){
-    fit$tau_fit <- cv.glmnet(as.matrix(data[,2:dim(data)[2]]),
-                             data$y,
-                             family = "gaussian",
-                             weights = weight,
-                             nfolds = nfolds,
-                             alpha = alpha)
-  }else{
-    fit$tau_fit <- glm(y ~., family = "gaussian", data = data)
-  }
-
+  fit$tau_fit <- glmnet::cv.glmnet(as.matrix(data[,2:dim(data)[2]]),
+                           data$y,
+                           family = "gaussian",
+                           weights = weight,
+                           nfolds = nfolds,
+                           alpha = alpha)
   class(fit) = 'Flasso'
   fit
 }
 
-predict.Flasso = function(object, newx, lambda_choice = "lambda.min", meta_learner = TRUE,...) {
-  if (meta_learner){
-    lambda_choice = match.arg(lambda_choice)
-    return(as.vector(predict(object$tau_fit, newx = newx, s = lambda_choice)))
-  }else{
-    newdata <- data.frame(newx)
-    colnames(newdata) = paste('X', 1:ncol(newdata), sep = '')
-    return(predict(object$tau_fit, newdata = newdata))
-  }
-
+predict.Flasso = function(object, newx,...) {
+  return(as.vector(predict(object$tau_fit, newx = newx, s = "lambda.min")))
 }

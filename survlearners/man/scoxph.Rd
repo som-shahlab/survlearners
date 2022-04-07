@@ -2,33 +2,43 @@
 % Please edit documentation in R/scoxph.R
 \name{scoxph}
 \alias{scoxph}
-\title{S-learner, implemented via glmnet (lasso)}
+\title{S-learner of Cox PH}
 \usage{
 scoxph(x, w, y, D, times)
 }
 \arguments{
-\item{x}{the input features}
+\item{x}{The baseline covariates}
 
-\item{w}{the treatment variable (0 or 1)}
+\item{w}{The treatment variable (0 or 1)}
 
-\item{y}{the observed response (real valued)}
+\item{y}{The follow-up time}
 
-\item{D}{event indicator}
+\item{D}{The event indicator}
 
-\item{times}{prediction time of interest}
+\item{times}{The prediction time of interest}
+}
+\value{
+a scoxph object
 }
 \description{
-S-learner, as proposed by Imai and Ratkovic (2013), implemented via glmnet (lasso)
+S-learner, implemented via Cox proportional hazard models
 }
 \examples{
 \dontrun{
-n = 100; p = 10
+n = 1000; p = 25
+times = 0.2
+Y.max <- 2
+X <- matrix(rnorm(n * p), n, p)
+W <- rbinom(n, 1, 0.5)
+numeratorT <- -log(runif(n))
+T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+failure.time <- pmin(T, Y.max)
+numeratorC <- -log(runif(n))
+censor.time <- (numeratorC/(4^2))^(1/2)
+Y <- pmin(failure.time, censor.time)
+D <- as.integer(failure.time <= censor.time)
 
-x = matrix(rnorm(n*p), n, p)
-w = rbinom(n, 1, 0.5)
-y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-
-slasso_fit = slasso(x, w, y)
-slasso_est = predict(slasso_fit, x)
+scoxph_fit = scoxph(x, w, y, D, times)
+scoxph_cate = predict(scoxph_fit, x, times)
 }
 }

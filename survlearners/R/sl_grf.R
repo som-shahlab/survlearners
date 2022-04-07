@@ -1,0 +1,45 @@
+#' @include utils.R
+#'
+#' @title S-learner of grf
+#'
+#' @description  S-learner, implemented via survival_forest (grf package)
+#'
+#' @param data The training data set
+#' @param data.test The testing data set
+#' @param times The prediction time of interest
+#' @param alpha Imbalance tuning parameter for a split (see grf documentation)
+#' @examples
+#' \dontrun{
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
+#' data <- list(X = X, W = W, Y = Y, D = D)
+#' data.test <- list(X = X, W = W, Y = Y, D = D)
+#'
+#' sgrf_surv_cate = estimate_grf_sl(data, data.test, times)
+#' }
+#' @return A vector of estimated conditional average treatment effects
+#' @export
+estimate_grf_sl <- function(data, data.test, times, alpha = 0.05){
+  Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
+  index <- findInterval(times, Y.grid)
+  grffit <- survival_forest(cbind(data$W, data$X),
+                            traindat$Y,
+                            traindat$D,
+                            alpha = alpha,
+                            prediction.type = "Nelson-Aalen",
+                            failure.times = Y.grid)
+  surf1 <- predict(grffit, cbind(rep(1, length(data.test$Y)), data.test$X))$predictions[, index]
+  surf0 <- predict(grffit, cbind(rep(0, length(data.test$Y)), data.test$X))$predictions[, index]
+  pred_S_grf <- surf1 - surf0
+  pred_S_grf
+}

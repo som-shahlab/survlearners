@@ -10,7 +10,7 @@ rlasgrf(
   y,
   D,
   times = NULL,
-  k_folds = NULL,
+  k_folds = 10,
   p_hat = NULL,
   m_hat = NULL,
   c_hat = NULL,
@@ -36,7 +36,7 @@ rlasgrf(
   lambda_tau = NULL,
   rs = FALSE,
   penalty_factor = NULL,
-  lambda_choice = c("lambda.min", "lambda.1se"),
+  lambda_choice = "lambda.min",
   cen_fit = "KM",
   meta_learner = TRUE,
   verbose = FALSE

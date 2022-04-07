@@ -32,7 +32,7 @@
 #' @export
 rlasgrf = function(x, w, y, D,
                    times = NULL,
-                   k_folds = NULL,
+                   k_folds = 10,
                    p_hat = NULL,
                    m_hat = NULL,
                    c_hat = NULL,
@@ -58,7 +58,7 @@ rlasgrf = function(x, w, y, D,
                    lambda_tau = NULL,           # for lasso
                    rs = FALSE,
                    penalty_factor = NULL,
-                   lambda_choice = c("lambda.min","lambda.1se"),
+                   lambda_choice = "lambda.min",
                    cen_fit = "KM",
                    meta_learner = TRUE,
                    verbose = FALSE){
@@ -76,41 +76,19 @@ rlasgrf = function(x, w, y, D,
   x_scl = predict(standardization, x)				                    			 # standardize the input
   x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
 
-  lambda_choice = match.arg(lambda_choice)
-
   # penalty factor for tau estimator
   if (is.null(penalty_factor) || (length(penalty_factor) != pobs)) {
     if (!is.null(penalty_factor) && length(penalty_factor) != pobs) {
       warning("penalty_factor supplied is not of the same length as the number of columns in x after removing NA columns. Using all ones instead.")
     }
-    if (rs) {
-      penalty_factor_tau = c(0, rep(1, 2 * pobs))
-    }
-    else {
-      penalty_factor_tau = c(0, rep(1, pobs))
-    }
+    penalty_factor_tau = c(0, rep(1, pobs))
   } else {
-    if (rs) {
-      penalty_factor_tau = c(0, penalty_factor, penalty_factor)
-    }
-    else {
-      penalty_factor_tau = c(0, penalty_factor)
-    }
+    penalty_factor_tau = c(0, penalty_factor)
   }
 
   if (is.null(p_hat)){
-    w_fit <- regression_forest(x, w, num.trees = max(50, num.trees / 4),
-                               sample.weights = sample.weights, clusters = clusters,
-                               equalize.cluster.weights = equalize.cluster.weights,
-                               sample.fraction = sample.fraction, mtry = mtry,
-                               min.node.size = 5, honesty = TRUE,
-                               honesty.fraction = 0.5, honesty.prune.leaves = TRUE,
-                               alpha = alpha, imbalance.penalty = imbalance.penalty,
-                               ci.group.size = 1, compute.oob.predictions = TRUE,
-                               num.threads = num.threads, seed = seed)
-    p_hat <- predict(w_fit)$predictions
+    stop("propensity score needs to be supplied")
   }else if (length(p_hat) == 1) {
-    w_fit = NULL
     p_hat <- rep(p_hat, nrow(x))
   }else if (length(p_hat) != nrow(x)){
     stop("p_hat has incorrect length.")
@@ -197,38 +175,22 @@ rlasgrf = function(x, w, y, D,
   x_scl = binary_data[, 7:dim(binary_data)[2]]
   foldid2 = sample(rep(seq(k_folds), length = length(binary_data$w)))
 
-  if (rs){
-    x_scl_tilde = cbind(as.numeric(binary_data$w - binary_data$p_hat) * cbind(1, x_scl), x_scl)
-    x_scl_pred = cbind(1, x_scl, x_scl * 0)
-  }else{
-    x_scl_tilde = cbind(as.numeric(binary_data$w - binary_data$p_hat) * cbind(1, x_scl))
-    x_scl_pred = cbind(1, x_scl)
-  }
+  x_scl_tilde = cbind(as.numeric(binary_data$w - binary_data$p_hat) * cbind(1, x_scl))
+  x_scl_pred = cbind(1, x_scl)
 
-  if (meta_learner){
-    tau_fit = glmnet::cv.glmnet(as.matrix(x_scl_tilde),
-                                y_tilde,
-                                weights = weights,
-                                foldid = foldid2,
-                                alpha = 1,
-                                lambda = lambda_tau,
-                                penalty.factor = penalty_factor_tau, # no penalty on ATE
-                                standardize = FALSE)
-    tau_beta = as.vector(t(coef(tau_fit, s = lambda_choice)[-1]))
-    tau_hat = as.matrix(x_scl_pred) %*% tau_beta
-  }else{
-    dat = data.frame(y_tilde, x_scl_tilde)
-    tau_fit = glm(y_tilde ~ .,
-                  family = "gaussian",
-                  weights = weights,
-                  data = dat)
-    tau_beta = as.vector(t(tau_fit$coefficients[-1]))
-    tau_hat = as.matrix(x_scl_pred) %*% tau_beta
-  }
+  tau_fit = glmnet::cv.glmnet(as.matrix(x_scl_tilde),
+                              y_tilde,
+                              weights = weights,
+                              foldid = foldid2,
+                              alpha = 1,
+                              lambda = lambda_tau,
+                              penalty.factor = penalty_factor_tau, # no penalty on ATE
+                              standardize = FALSE)
+  tau_beta = as.vector(t(coef(tau_fit, s = lambda_choice)[-1]))
+  tau_hat = as.matrix(x_scl_pred) %*% tau_beta
 
   ret = list(tau_fit = tau_fit,
              tau_beta = tau_beta,
-             w_fit = w_fit,
              y_fit = y_fit,
              c_fit = c_fit,
              p_hat = p_hat,
