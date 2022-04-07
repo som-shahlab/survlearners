@@ -10,10 +10,10 @@ Some links for getting started
 * Replication code is available in ...
 
 ### Installation
-The current version of the survival metalearner can be installed from source using [devtools](https://cran.r-project.org/web/packages/devtools/index.html).
+The current version of the survival metalearner can be installed from source using [remotes](https://cran.r-project.org/web/packages/remotes/index.html).
 
 ```R
-devtools::install_github("som-shahlab/survmetabench", subdir = "survlearners")
+remotes::install_github("som-shahlab/survmetabench", subdir = "survlearners")
 ```
 
 ### References
