@@ -26,14 +26,3 @@ Imports:
     glmnet,
     grf,
     stringr
-Collate: 
-    'Fgrf.R'
-    'Flasso.R'
-    'dgps.R'
-    'utils.R'
-    'rgrf.R'
-    'rlasgrf.R'
-    'rlasso.R'
-    'scoxph.R'
-    'slasso_surv.R'
-    'surv_s_grf.R'
