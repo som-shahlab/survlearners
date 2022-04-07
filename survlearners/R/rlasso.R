@@ -167,7 +167,7 @@ rlasso = function(x, w, y, D,
       C.hat <- predict(c_fit)$predictions
       cent <- y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c_fit$failure.times)
-      c_hat <- C.hat[cbind(1:length(data$Y), cen.times.index)]
+      c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
      }
     }else {
       c_fit = NULL

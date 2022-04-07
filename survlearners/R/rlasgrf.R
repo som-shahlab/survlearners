@@ -256,7 +256,6 @@ predict.rlasgrf <- function(object,
                             newx = NULL,
                             ...) {
   if (!is.null(newx)) {
-
     newx = sanitize_x(newx)
     newx_scl = predict(object$standardization, newx) # standardize the new data using the same standardization as with the training data
     newx_scl = newx_scl[,!is.na(colSums(newx_scl)), drop = FALSE]

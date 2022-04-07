@@ -158,8 +158,7 @@ rgrf = function(x, w, y, D,
     }else if (cen_fit == "survival.forest"){
       c_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
       C.hat <- predict(c_fit, failure.times = Y.grid)$predictions
-      cent <- y
-      cent[D==0] <- times
+      cent <- y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, Y.grid)
       c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
     }
@@ -178,9 +177,8 @@ rgrf = function(x, w, y, D,
   pseudo_outcome <- y_tilde/w_tilde
   weights <- w_tilde^2/binary_data$c_hat
 
-  tau_dat <- data.frame(pseudo_outcome, binary_data[,7:dim(binary_data)[2]])
-  tau_fit <- grf::regression_forest(tau_dat[, 2:dim(tau_dat)[2]],
-                                    tau_dat$pseudo_outcome,
+  tau_fit <- grf::regression_forest(binary_data[ ,7:dim(binary_data)[2]],
+                                    pseudo_outcome,
                                     sample.weights = weights,
                                     num.trees = num.trees,
                                     clusters = clusters,
