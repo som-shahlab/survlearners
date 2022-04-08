@@ -133,12 +133,6 @@ rlasso = function(x, w, y, D,
                           prediction.type = "Nelson-Aalen",
                           compute.oob.predictions = TRUE)
 
-    if (is.null(failure.times)) {
-      Y.grid <- sort(unique(y))
-    }else {
-      Y.grid <- failure.times
-    }
-
     if (is.null(c_hat)){
     if(cen_fit == "KM"){
       shuffle <- sample(length(data$Y))
@@ -157,11 +151,9 @@ rlasso = function(x, w, y, D,
       shudat <- data.frame(shuffle, c_hat)
       c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
-      Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
       c_fit <- grf::survival_forest(cbind(data$W, data$X),
                                     data$Y,
                                     1 - data$D,
-                                    failure.times = Y.grid,
                                     alpha = alpha,
                                     prediction.type = "Nelson-Aalen")
       C.hat <- predict(c_fit)$predictions

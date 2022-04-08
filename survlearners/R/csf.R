@@ -30,12 +30,10 @@
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 estimate_csf_probs <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM") {
-  Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
   fit <- grf::causal_survival_forest(X = data$X,
                                      Y = data$Y,
                                      W = data$W,
                                      D = data$D,
-                                     failure.times = Y.grid,
                                      W.hat = ps,
                                      alpha = alpha,
                                      target="survival.probability",

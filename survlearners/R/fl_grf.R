@@ -49,11 +49,9 @@ estimate_ipcw_grf_fl <- function(data, data.test, times, alpha = 0.05, ps = NULL
     shudat <- data.frame(shuffle, C.Y.hat)
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
   }else if (cen_fit == "survival.forest"){
-    Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
     c_fit <- grf::survival_forest(cbind(data$W, data$X),
                                   data$Y,
                                   1 - data$D,
-                                  failure.times = Y.grid,
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
     C.hat <- predict(c_fit)$predictions

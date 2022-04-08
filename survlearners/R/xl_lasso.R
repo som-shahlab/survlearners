@@ -88,11 +88,9 @@ estimate_ipcw_lasso_xl <- function(data, data.test, times, alpha = 0.05, ps = NU
     shudat <- data.frame(shuffle, c_hat)
     c_hat <- shudat[order(shuffle), ]$c_hat
   }else if (cen_fit == "survival.forest"){
-    Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
     c_fit <- grf::survival_forest(cbind(data$W, data$X),
                                   data$Y,
                                   1 - data$D,
-                                  failure.times = Y.grid,
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
     C.hat <- predict(c_fit)$predictions

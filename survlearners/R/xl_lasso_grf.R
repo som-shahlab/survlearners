@@ -31,17 +31,15 @@
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 estimate_ipcw_las_grf_xl <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
-Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
-times.index <- findInterval(times, Y.grid)
 
 # fit model on W==1
 grffit1 <- grf::survival_forest(data$X[data$W==1,],
                                 data$Y[data$W==1],
                                 data$D[data$W==1],
                                 alpha = alpha,
-                                prediction.type = "Nelson-Aalen",
-                                failure.times = Y.grid)
+                                prediction.type = "Nelson-Aalen")
 surf1 <- rep(NA, length(data$W))
+times.index <- findInterval(times, grffit1$failure.times)
 surf1[data$W==1] <- predict(grffit1)$predictions[, times.index]
 surf1[data$W==0] <- predict(grffit1, data$X[data$W==0,])$predictions[, times.index]
 
@@ -50,9 +48,9 @@ grffit0 <- grf::survival_forest(data$X[data$W==0,],
                                 data$Y[data$W==0],
                                 data$D[data$W==0],
                                 alpha = alpha,
-                                prediction.type = "Nelson-Aalen",
-                                failure.times = Y.grid)
+                                prediction.type = "Nelson-Aalen")
 surf0 <- rep(NA, length(data$W))
+times.index <- findInterval(times, grffit0$failure.times)
 surf0[traindat$W==0] <- predict(grffit0)$predictions[, times.index]
 surf0[traindat$W==1] <- predict(grffit0, data$X[data$W==1,])$predictions[, times.index]
 
@@ -77,11 +75,9 @@ if(cen_fit == "KM"){
   shudat <- data.frame(shuffle, C.Y.hat)
   C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
 }else if (cen_fit == "survival.forest"){
-  Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
   c_fit <- grf::survival_forest(cbind(data$W, data$X),
                                 data$Y,
                                 1 - data$D,
-                                failure.times = Y.grid,
                                 alpha = alpha,
                                 prediction.type = "Nelson-Aalen")
   C.hat <- predict(c_fit)$predictions

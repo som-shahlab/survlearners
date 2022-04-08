@@ -125,12 +125,6 @@ rlasgrf = function(x, w, y, D,
     y_fit = NULL
   }
 
-  if (is.null(failure.times)) {
-    Y.grid <- sort(unique(y))
-  } else {
-    Y.grid <- failure.times
-  }
-
   args.nuisance$compute.oob.predictions <- TRUE
   if (is.null(c_hat)){
     if(cen_fit == "KM"){
@@ -152,10 +146,10 @@ rlasgrf = function(x, w, y, D,
       c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
       c_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
-      C.hat <- predict(c_fit, failure.times = Y.grid)$predictions
+      C.hat <- predict(c_fit, failure.times = c_fit$failure.times)$predictions
       cent <- y
       cent[D==0] <- times
-      cen.times.index <- findInterval(cent, Y.grid)
+      cen.times.index <- findInterval(cent, c_fit$failure.times)
       c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
     }
   }else{
