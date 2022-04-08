@@ -62,10 +62,10 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   surf0 <- rep(NA, length(data$W))
   surf0[data$W==0] <- pred_surv_preval(lasso_fit0, S0, times = times, lambda = lambda_0_min)
   surf0[data$W==1] <- pred_surv(fit = lasso_fit0,
-                                    S0 = S0,
-                                    x = data$X[dataW==1, ],
-                                    times = times,
-                                    lambda = lasso_fit0$lambda.min)
+                                S0 = S0,
+                                x = data$X[dataW==1, ],
+                                times = times,
+                                lambda = lasso_fit0$lambda.min)
 
   Tlasso1 <- 1 - surf1
   Tlasso0 <- 1 - surf0

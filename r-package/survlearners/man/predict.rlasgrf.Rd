@@ -2,36 +2,40 @@
 % Please edit documentation in R/rlasgrf.R
 \name{predict.rlasgrf}
 \alias{predict.rlasgrf}
-\title{predict for rgrf}
+\title{predict for rlasgrf}
 \usage{
 \method{predict}{rlasgrf}(object, newx = NULL, ...)
 }
 \arguments{
-\item{object}{a rgrf object}
+\item{object}{a rlasgrf object}
 
 \item{newx}{covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data}
 
 \item{...}{additional arguments (currently not used)}
-
-\item{tau_only}{if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.}
 }
 \value{
-vector of predictions
+A vector of predicted conditional average treatment effects
 }
 \description{
-get estimated tau(x) using the trained rgrf model
+get estimated tau(x) using the trained rlasgrf model
 }
 \examples{
 \dontrun{
-n = 100; p = 10
+n = 1000; p = 25
+times = 0.2
+Y.max <- 2
+X <- matrix(rnorm(n * p), n, p)
+W <- rbinom(n, 1, 0.5)
+numeratorT <- -log(runif(n))
+T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+failure.time <- pmin(T, Y.max)
+numeratorC <- -log(runif(n))
+censor.time <- (numeratorC/(4^2))^(1/2)
+Y <- pmin(failure.time, censor.time)
+D <- as.integer(failure.time <= censor.time)
 
-x = matrix(rnorm(n*p), n, p)
-w = rbinom(n, 1, 0.5)
-y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-
-rboost_fit = rboost(x, w, y)
-rboost_est = predict(rboost_fit, x)
+rlasgrf_fit = rlasgrf(x, w, y, D, times)
+rlasgrf_cate = predict(rlasgrf_fit, x, times)
 }
-
 
 }

@@ -63,7 +63,7 @@ rlasso(
 \item{cen_fit}{The choice of model fitting for censoring}
 }
 \value{
-a rlasso_surv object
+a rlasso object
 }
 \description{
 R-learner, implemented via glmnet (lasso)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/rlasgrf.R
 \name{rlasgrf}
 \alias{rlasgrf}
-\title{R-learner, implemented via xgboost (boosting)}
+\title{R-learner of grf and lasso}
 \usage{
 rlasgrf(
   x,
@@ -34,52 +34,99 @@ rlasgrf(
   num.threads = NULL,
   seed = runif(1, 0, .Machine$integer.max),
   lambda_tau = NULL,
-  rs = FALSE,
-  penalty_factor = NULL,
   lambda_choice = "lambda.min",
+  penalty_factor = NULL,
   cen_fit = "KM",
-  meta_learner = TRUE,
   verbose = FALSE
 )
 }
 \arguments{
-\item{x}{the input features}
+\item{x}{The baseline covariates}
 
-\item{w}{the treatment variable (0 or 1)}
+\item{w}{The treatment variable (0 or 1)}
 
-\item{y}{the observed response (real valued)}
+\item{y}{The follow-up time}
 
-\item{k_folds}{number of folds used for cross fitting and cross validation}
+\item{D}{The event indicator}
 
-\item{p_hat}{pre-computed estimates on E(W|X) corresponding to the input x. rboost will compute it internally if not provided.}
+\item{times}{The prediction time of interest}
 
-\item{m_hat}{pre-computed estimates on E(Y|X) corresponding to the input x. rboost will compute it internally if not provided.}
+\item{k_folds}{Number of folds for cross validation}
 
-\item{verbose}{boolean; whether to print statistic}
+\item{p_hat}{Propensity score}
 
-\item{ntrees_max}{the maximum number of trees to grow for xgboost}
+\item{m_hat}{Conditional mean outcome E\link{Y|X}}
 
-\item{num_search_rounds}{the number of random sampling of hyperparameter combinations for cross validating on xgboost trees}
+\item{c_hat}{Censoring weights}
 
-\item{print_every_n}{the number of iterations (in each iteration, a tree is grown) by which the code prints out information}
+\item{failure.times}{A vector of event times to fit the survival curve at.}
 
-\item{early_stopping_rounds}{the number of rounds the test error stops decreasing by which the cross validation in finding the optimal number of trees stops}
+\item{num.trees}{Number of trees grown in the forest}
 
-\item{nthread}{the number of threads to use. The default is NULL, which uses all available threads}
+\item{sample.weights}{See grf documentation}
+
+\item{clusters}{See grf documentation}
+
+\item{equalize.cluster.weights}{See grf documentation}
+
+\item{sample.fraction}{See grf documentation}
+
+\item{mtry}{See grf documentation}
+
+\item{min.node.size}{See grf documentation}
+
+\item{honesty}{See grf documentation}
+
+\item{honesty.fraction}{See grf documentation}
+
+\item{honesty.prune.leaves}{See grf documentation}
+
+\item{alpha}{See grf documentation}
+
+\item{imbalance.penalty}{See grf documentation}
+
+\item{stabilize.splits}{See grf documentation}
+
+\item{ci.group.size}{See grf documentation}
+
+\item{tune.parameters}{See grf documentation}
+
+\item{compute.oob.predictions}{See grf documentation}
+
+\item{num.threads}{See grf documentation}
+
+\item{seed}{See grf documentation}
+
+\item{lambda_tau}{User-supplied lambda sequence for cross validation in the cate model}
+
+\item{lambda_choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
+
+\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in x}
+
+\item{cen_fit}{The choice of model fitting for censoring}
+}
+\value{
+a rlasgrf object
 }
 \description{
-R-learner, as proposed by Nie and Wager (2017), implemented via xgboost (boosting)
+R-learner, implemented via the grf package for nuisance parameter estimation and lasso for target parameter
 }
 \examples{
 \dontrun{
-n = 100; p = 10
+n = 1000; p = 25
+times = 0.2
+Y.max <- 2
+X <- matrix(rnorm(n * p), n, p)
+W <- rbinom(n, 1, 0.5)
+numeratorT <- -log(runif(n))
+T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+failure.time <- pmin(T, Y.max)
+numeratorC <- -log(runif(n))
+censor.time <- (numeratorC/(4^2))^(1/2)
+Y <- pmin(failure.time, censor.time)
+D <- as.integer(failure.time <= censor.time)
 
-x = matrix(rnorm(n*p), n, p)
-w = rbinom(n, 1, 0.5)
-y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-
-rboost_fit = rboost(x, w, y)
-rboost_est = predict(rboost_fit, x)
+rlasgrf_fit = rlasgrf(x, w, y, D, times)
+rlasgrf_cate = predict(rlasgrf_fit, x, times)
 }
-
 }
