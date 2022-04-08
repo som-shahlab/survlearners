@@ -1,61 +1,43 @@
-#'  Fit a pollinated transformed outcome (PTO) forest model
+#' @title F-learner of lasso
+#'
+#' @description  F-learner, implemented via glmnet (lasso)
 #'
 #' @param x matrix of covariates
-#' @param tx vector of treatment indicators (0 or 1)
+#' @param w vector of treatment indicators (0 or 1)
 #' @param y vector of response values
 #' @param pscore vector of propensity scores
-#' @param num.trees number of trees for transformed outcome forest
-#' @param mtry number of variables to possibly split at in each node
-#' @param min.node.size minimum node size for transformed outcome forest
-#' @param postprocess logical: should optional post-processing random forest be
-#'  fit at end?
-#' @param verbose logical: should progress be printed to console?
-#'
-#' @return an object of class \code{PTOforest} with attributes:
-#'  \itemize{
-#'    \item x: matrix of covariates supplied by function call
-#'    \item pscore: vector of propensity score supplied by function call
-#'    \item postprocess: logical supplied by function call
-#'    \item TOfit: fitted random forest on transformed outcomes
-#'    \item PTOfit1: TOfit pollinated with treatment-arm outcomes
-#'    \item PTOfit0: TOfit pollinated with control-arm outcomes
-#'    \item postfit: post-processing random forest summarizing results
-#'  }
-#'
+#' @param nfolds number of cross-validation
+#' @param alpha mixing tuning parameter for lasso
+#' @param weight vector of subject level weights
 #' @examples
-#'# Randomized experiment example
+#' \dontrun{
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
+#' weight <- rep(1, length(Y))
+#' data <- list(X = X, W = W, Y = Y, D = D)
+#' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#'n = 100 # number of training-set patients to simulate
-#'p = 10  # number of features for each training-set patient
-#'
-#'# Simulate data
-#'x = matrix(rnorm(n * p), nrow = n, ncol = p) # simulate covariate matrix
-#'tx_effect = x[, 1] + (x[, 2] > 0) # simple heterogeneous treatment effect
-#'tx = rbinom(n, size = 1, p = 0.5) # random treatment assignment
-#'y = rowMeans(x) + tx * tx_effect + rnorm(n, sd = 0.001) # simulate response
-#'
-#'# Estimate PTO forest model
-#'#fit_pto = PTOforest(x, tx, y)
-#'#pred_pto = predict(fit_pto, newx = x)
-#'
-#'# Visualize results
-#'#plot(tx_effect, pred_pto, main = 'PTO forest',
-#'#  xlab = 'True treatment effect', ylab = 'Estimated treatment effect')
-#'#abline(0, 1, lty = 2)
-#'
+#' Flasso_fit = Flasso(data$X, data$W, data$Y, weight)
+#' Flasso_cate = predict(Flasso_fit, data.test$X)
+#' }
+#' @return An Flasso object
 #' @export
-
-
-Flasso = function(x, tx, y, pscore = rep(.5, nrow(x)),
-                  nfolds = 10, alpha = 1, weight,
-                  verbose = FALSE) {
+Flasso = function(x, w, y, pscore = rep(.5, nrow(x)), nfolds = 10, alpha = 1, weight) {
 
   # Input sanitization
-
   x = as.matrix(x)
-
-  if (nrow(x) != length(tx)) {
-    stop('nrow(x) does not match length(tx)')
+  if (nrow(x) != length(w)) {
+    stop('nrow(x) does not match length(w)')
 
   } else if (nrow(x) != length(y)) {
     stop('nrow(x) does not match length(y)')
@@ -66,31 +48,53 @@ Flasso = function(x, tx, y, pscore = rep(.5, nrow(x)),
   } else if (!is.numeric(y)) {
     stop('y must be numeric (use 0/1 for binary response)')
 
-  } else if (!is.numeric(tx) | length(setdiff(tx, 0:1)) > 0) {
-    stop('tx must be vector of 0s and 1s')
+  } else if (!is.numeric(w) | length(setdiff(w, 0:1)) > 0) {
+    stop('w must be vector of 0s and 1s')
 
   }
 
-  colnames(x) = paste('X', 1:ncol(x), sep = '')
   fit = list(x = x, pscore = pscore, ipcw = weight)
-
-  z = tx * y / pscore - (1 - tx) * y / (1 - pscore)
-
-  if (verbose) cat('fitting IPW treatment lasso\n')
-
-  data = data.frame(y = z, x = x)
-  colnames(data) = c('y', colnames(x))
-
-  fit$tau_fit <- glmnet::cv.glmnet(as.matrix(data[,2:dim(data)[2]]),
-                           data$y,
-                           family = "gaussian",
-                           weights = weight,
-                           nfolds = nfolds,
-                           alpha = alpha)
+  z = w * y / pscore - (1 - w) * y / (1 - pscore)
+  fit$tau_fit <- glmnet::cv.glmnet(x, z, family = "gaussian", weights = weight, nfolds = nfolds, alpha = alpha)
   class(fit) = 'Flasso'
   fit
 }
 
-predict.Flasso = function(object, newx,...) {
+
+#' predict for Flasso
+#'
+#' get estimated tau(x) using the trained Flasso model
+#'
+#' @param object An Flasso object
+#' @param newx Covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data
+#' @param ... Additional arguments (currently not used)
+#'
+#' @examples
+#' \dontrun{
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
+#' weight <- rep(1, length(Y))
+#' data <- list(X = X, W = W, Y = Y, D = D)
+#' data.test <- list(X = X, W = W, Y = Y, D = D)
+#'
+#' Flasso_fit = Flasso(data$X, data$W, data$Y, weight)
+#' Flasso_cate = predict(Flasso_fit, data.test$X)
+#' }
+#'
+#' @return A vector of estimated conditional average treatment effects
+#' @export
+predict.Flasso = function(object,
+                          newx,
+                          ...) {
   return(as.vector(predict(object$tau_fit, newx = newx, s = "lambda.min")))
 }

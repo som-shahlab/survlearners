@@ -4,7 +4,7 @@
 \alias{predict.rgrf}
 \title{predict for rgrf}
 \usage{
-\method{predict}{rgrf}(object, newx = NULL, tau_only = TRUE, meta_learner = TRUE, ...)
+\method{predict}{rgrf}(object, newx = NULL, tau_only = TRUE, ...)
 }
 \arguments{
 \item{object}{a rgrf object}
@@ -16,22 +16,28 @@
 \item{...}{additional arguments (currently not used)}
 }
 \value{
-vector of predictions
+A vector of predicted conditional average treatment effects
 }
 \description{
 get estimated tau(x) using the trained rgrf model
 }
 \examples{
 \dontrun{
-n = 100; p = 10
+n = 1000; p = 25
+times = 0.2
+Y.max <- 2
+X <- matrix(rnorm(n * p), n, p)
+W <- rbinom(n, 1, 0.5)
+numeratorT <- -log(runif(n))
+T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+failure.time <- pmin(T, Y.max)
+numeratorC <- -log(runif(n))
+censor.time <- (numeratorC/(4^2))^(1/2)
+Y <- pmin(failure.time, censor.time)
+D <- as.integer(failure.time <= censor.time)
 
-x = matrix(rnorm(n*p), n, p)
-w = rbinom(n, 1, 0.5)
-y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-
-rboost_fit = rboost(x, w, y)
-rboost_est = predict(rboost_fit, x)
+rgrf_fit = rgrf(x, w, y, D, times)
+rgrf_cate = predict(rgrf_fit, x, times)
 }
-
 
 }

@@ -59,18 +59,17 @@ Tgrf0 <- 1-surf0
 
 # IPCW weights
 if(cen_fit == "KM"){
-  shuffle <- sample(nrow(traindat))
+  shuffle <- sample(length(data$Y))
   kmdat <- data.frame(Y = data$Y[shuffle], D = data$D[shuffle])
-  folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
+  folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
   C.Y.hat <- rep(NA, nrow(kmdat))
   for(z in 1:10){
     testIndexes <- which(folds==z, arr.ind=TRUE)
     testData <- kmdat[testIndexes, ]
     trainData <- kmdat[-testIndexes, ]
-    km_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
-    cent <- testData$Y
-    cent[testData$D==0] <- times
-    C.Y.hat[testIndexes] <- summary(km_fit, times = cent)$surv
+    c_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+    cent <- testData$Y; cent[testData$D==0] <- times
+    C.Y.hat[testIndexes] <- summary(c_fit, times = cent)$surv
   }
   shudat <- data.frame(shuffle, C.Y.hat)
   C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat

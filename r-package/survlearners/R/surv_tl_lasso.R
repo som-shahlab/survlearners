@@ -28,22 +28,18 @@
 #' @export
 surv_tl_lasso <- function(data, data.test, times){
 
-  traindat <- data.frame(Y = data$Y, D = data$D, W = data$W, data$X)
-  traindat1 <- traindat[traindat$W==1, !colnames(traindat) %in% c("W")]
-  traindat0 <- traindat[traindat$W==0, !colnames(traindat) %in% c("W")]
-
   # Model for W = 1
-  foldid <- sample(rep(seq(10), length = length(traindat1$Y)))
-  lasso_fit1 <- glmnet::cv.glmnet(as.matrix(traindat1[,3:dim(traindat1)[2]]),
-                                  Surv(traindat1$Y, traindat1$D),
+  foldid <- sample(rep(seq(10), length = length(data$Y[data$W==1])))
+  lasso_fit1 <- glmnet::cv.glmnet(data$X[data$W==1, ],
+                                  Surv(data$Y[data$W==1], data$D[data$W==1]),
                                   family = "cox",
                                   alpha = 1,
                                   foldid = foldid)
 
   S0 <- base_surv(fit = lasso_fit1,
-                    Y = traindat1$Y,
-                    D = traindat1$D,
-                    x = as.matrix(traindat1[,3:dim(traindat1)[2]]),
+                    Y = data$Y[data$W==1],
+                    D = data$D[data$W==1],
+                    x = data$X[data$W==1, ],
                     lambda = lasso_fit1$lambda.min)
 
   surf1 <- pred_surv(fit = lasso_fit1,
@@ -54,17 +50,17 @@ surv_tl_lasso <- function(data, data.test, times){
 
 
   # Model for W = 0
-  foldid <- sample(rep(seq(10), length = length(traindat0$Y)))
-  lasso_fit0 <- glmnet::cv.glmnet(as.matrix(traindat0[,3:dim(traindat0)[2]]),
-                          Surv(traindat0$Y, traindat0$D),
-                          family = "cox",
-                          alpha = 1,
-                          foldid = foldid)
+  foldid <- sample(rep(seq(10), length = length(data$Y[data$W==0])))
+  lasso_fit0 <- glmnet::cv.glmnet(data$X[data$W==0, ],
+                                  Surv(data$Y[data$W==0], data$D[data$W==0]),
+                                  family = "cox",
+                                  alpha = 1,
+                                  foldid = foldid)
 
   S0 <- base_surv(fit = lasso_fit0,
-                    Y = traindat0$Y,
-                    D = traindat0$D,
-                    x = as.matrix(traindat0[,3:dim(traindat0)[2]]),
+                    Y = data$Y[data$W==0],
+                    D = data$D[data$W==0],
+                    x = data$X[data$W==0, ],
                     lambda = lasso_fit0$lambda.min)
 
   surf0 <- pred_surv(fit = lasso_fit0,
