@@ -61,7 +61,7 @@ sanitize_x = function(x){
 	if (!is.matrix(x) | !is.numeric(x) | any(is.na(x))) {
 		stop("x must be a numeric matrix with no missing values")
 	}
-	colnames(x) = stringr::str_c("covariate_", 1:ncol(x))
+	colnames(x) = paste0("covariate_", 1:ncol(x))
 	return(x)
 }
 
