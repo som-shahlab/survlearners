@@ -34,6 +34,7 @@ jobs:
         run: |
           git clone http://github.com/erikcs/grf.git && cd grf/r-package/grf
           git checkout survpredict
+          sudo Rscript -e "install.packages('RcppEigen')"
           R CMD build . && R CMD install .
 
       - name: Test
@@ -56,4 +57,4 @@ jobs:
           mv docs/ ../docs
           git add --force ../docs/
           git commit --allow-empty -m "Update gh-pages"
-          git push --force https://$(SURVLEARNER_TOKEN)@github.com/som-shahlab/survmetabench.git HEAD:gh-pages
+          git push --force https://$(GITHUB_PAT)@github.com/som-shahlab/survmetabench.git HEAD:gh-pages
