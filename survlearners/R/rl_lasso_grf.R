@@ -6,7 +6,7 @@ estimate_ipcw_las_grf_rl <- function(data, data.test, ps = NULL, times=times, k_
                          y = data$Y,
                          D = data$D,
                          p_hat = ps,
-                         alpha = alpha,
+                         alpha = alpha, 
                          times = times,
                          k_folds = k_folds,
                          lambda_choice = lambda_choice,
