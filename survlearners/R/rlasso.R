@@ -38,7 +38,7 @@
 #' rlasso_fit = rlasso(x, w, y, D, times)
 #' rlasso_cate = predict(rlasso_fit, x, times)
 #' }
-#' @return a rlasso_surv object
+#' @return a rlasso object
 #' @export
 rlasso = function(x, w, y, D,
                   k_folds = 10,
@@ -99,10 +99,12 @@ rlasso = function(x, w, y, D,
 
     if (is.null(p_hat)){
       stop("propensity score needs to be supplied")
-    }else{
+    }else if (length(p_hat) == 1) {
       p_hat <- rep(p_hat, nrow(x))
+    }else if (length(p_hat) != nrow(x)){
+      stop("p_hat has incorrect length.")
     }
-
+    
     if (is.null(m_hat)){
     foldid <- sample(rep(seq(k_folds), length = length(w)))
     survt1 <- survt0 <- rep(NA, length(w))
@@ -135,31 +137,27 @@ rlasso = function(x, w, y, D,
 
     if (is.null(c_hat)){
     if(cen_fit == "KM"){
-      shuffle <- sample(length(data$Y))
-      kmdat <- data.frame(Y = data$Y[shuffle], D = data$D[shuffle])
-      folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
+      traindat <- data.frame(Y = y, D = D)
+      shuffle <- sample(nrow(traindat))
+      kmdat <- traindat[shuffle,]
+      folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
       c_hat <- rep(NA, nrow(kmdat))
       for(z in 1:10){
         testIndexes <- which(folds==z, arr.ind=TRUE)
         testData <- kmdat[testIndexes, ]
         trainData <- kmdat[-testIndexes, ]
         c_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
-        cent <- testData$Y
-        cent[testData$D==0] <- times
+        cent <- testData$Y; cent[testData$D==0] <- times
         c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
       }
       shudat <- data.frame(shuffle, c_hat)
       c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
-      c_fit <- grf::survival_forest(cbind(data$W, data$X),
-                                    data$Y,
-                                    1 - data$D,
-                                    alpha = alpha,
-                                    prediction.type = "Nelson-Aalen")
-      C.hat <- predict(c_fit)$predictions
-      cent <- data$Y; cent[data$D==0] <- times
+      cc_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
+      C.hat <- predict(c_fit, failure.times = c_fit$failure.times)$predictions
+      cent <- y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c_fit$failure.times)
-      c_hat <- C.hat[cbind(1:length(data$Y), cen.times.index)]
+      c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
      }
     }else {
       c_fit = NULL
@@ -198,7 +196,6 @@ rlasso = function(x, w, y, D,
                m_hat = m_hat,
                c_hat = c_hat,
                tau_hat = tau_hat,
-               rs = rs,
                standardization = standardization)
     class(ret) <- "rlasso"
     ret

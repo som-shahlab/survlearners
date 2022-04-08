@@ -2,72 +2,48 @@
 % Please edit documentation in R/Fgrf.R
 \name{Fgrf}
 \alias{Fgrf}
-\title{Fit a pollinated transformed outcome (PTO) forest model}
+\title{F-learner of grf}
 \usage{
-Fgrf(
-  x,
-  tx,
-  y,
-  pscore = rep(0.5, nrow(x)),
-  weight,
-  num.trees = 2000,
-  verbose = FALSE
-)
+Fgrf(x, w, y, pscore = rep(0.5, nrow(x)), num.trees = 2000, weight)
 }
 \arguments{
 \item{x}{matrix of covariates}
 
-\item{tx}{vector of treatment indicators (0 or 1)}
+\item{w}{vector of treatment indicators (0 or 1)}
 
 \item{y}{vector of response values}
 
 \item{pscore}{vector of propensity scores}
 
-\item{num.trees}{number of trees for transformed outcome forest}
+\item{num.trees}{number of trees}
 
-\item{verbose}{logical: should progress be printed to console?}
-
-\item{mtry}{number of variables to possibly split at in each node}
-
-\item{min.node.size}{minimum node size for transformed outcome forest}
-
-\item{postprocess}{logical: should optional post-processing random forest be
-fit at end?}
+\item{weight}{vector of subject level weights}
 }
 \value{
-an object of class \code{PTOforest} with attributes:
-\itemize{
-\item x: matrix of covariates supplied by function call
-\item pscore: vector of propensity score supplied by function call
-\item postprocess: logical supplied by function call
-\item TOfit: fitted random forest on transformed outcomes
-\item PTOfit1: TOfit pollinated with treatment-arm outcomes
-\item PTOfit0: TOfit pollinated with control-arm outcomes
-\item postfit: post-processing random forest summarizing results
-}
+An Flasso object
 }
 \description{
-Fit a pollinated transformed outcome (PTO) forest model
+F-learner, implemented via the grf package
 }
 \examples{
-# Randomized experiment example
+\dontrun{
+n = 1000; p = 25
+times = 0.2
+Y.max <- 2
+X <- matrix(rnorm(n * p), n, p)
+W <- rbinom(n, 1, 0.5)
+numeratorT <- -log(runif(n))
+T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+failure.time <- pmin(T, Y.max)
+numeratorC <- -log(runif(n))
+censor.time <- (numeratorC/(4^2))^(1/2)
+Y <- pmin(failure.time, censor.time)
+D <- as.integer(failure.time <= censor.time)
+weight <- rep(1, length(Y))
+data <- list(X = X, W = W, Y = Y, D = D)
+data.test <- list(X = X, W = W, Y = Y, D = D)
 
-n = 100 # number of training-set patients to simulate
-p = 10  # number of features for each training-set patient
-
-# Simulate data
-x = matrix(rnorm(n * p), nrow = n, ncol = p) # simulate covariate matrix
-tx_effect = x[, 1] + (x[, 2] > 0) # simple heterogeneous treatment effect
-tx = rbinom(n, size = 1, p = 0.5) # random treatment assignment
-y = rowMeans(x) + tx * tx_effect + rnorm(n, sd = 0.001) # simulate response
-
-# Estimate PTO forest model
-#fit_pto = PTOforest(x, tx, y)
-#pred_pto = predict(fit_pto, newx = x)
-
-# Visualize results
-#plot(tx_effect, pred_pto, main = 'PTO forest',
-#  xlab = 'True treatment effect', ylab = 'Estimated treatment effect')
-#abline(0, 1, lty = 2)
-
+Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight)
+Fgrf_cate = predict(Fgrf_fit, data.test$X)
+}
 }

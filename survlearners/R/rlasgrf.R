@@ -1,32 +1,59 @@
-#' @title R-learner, implemented via xgboost (boosting)
+#' @title R-learner of grf and lasso
 #'
-#' @description  R-learner, as proposed by Nie and Wager (2017), implemented via xgboost (boosting)
+#' @description  R-learner, implemented via the grf package for nuisance parameter estimation and lasso for target parameter
 #'
-#' @param x the input features
-#' @param w the treatment variable (0 or 1)
-#' @param y the observed response (real valued)
-#' @param k_folds number of folds used for cross fitting and cross validation
-#' @param p_hat pre-computed estimates on E(W|X) corresponding to the input x. rboost will compute it internally if not provided.
-#' @param m_hat pre-computed estimates on E(Y|X) corresponding to the input x. rboost will compute it internally if not provided.
-#' @param ntrees_max the maximum number of trees to grow for xgboost
-#' @param num_search_rounds the number of random sampling of hyperparameter combinations for cross validating on xgboost trees
-#' @param print_every_n the number of iterations (in each iteration, a tree is grown) by which the code prints out information
-#' @param early_stopping_rounds the number of rounds the test error stops decreasing by which the cross validation in finding the optimal number of trees stops
-#' @param nthread the number of threads to use. The default is NULL, which uses all available threads
-#' @param verbose boolean; whether to print statistic
-#'
+#' @param x The baseline covariates
+#' @param w The treatment variable (0 or 1)
+#' @param y The follow-up time
+#' @param D The event indicator
+#' @param k_folds Number of folds for cross validation
+#' @param p_hat Propensity score
+#' @param m_hat Conditional mean outcome E[Y|X]
+#' @param c_hat Censoring weights
+#' @param times The prediction time of interest
+#' @param failure.times A vector of event times to fit the survival curve at.
+#' @param num.trees Number of trees grown in the forest
+#' @param alpha Imbalance tuning parameter for a split in a tree
+#' @param sample.weights See grf documentation
+#' @param clusters See grf documentation
+#' @param equalize.cluster.weights See grf documentation
+#' @param sample.fraction See grf documentation
+#' @param mtry See grf documentation
+#' @param min.node.size See grf documentation
+#' @param honesty See grf documentation
+#' @param honesty.fraction See grf documentation
+#' @param honesty.prune.leaves See grf documentation
+#' @param alpha See grf documentation
+#' @param imbalance.penalty See grf documentation
+#' @param stabilize.splits See grf documentation
+#' @param ci.group.size See grf documentation
+#' @param tune.parameters See grf documentation
+#' @param compute.oob.predictions See grf documentation
+#' @param num.threads See grf documentation
+#' @param seed See grf documentation
+#' @param lambda_tau User-supplied lambda sequence for cross validation in the cate model
+#' @param lambda_choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
+#' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in x
+#' @param cen_fit The choice of model fitting for censoring
 #' @examples
 #' \dontrun{
-#' n = 100; p = 10
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
 #'
-#' x = matrix(rnorm(n*p), n, p)
-#' w = rbinom(n, 1, 0.5)
-#' y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-#'
-#' rboost_fit = rboost(x, w, y)
-#' rboost_est = predict(rboost_fit, x)
+#' rlasgrf_fit = rlasgrf(x, w, y, D, times)
+#' rlasgrf_cate = predict(rlasgrf_fit, x, times)
 #' }
-#'
+#' @return a rlasgrf object
 #' @export
 rlasgrf = function(x, w, y, D,
                    times = NULL,
@@ -45,7 +72,7 @@ rlasgrf = function(x, w, y, D,
                    honesty = TRUE,
                    honesty.fraction = 0.5,
                    honesty.prune.leaves = TRUE,
-                   alpha = 0.05,                # splitting criteria parameter in grf
+                   alpha = 0.05,
                    imbalance.penalty = 0,
                    stabilize.splits = TRUE,
                    ci.group.size = 2,
@@ -53,14 +80,11 @@ rlasgrf = function(x, w, y, D,
                    compute.oob.predictions = TRUE,
                    num.threads = NULL,
                    seed = runif(1, 0, .Machine$integer.max),
-                   lambda_tau = NULL,           # for lasso
-                   rs = FALSE,
-                   penalty_factor = NULL,
+                   lambda_tau = NULL,
                    lambda_choice = "lambda.min",
+                   penalty_factor = NULL,
                    cen_fit = "KM",
-                   meta_learner = TRUE,
                    verbose = FALSE){
-
 
   input = sanitize_input(x,w,y,D)
   x = input$x
@@ -138,8 +162,7 @@ rlasgrf = function(x, w, y, D,
         testData <- kmdat[testIndexes, ]
         trainData <- kmdat[-testIndexes, ]
         c_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
-        cent <- testData$Y
-        cent[testData$D==0] <- times
+        cent <- testData$Y; cent[testData$D==0] <- times
         c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
       }
       shudat <- data.frame(shuffle, c_hat)
@@ -147,8 +170,7 @@ rlasgrf = function(x, w, y, D,
     }else if (cen_fit == "survival.forest"){
       c_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
       C.hat <- predict(c_fit, failure.times = c_fit$failure.times)$predictions
-      cent <- y
-      cent[D==0] <- times
+      cent <- y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c_fit$failure.times)
       c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
     }
@@ -188,51 +210,48 @@ rlasgrf = function(x, w, y, D,
              p_hat = p_hat,
              m_hat = m_hat,
              tau_hat = tau_hat,
-             rs = rs,
              standardization = standardization)
   class(ret) <- "rlasgrf"
   ret
 }
 
-#' predict for rgrf
+#' predict for rlasgrf
 #'
-#' get estimated tau(x) using the trained rgrf model
+#' get estimated tau(x) using the trained rlasgrf model
 #'
-#' @param object a rgrf object
+#' @param object a rlasgrf object
 #' @param newx covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data
-#' @param tau_only if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.
 #' @param ... additional arguments (currently not used)
 #'
 #' @examples
 #' \dontrun{
-#' n = 100; p = 10
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
 #'
-#' x = matrix(rnorm(n*p), n, p)
-#' w = rbinom(n, 1, 0.5)
-#' y = pmax(x[,1], 0) * w + x[,2] + pmin(x[,3], 0) + rnorm(n)
-#'
-#' rboost_fit = rboost(x, w, y)
-#' rboost_est = predict(rboost_fit, x)
+#' rlasgrf_fit = rlasgrf(x, w, y, D, times)
+#' rlasgrf_cate = predict(rlasgrf_fit, x, times)
 #' }
 #'
-#'
-#' @return vector of predictions
+#' @return A vector of predicted conditional average treatment effects
 #' @export
 predict.rlasgrf <- function(object,
                             newx = NULL,
                             ...) {
   if (!is.null(newx)) {
-
     newx = sanitize_x(newx)
-    newx_scl = predict(object$standardization, newx) # standardize the new data using the same standardization as with the training data
+    newx_scl = predict(object$standardization, newx)     # standardize the new data using the same standardization as with the training data
     newx_scl = newx_scl[,!is.na(colSums(newx_scl)), drop = FALSE]
-
-    if (object$rs){
-      newx_scl_pred = cbind(1, newx_scl, newx_scl * 0)
-    }
-    else{
-      newx_scl_pred = cbind(1, newx_scl)
-    }
+    newx_scl_pred = cbind(1, newx_scl)
     tau_hat = newx_scl_pred %*% object$tau_beta
   }
   else {

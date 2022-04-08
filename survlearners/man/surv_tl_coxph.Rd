@@ -7,15 +7,11 @@
 surv_tl_coxph(data, data.test, times)
 }
 \arguments{
+\item{data}{The training data set}
+
+\item{data.test}{The testing data set}
+
 \item{times}{The prediction time of interest}
-
-\item{x}{The baseline covariates}
-
-\item{w}{The treatment variable (0 or 1)}
-
-\item{y}{The follow-up time}
-
-\item{D}{The event indicator}
 }
 \value{
 A vector of estimated conditional average treatment effects
