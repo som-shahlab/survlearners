@@ -34,7 +34,7 @@ jobs:
         run: |
           git clone http://github.com/erikcs/grf.git && cd grf/r-package/grf
           git checkout survpredict
-          sudo Rscript -e "install.packages('RcppEigen')"
+          sudo Rscript -e "install.packages('RcppEigen', type = 'mac.binary')"
           R CMD build . && R CMD install .
 
       - name: Test
