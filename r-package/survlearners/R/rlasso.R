@@ -41,7 +41,7 @@
 #' @return a rlasso object
 #' @export
 rlasso = function(x, w, y, D,
-                  k_folds = 10, 
+                  k_folds = 10,
                   foldid = NULL,
                   lambda_y = NULL,
                   lambda_tau = NULL,
@@ -62,8 +62,7 @@ rlasso = function(x, w, y, D,
     y = input$y
     D = input$D
 
-    standardization = caret::preProcess(x, method=c("center", "scale")) # get the standardization params
-    x_scl = predict(standardization, x)					                    		# standardize the input
+    x_scl = scale(x, center = TRUE, scale = TRUE)
     x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
 
     nobs = nrow(x_scl)

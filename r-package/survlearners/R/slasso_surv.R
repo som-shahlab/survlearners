@@ -47,8 +47,7 @@ slasso_surv = function(x, w, y, D, times,
   y = input$y
   D = input$D
 
-  standardization = caret::preProcess(x, method=c("center", "scale")) # get the standardization params
-  x_scl = predict(standardization, x)							                    # standardize the input
+  x_scl = scale(x, center = TRUE, scale = TRUE)
   x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
 
   nobs = nrow(x_scl)

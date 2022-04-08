@@ -94,8 +94,7 @@ rlasgrf = function(x, w, y, D,
   nobs = nrow(x)
   pobs = ncol(x)
 
-  standardization = caret::preProcess(x, method=c("center", "scale"))  # get the standardization params
-  x_scl = predict(standardization, x)				                    			 # standardize the input
+  x_scl = scale(x, center = TRUE, scale = TRUE)
   x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
 
   # penalty factor for tau estimator
