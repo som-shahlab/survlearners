@@ -28,14 +28,13 @@
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 estimate_grf_sl <- function(data, data.test, times, alpha = 0.05){
-  Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
-  index <- findInterval(times, Y.grid)
+
   grffit <- survival_forest(cbind(data$W, data$X),
                             traindat$Y,
                             traindat$D,
                             alpha = alpha,
-                            prediction.type = "Nelson-Aalen",
-                            failure.times = Y.grid)
+                            prediction.type = "Nelson-Aalen")
+  index <- findInterval(times, grffit$failure.times)
   surf1 <- predict(grffit, cbind(rep(1, length(data.test$Y)), data.test$X))$predictions[, index]
   surf0 <- predict(grffit, cbind(rep(0, length(data.test$Y)), data.test$X))$predictions[, index]
   pred_S_grf <- surf1 - surf0
