@@ -13,7 +13,7 @@ Some links for getting started
 The current version of the survival metalearner can be installed from source using [remotes](https://cran.r-project.org/web/packages/remotes/index.html).
 
 ```R
-remotes::install_github("som-shahlab/survmetabench", subdir = "survlearners")
+remotes::install_github("som-shahlab/survmetabench", subdir = "r-package/survlearners")
 ```
 
 ### References
