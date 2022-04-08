@@ -1,5 +1,5 @@
 # R-learner of GRF
-estimate_ipcw_grf_rl <- function(data, data.test, ps = NULL, times=times,
+surv_rl_grf <- function(data, data.test, ps = NULL, times=times,
                                  alpha = 0.05, cen_fit = "KM", meta_learner = TRUE){
   rgrf_fit <- rgrf(x = data$X,
                    w = data$W,

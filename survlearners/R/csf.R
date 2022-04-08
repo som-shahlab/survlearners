@@ -25,11 +25,11 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' csf_cate = estimate_csf_probs(data, data.test, times, ps = 0.5)
+#' cate = csf(data, data.test, times, ps = 0.5)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_csf_probs <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM") {
+csf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM") {
   fit <- grf::causal_survival_forest(X = data$X,
                                      Y = data$Y,
                                      W = data$W,

@@ -23,11 +23,11 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' tgrf_surv_cate = estimate_grf_tl(data, data.test, times)
+#' cate = surv_tl_grf(data, data.test, times)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_grf_tl <- function(data, data.test, times, alpha = 0.05){
+surv_tl_grf <- function(data, data.test, times, alpha = 0.05){
   # Model for W = 1
   grffit1 <- grf::survival_forest(data$X[dataW==1],
                                   data$Y[dataW==1],

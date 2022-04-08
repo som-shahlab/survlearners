@@ -1,6 +1,6 @@
-#' @title X-learner of grf
+#' @title F-learner of grf
 #'
-#' @description  X-learner, implemented via survival_forest in the grf package
+#' @description  F-learner, implemented via survival_forest in the grf package
 #'
 #' @param data The training data set
 #' @param data.test The testing data set
@@ -25,35 +25,11 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' xgrf_surv_cate = estimate_ipcw_grf_xl(data, data.test, times, ps = 0.5)
+#' cate = surv_fl_grf(data, data.test, times, ps = 0.5)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_ipcw_grf_xl <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
-  # fit model on W==1
-  grffit1 <- grf::survival_forest(data$X[data$W==1,],
-                                  data$Y[data$W==1],
-                                  data$D[data$W==1],
-                                  alpha = alpha,
-                                  prediction.type = "Nelson-Aalen")
-  surf1 <- rep(NA, length(data$W))
-  times.index <- findInterval(times, grffit1$failure.times)
-  surf1[data$W==1] <- predict(grffit1)$predictions[, times.index]
-  surf1[data$W==0] <- predict(grffit1, data$X[data$W==0,])$predictions[, times.index]
-
-  # fit model on W==0
-  grffit0 <- grf::survival_forest(data$X[data$W==0,],
-                                  data$Y[data$W==0],
-                                  data$D[data$W==0],
-                                  alpha = alpha,
-                                  prediction.type = "Nelson-Aalen")
-  surf0 <- rep(NA, length(data$W))
-  times.index <- findInterval(times, grffit0$failure.times)
-  surf0[traindat$W==0] <- predict(grffit0)$predictions[, times.index]
-  surf0[traindat$W==1] <- predict(grffit0, data$X[data$W==1,])$predictions[, times.index]
-
-  Tgrf1 <- 1-surf1
-  Tgrf0 <- 1-surf0
+surv_fl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
 
   # IPCW weights
   if(cen_fit == "KM"){
@@ -89,31 +65,22 @@ estimate_ipcw_grf_xl <- function(data, data.test, times, alpha = 0.05, ps = NULL
   if (is.null(ps)){
     stop("propensity score needs to be supplied")
   }else{
-    ps.train <- rep(ps, length(data$W))
-    ps_test <- rep(ps, length(data.test$W))
+    pscore <- ps
   }
 
-  weight <- ipcw/ps.train  # censoring weight * treatment weight
-
-  # X-learner
-  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, weight, X = data$X, Tgrf0, Tgrf1)
+  # Subset of uncensored subjects
+  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, pscore, ipcw, X = data$X)
   binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
   binary_data <- binary_data[complete.cases(binary_data), ]
   b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W, X = binary_data$X,
-                 wt = binary_data$weight, mu0 = binary_data$Tgrf0, mu1 = binary_data$Tgrf1)
+                 wt = binary_data$ipcw, ps = binary_data$pscore)
 
-  XLfit1 <- grf::regression_forest(b_data$X[b_data$W==1, ],
-                                   b_data$D[b_data$W==1] - b_data$mu0[b_data$W==1],
-                                   sample.weights = b_data$wt[b_data$W==1])
-  XLtau1 <- -predict(XLfit1, data.frame(data.test$X))
-
-  XLfit0 <- grf::regression_forest(b_data$X[b_data$W==0, ],
-                                   b_data$mu1[b_data$W==0] - b_data$D[b_data$W==0],
-                                   sample.weights = b_data$wt[b_data$W==0])
-  XLtau0 <- -predict(XLfit0, data.frame(data.test$X))
-
-  # weighted CATE
-  pred_X_grf <- XLtau1 * (1 - ps_test) + XLtau0 * ps_test
-  as.vector(pred_X_grf)
+  fgrf_fit <- Fgrf(x = b_data$X,
+                   tx = b_data$W,
+                   y = b_data$D,
+                   pscore = b_data$ps,
+                   weight = b_data$wt)
+  pred_fgrf <- -predict(fgrf_fit, data.frame(data.test$X))
+  pred_fgrf
 }
