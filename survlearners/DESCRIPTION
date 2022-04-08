@@ -24,5 +24,4 @@ Imports:
     mvtnorm,
     caret,
     glmnet,
-    grf,
-    stringr
+    grf
