@@ -1,5 +1,3 @@
-#' @include utils.R
-#'
 #' @title R-learner of lasso
 #'
 #' @description  R-learner, implemented via glmnet (lasso) with 'coxph' distribution

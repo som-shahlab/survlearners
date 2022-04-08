@@ -1,5 +1,3 @@
-#' @include utils.R
-#'
 #' @title X-learner of lasso and grf
 #'
 #' @description  X-learner, implemented via grf (for nuisance parameter estimation)

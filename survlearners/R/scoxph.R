@@ -1,5 +1,3 @@
-#' @include utils.R
-#'
 #' @title S-learner of Cox PH
 #'
 #' @description  S-learner, implemented via Cox proportional hazard models

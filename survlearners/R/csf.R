@@ -1,8 +1,6 @@
-#' @include utils.R
-#'
 #' @title causal survival forest
 #'
-#' @description  causal survival forest, implemented via the grf R package 
+#' @description  causal survival forest, implemented via the grf R package
 #'
 #' @param data The training data set
 #' @param data.test The testing data set
