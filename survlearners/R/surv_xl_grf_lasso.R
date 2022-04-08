@@ -26,11 +26,11 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' xlas_grf_surv_cate = estimate_ipcw_las_grf_xl(data, data.test, times, ps = 0.5)
+#' cate = surv_xl_grf_lasso(data, data.test, times, ps = 0.5)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_ipcw_las_grf_xl <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
+surv_xl_grf_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
 
 # fit model on W==1
 grffit1 <- grf::survival_forest(data$X[data$W==1,],

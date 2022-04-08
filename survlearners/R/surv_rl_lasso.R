@@ -1,10 +1,13 @@
-#' @title S-learner of Cox PH
+#' @title R-learner of lasso
 #'
-#' @description  S-learner, implemented via Cox proportional hazard models
+#' @description  R-learner, implemented via glmnet (lasso) with 'coxph' distribution
 #'
 #' @param data The training data set
 #' @param data.test The testing data set
 #' @param times The prediction time of interest
+#' @param alpha Imbalance tuning parameter for a split (see grf documentation)
+#' @param ps The propensity score
+#' @param cen_fit The choice of model fitting for censoring
 #' @examples
 #' \dontrun{
 #' n = 1000; p = 25
@@ -22,18 +25,19 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' scoxph_surv_cate = estimate_coxph_sl(data, data.test, times)
+#' cate = surv_rl_lasso(data, data.test, times, ps = 0.5)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_coxph_sl <- function(data, data.test, times){
-
-  scoxph_fit <- scoxph(x = data$X,
+surv_rl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
+  rlasso_fit <- rlasso(x = data$X,
                        w = data$W,
                        y = data$Y,
                        D = data$D,
-                       times = times)
-
-  pred_S_coxph <- predict(scoxph_fit, newx = data.test$X, times = times)
-  pred_S_coxph
+                       p_hat = ps,
+                       alpha = alpha,
+                       times = times,
+                       cen_fit = cen_fit)
+  rlasso_est <- predict(object = rlasso_fit, newx = data.test$X)
+  as.vector(rlasso_est)
 }
