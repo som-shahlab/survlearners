@@ -41,7 +41,7 @@
 #' @return a rlasso object
 #' @export
 rlasso = function(x, w, y, D,
-                  k_folds = 10,
+                  k_folds = 10, 
                   foldid = NULL,
                   lambda_y = NULL,
                   lambda_tau = NULL,
@@ -104,7 +104,7 @@ rlasso = function(x, w, y, D,
     }else if (length(p_hat) != nrow(x)){
       stop("p_hat has incorrect length.")
     }
-    
+
     if (is.null(m_hat)){
     foldid <- sample(rep(seq(k_folds), length = length(w)))
     survt1 <- survt0 <- rep(NA, length(w))
