@@ -20,14 +20,14 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v1 # For pkgdown page
 
       - name: Bootstrap
-        working-directory: survlearners
+        working-directory: r-package/survlearners
         run: |
           curl -OLs https://eddelbuettel.github.io/r-ci/run.sh
           chmod 0755 run.sh
           ./run.sh bootstrap
 
       - name: Dependencies
-        working-directory: survlearners
+        working-directory: r-package/survlearners
         run: ./run.sh install_all
 
       - name: Tmp devel GRF install
@@ -37,23 +37,23 @@ jobs:
           R CMD build . && R CMD install .
 
       - name: Test
-        working-directory: survlearners
+        working-directory: r-package/survlearners
         run: ./run.sh run_tests
 
       - name: Print logs
         if: failure()
-        working-directory: survlearners
+        working-directory: r-package/survlearners
         run: ./run.sh dump_logs
 
       - name: GitHub pages
         if: github.ref == 'refs/heads/master'
-        working-directory: survlearners
+        working-directory: r-package/survlearners
         run: |
           sudo Rscript -e "install.packages('pkgdown')"
           git config --local user.name "GITHUB_ACTIONS"
           git config --local user.email "GITHUB_ACTIONS@users.noreply.github.com"
           Rscript -e "pkgdown::build_site()"
-          mv docs/ ../docs
-          git add --force ../docs/
+          mv docs/ ../../docs
+          git add --force ../../docs/
           git commit --allow-empty -m "Update gh-pages"
           git push --force https://$(GITHUB_PAT)@github.com/som-shahlab/survmetabench.git HEAD:gh-pages
