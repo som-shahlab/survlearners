@@ -1,5 +1,3 @@
-#' @include utils.R
-#'
 #' @title T-learner of lasso
 #'
 #' @description  T-learner, implemented via glmnet (lasso)
