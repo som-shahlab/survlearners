@@ -93,15 +93,11 @@ slasso_surv = function(x, w, y, D, times,
 
   link1 <- exp(x_scl_pred1 %*% s_beta_adj)
   link0 <- exp(x_scl_pred0 %*% s_beta_adj)
-  link <- exp(x_scl_tilde %*% s_beta_adj)
-
-  d <- data.frame(table(y[D == 1]))[,2]  # number of events at each unique time
-  h0 <- rep(NA, length(sort(unique(y[D == 1]))))
-  for(l in 1:length(sort(unique(y[D == 1])))){
-    h0[l] <- d[l] / sum(exp(x_scl_tilde[y >= sort(unique(y[D == 1]))[l], ] %*% s_beta))
-  }
-  S0 <- exp(-cumsum(h0))
-  S0_t <- S0[sort(unique(y[D == 1]))>=times][1]
+  S0_t <- base_surv(fit = s_fit,
+                    Y = y,
+                    D = D,
+                    x = x_scl_tilde,
+                    lambda = s_fit$lambda.min)
 
   surv1 <- S0_t^exp(link1)
   surv0 <- S0_t^exp(link0)
@@ -114,6 +110,7 @@ slasso_surv = function(x, w, y, D, times,
              D_org = D,
              beta_org = s_beta,
              s_beta = s_beta_adj,
+             S0_t = S0_t,
              tau_hat = tau_hat,
              lambda_choice = lambda_choice,
              standardization = standardization)
@@ -167,16 +164,8 @@ predict.slasso_surv <- function(object,
     link1 <- exp(newx_scl_pred1 %*% object$s_beta)
     link0 <- exp(newx_scl_pred0 %*% object$s_beta)
 
-    d <- data.frame(table(object$y_org[object$D_org == 1]))[,2]
-    h0 <- rep(NA, length(sort(unique(object$y_org[object$D_org == 1]))))
-    for(l in 1:length(sort(unique(object$y_org[object$D_org == 1])))){
-      h0[l] <- d[l] / sum(exp(object$x_org[object$y_org >= sort(unique(object$y_org[object$D_org == 1]))[l], ] %*% object$beta_org))
-    }
-    S0 <- exp(-cumsum(h0))
-    S0_t <- S0[sort(unique(object$y_org[object$D_org == 1]))>=times][1]
-
-    surv1 <- S0_t^exp(link1)
-    surv0 <- S0_t^exp(link0)
+    surv1 <- object$S0_t^exp(link1)
+    surv0 <- object$S0_t^exp(link0)
 
     tau_hat <- as.numeric(surv1 - surv0)
   }

@@ -29,7 +29,7 @@
 #' @export
 surv_tl_grf <- function(data, data.test, times, alpha = 0.05){
   # Model for W = 1
-  grffit1 <- grf::survival_forest(data$X[dataW==1],
+  grffit1 <- grf::survival_forest(data$X[dataW==1,],
                                   data$Y[dataW==1],
                                   data$D[dataW==1],
                                   alpha = alpha,
@@ -38,7 +38,7 @@ surv_tl_grf <- function(data, data.test, times, alpha = 0.05){
   surf1 <- predict(grffit1, data.test$X)$predictions[, index]
 
   # Model for W = 0
-  grffit0 <- grf::survival_forest(data$X[dataW==0],
+  grffit0 <- grf::survival_forest(data$X[dataW==0,],
                                   data$Y[dataW==0],
                                   data$D[dataW==0],
                                   alpha = alpha,

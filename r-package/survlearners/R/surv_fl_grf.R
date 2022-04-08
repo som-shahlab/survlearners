@@ -33,18 +33,18 @@ surv_fl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit
 
   # IPCW weights
   if(cen_fit == "KM"){
-    shuffle <- sample(nrow(traindat))
+    shuffle <- sample(length(data$Y))
     kmdat <- data.frame(Y = data$Y[shuffle], D = data$D[shuffle])
-    folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
-    C.Y.hat <- rep(NA, nrow(kmdat))
+    folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
+    c_hat <- rep(NA, nrow(kmdat))
     for(z in 1:10){
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
       trainData <- kmdat[-testIndexes, ]
-      km_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+      c_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
       cent <- testData$Y
       cent[testData$D==0] <- times
-      C.Y.hat[testIndexes] <- summary(km_fit, times = cent)$surv
+      c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
     }
     shudat <- data.frame(shuffle, C.Y.hat)
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
@@ -65,7 +65,7 @@ surv_fl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit
   if (is.null(ps)){
     stop("propensity score needs to be supplied")
   }else{
-    pscore <- ps
+    pscore <- rep(ps, length(data$Y))
   }
 
   # Subset of uncensored subjects
@@ -77,10 +77,10 @@ surv_fl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit
                  wt = binary_data$ipcw, ps = binary_data$pscore)
 
   fgrf_fit <- Fgrf(x = b_data$X,
-                   tx = b_data$W,
+                   w = b_data$W,
                    y = b_data$D,
                    pscore = b_data$ps,
                    weight = b_data$wt)
-  pred_fgrf <- -predict(fgrf_fit, data.frame(data.test$X))
+  pred_fgrf <- -predict(fgrf_fit, data.test$X)
   pred_fgrf
 }
