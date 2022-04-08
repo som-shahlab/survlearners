@@ -22,11 +22,11 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' tlasso_surv_cate = estimate_lasso_tl(data, data.test, times)
+#' cate = surv_tl_lasso(data, data.test, times)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_lasso_tl <- function(data, data.test, times){
+surv_tl_lasso <- function(data, data.test, times){
 
   traindat <- data.frame(Y = data$Y, D = data$D, W = data$W, data$X)
   traindat1 <- traindat[traindat$W==1, !colnames(traindat) %in% c("W")]

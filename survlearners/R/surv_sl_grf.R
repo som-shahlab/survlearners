@@ -1,13 +1,11 @@
-#' @title R-learner of lasso
+#' @title S-learner of grf
 #'
-#' @description  R-learner, implemented via glmnet (lasso) with 'coxph' distribution
+#' @description  S-learner, implemented via survival_forest (grf package)
 #'
 #' @param data The training data set
 #' @param data.test The testing data set
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
-#' @param ps The propensity score
-#' @param cen_fit The choice of model fitting for censoring
 #' @examples
 #' \dontrun{
 #' n = 1000; p = 25
@@ -25,19 +23,20 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' rlasso_surv_cate = estimate_ipcw_lasso_rl(data, data.test, times, ps = 0.5)
+#' cate = surv_sl_grf(data, data.test, times)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_ipcw_lasso_rl <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
-  rlasso_fit <- rlasso(x = data$X,
-                       w = data$W,
-                       y = data$Y,
-                       D = data$D,
-                       p_hat = ps,
-                       alpha = alpha,
-                       times = times,
-                       cen_fit = cen_fit)
-  rlasso_est <- predict(object = rlasso_fit, newx = data.test$X)
-  as.vector(rlasso_est)
+surv_sl_grf <- function(data, data.test, times, alpha = 0.05){
+
+  grffit <- survival_forest(cbind(data$W, data$X),
+                            traindat$Y,
+                            traindat$D,
+                            alpha = alpha,
+                            prediction.type = "Nelson-Aalen")
+  index <- findInterval(times, grffit$failure.times)
+  surf1 <- predict(grffit, cbind(rep(1, length(data.test$Y)), data.test$X))$predictions[, index]
+  surf0 <- predict(grffit, cbind(rep(0, length(data.test$Y)), data.test$X))$predictions[, index]
+  pred_S_grf <- surf1 - surf0
+  pred_S_grf
 }

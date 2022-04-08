@@ -22,11 +22,11 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' slasso_surv_cate = estimate_lasso_sl(data, data.test, times)
+#' cate = surv_sl_lasso(data, data.test, times)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_lasso_sl <- function(data, data.test, times){
+surv_sl_lasso <- function(data, data.test, times){
 
   slasso_fit <- slasso_surv(x = data$X,
                             w = data$W,

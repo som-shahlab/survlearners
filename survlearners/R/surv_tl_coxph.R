@@ -24,11 +24,11 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' tcoxph_cate = estimate_coxph_tl(data, data.test, times)
+#' cate = surv_tl_coxph(data, data.test, times)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_coxph_tl <- function(data, data.test, times){
+surv_tl_coxph <- function(data, data.test, times){
 
   traindat <- data.frame(Y = data$Y, D = data$D, W = data$W, data$X)
   traindat1 <- traindat[traindat$W==1, !colnames(traindat) %in% c("W")]

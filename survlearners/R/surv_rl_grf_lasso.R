@@ -1,5 +1,5 @@
 # R-learner of lasso (target) and grf (nuisance)
-estimate_ipcw_las_grf_rl <- function(data, data.test, ps = NULL, times=times, k_folds = 10, lambda_choice = "lambda.min",
+surv_rl_grf_lasso <- function(data, data.test, ps = NULL, times=times, k_folds = 10, lambda_choice = "lambda.min",
                                      alpha = 0.05, cen_fit = "KM", meta_learner = TRUE){
   rlasgrf_fit <- rlasgrf(x = data$X,
                          w = data$W,
@@ -7,7 +7,7 @@ estimate_ipcw_las_grf_rl <- function(data, data.test, ps = NULL, times=times, k_
                          D = data$D,
                          p_hat = ps,
                          alpha = alpha,
-                         times = times, 
+                         times = times,
                          k_folds = k_folds,
                          lambda_choice = lambda_choice,
                          cen_fit = cen_fit,

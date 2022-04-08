@@ -25,11 +25,11 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' flasso_surv_cate = estimate_ipcw_lasso_fl(data, data.test, times, ps = 0.5)
+#' cate = surv_fl_lasso(data, data.test, times, ps = 0.5)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-estimate_ipcw_lasso_fl <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
+surv_fl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
 
   # IPCW weights
   if(cen_fit == "KM"){
