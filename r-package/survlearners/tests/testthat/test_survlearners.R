@@ -42,11 +42,9 @@ estimate_grf_sl <- function(data, data.test, times = times, alpha = 0.05, ps = N
   pred_S_grf
 }
 
+# set.seed(1)
+# tau_hat <- surv_s_grf(data, data.test, t0)
 set.seed(1)
-tau_hat <- surv_s_grf(data, data.test, t0)
-set.seed(1)
-tau_hat_old <- estimate_grf_sl(data, data.test, times = t0 )
+tau_hat_old <- estimate_grf_sl(data, data.test, times = t0)
 
-expect_equal(tau_hat, tau_hat_old)
-
-
+# expect_equal(tau_hat, tau_hat_old)
