@@ -43,8 +43,8 @@ scoxph = function(x, w, y, D, times){
   formula <- as.formula(paste0("Surv(y, D) ~ ", paste(colnames(x_tilde), sep=" ", collapse = "+")))
   tmpdat <- data.frame(y, D, x_tilde)
 
-  s_fit <- coxph(formula, data = tmpdat)
-  bh_dat <- basehaz(s_fit, centered = FALSE)
+  s_fit <- survival::coxph(formula, data = tmpdat)
+  bh_dat <- survival::basehaz(s_fit, centered = FALSE)
   index <- findInterval(times, bh_dat$time)
   bh <- bh_dat[index, 1]
 
@@ -101,7 +101,7 @@ predict.scoxph <- function(object,
   if (!is.null(newx)) {
     newx <- sanitize_x(newx)
 
-    bh_dat <- basehaz(object$s_fit, centered = FALSE)
+    bh_dat <- survival::basehaz(object$s_fit, centered = FALSE)
     index <- findInterval(times, bh_dat$time)
     bh <- bh_dat[index, 1]
 

@@ -33,16 +33,16 @@ surv_tl_coxph <- function(data, data.test, times){
   traindat0 <- traindat[traindat$W==0, !colnames(traindat) %in% c("W")]
 
   # Model for W = 1
-  coxph_fit1 <- coxph(Surv(Y, D) ~., data = traindat1)
-  bh_dat <- basehaz(coxph_fit1, centered = FALSE)
+  coxph_fit1 <- survival::coxph(Surv(Y, D) ~., data = traindat1)
+  bh_dat <- survival::basehaz(coxph_fit1, centered = FALSE)
   index <- findInterval(times, bh_dat$time)
   bh <- bh_dat[index, 1]
   est_r1 <- predict(coxph_fit1, newdata = data.frame(data.test$X), type="risk")
   surf1 <- exp(-bh)^est_r1
 
   # Model for W = 0
-  coxph_fit0 <- coxph(Surv(Y, D) ~., data = traindat0)
-  bh_dat <- basehaz(coxph_fit0, centered = FALSE)
+  coxph_fit0 <- survival::coxph(Surv(Y, D) ~., data = traindat0)
+  bh_dat <- survival::basehaz(coxph_fit0, centered = FALSE)
   index <- findInterval(times, bh_dat$time)
   bh <- bh_dat[index, 1]
   est_r0 <- predict(coxph_fit0, newdata = data.frame(data.test$X), type="risk")

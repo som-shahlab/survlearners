@@ -80,7 +80,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
       trainData <- kmdat[-testIndexes, ]
-      c_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+      c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
       cent <- testData$Y
       cent[testData$D==0] <- times
       c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
