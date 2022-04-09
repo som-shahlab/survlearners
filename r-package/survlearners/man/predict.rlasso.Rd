@@ -34,7 +34,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-rlasso_fit = rlasso(X, W, Y, D, times = times)
+rlasso_fit = rlasso(X, W, Y, D, times = times, p_hat = 0.5)
 rlasso_cate = predict(rlasso_fit, X)
 }
 
