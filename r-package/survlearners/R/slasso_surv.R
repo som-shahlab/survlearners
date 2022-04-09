@@ -77,7 +77,7 @@ slasso_surv = function(x, w, y, D, times,
     }
     penalty_factor = c(0, rep(1, 2 * pobs))
   }
-
+  x_scl_tilde <- as.matrix(data.frame(x_scl_tilde))
   s_fit <- glmnet::cv.glmnet(x_scl_tilde,
                              Surv(y, D),
                              family = "cox",
@@ -97,9 +97,9 @@ slasso_surv = function(x, w, y, D, times,
                     D = D,
                     x = x_scl_tilde,
                     lambda = s_fit$lambda.min)
-
-  surv1 <- S0_t^exp(link1)
-  surv0 <- S0_t^exp(link0)
+  index <- findInterval(times, S0_t$time)
+  surv1 <- S0_t[index,]$survival^exp(link1)
+  surv0 <- S0_t[index,]$survival^exp(link0)
 
   tau_hat <- as.numeric(surv1 - surv0)
 
@@ -109,7 +109,7 @@ slasso_surv = function(x, w, y, D, times,
              D_org = D,
              beta_org = s_beta,
              s_beta = s_beta_adj,
-             S0_t = S0_t,
+             S0_t = S0_t[index, ]$survival,
              tau_hat = tau_hat,
              lambda_choice = lambda_choice)
 

@@ -32,38 +32,40 @@
 surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
 
   # fit model on W==1 (cross-fitted using 'preval' in glmnet)
-  foldid1 <- sample(rep(seq(10), length = length(data$Y[dataW==1])))
-  lasso_fit1 <- glmnet::cv.glmnet(data$X[dataW==1, ],
-                                  Surv(data$Y[dataW==1], data$D[dataW==1]),
+  foldid1 <- sample(rep(seq(10), length = length(data$Y[data$W==1])))
+  x1 <- as.matrix(data.frame(data$X[data$W==1, ]))
+  lasso_fit1 <- glmnet::cv.glmnet(x1,
+                                  Surv(data$Y[data$W==1], data$D[data$W==1]),
                                   family = "cox",
                                   alpha = 1,
                                   keep = TRUE,
                                   foldid = foldid1)
   lambda_1_min <- lasso_fit1$lambda[which.min(lasso_fit1$cvm[!is.na(colSums(lasso_fit1$fit.preval))])]
-  S0 <- base_surv(lasso_fit1, data$Y[dataW==1], data$D[dataW==1], data$X[dataW==1, ], lambda = lambda_1_min)
+  S0 <- base_surv(lasso_fit1, data$Y[data$W==1], data$D[data$W==1], x1, lambda = lambda_1_min)
   surf1 <- rep(NA, length(data$W))
   surf1[data$W==1] <- pred_surv_preval(lasso_fit1, S0, times = times, lambda = lambda_1_min)
   surf1[data$W==0] <- pred_surv(fit = lasso_fit1,
                                 S0 = S0,
-                                x = data$X[dataW==0, ],
+                                x = data$X[data$W==0, ],
                                 times = times,
                                 lambda = lasso_fit1$lambda.min)
 
   # fit model on W==0 (cross-fitted using 'preval' in glmnet)
-  foldid0 <- sample(rep(seq(10), length = length(data$Y[dataW==0])))
-  lasso_fit0 <- glmnet::cv.glmnet(data$X[dataW==0, ],
-                                  Surv(data$Y[dataW==0], data$D[dataW==0]),
+  foldid0 <- sample(rep(seq(10), length = length(data$Y[data$W==0])))
+  x0 <- as.matrix(data.frame(data$X[data$W==0, ]))
+  lasso_fit0 <- glmnet::cv.glmnet(x0,
+                                  Surv(data$Y[data$W==0], data$D[data$W==0]),
                                   family = "cox",
                                   alpha = 1,
                                   keep = TRUE,
                                   foldid = foldid0)
   lambda_0_min <- lasso_fit0$lambda[which.min(lasso_fit0$cvm[!is.na(colSums(lasso_fit0$fit.preval))])]
-  S0 <- base_surv(lasso_fit0, data$Y[dataW==0], data$D[dataW==0], data$X[dataW==0, ], lambda = lambda_0_min)
+  S0 <- base_surv(lasso_fit0, data$Y[data$W==0], data$D[data$W==0], x0, lambda = lambda_0_min)
   surf0 <- rep(NA, length(data$W))
   surf0[data$W==0] <- pred_surv_preval(lasso_fit0, S0, times = times, lambda = lambda_0_min)
   surf0[data$W==1] <- pred_surv(fit = lasso_fit0,
                                 S0 = S0,
-                                x = data$X[dataW==1, ],
+                                x = data$X[data$W==1, ],
                                 times = times,
                                 lambda = lasso_fit0$lambda.min)
 
@@ -110,15 +112,15 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   weight <- (1 / c_hat) * (1 / ps.train)
 
   # X-learner
-  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, weight, X = data$X, Tlasso0, Tlasso1)
+  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, weight, data$X, Tlasso0, Tlasso1)
   binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
   binary_data <- binary_data[complete.cases(binary_data), ]
-  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W, X = binary_data$X,
+  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W, X = binary_data[, 5:(ncol(binary_data)-2)],
                  wt = binary_data$weight, mu0 = binary_data$Tlasso0, mu1 = binary_data$Tlasso1)
 
   foldid <- sample(rep(seq(10), length = length(b_data$Y[b_data$W==1])))
-  XLfit1 <- glmnet::cv.glmnet(b_data$X[b_data$W==1, ],
+  XLfit1 <- glmnet::cv.glmnet(as.matrix(b_data$X[b_data$W==1, ]),
                               b_data$D[b_data$W==1] - b_data$mu0[b_data$W==1],
                               weights = b_data$wt[b_data$W==1],
                               foldid = foldid,
@@ -126,7 +128,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   XLtau1 <- as.vector(-predict(XLfit1, data.test$X, s = "lambda.min"))
 
   foldid <- sample(rep(seq(10), length = length(b_data$Y[b_data$W==0])))
-  XLfit0 <- glmnet::cv.glmnet(b_data$X[b_data$W==0, ],
+  XLfit0 <- glmnet::cv.glmnet(as.matrix(b_data$X[b_data$W==0, ]),
                               b_data$mu1[b_data$W==0] - b_data$D[b_data$W==0],
                               weights = b_data$wt[b_data$W==0],
                               foldid = foldid,

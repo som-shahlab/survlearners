@@ -69,11 +69,12 @@ surv_fl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   }
 
   # Subset of uncensored subjects
-  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, ps_score, ipcw, X = data$X)
+  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, ps_score, ipcw, data$X)
   binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
   binary_data <- binary_data[complete.cases(binary_data), ]
-  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W, X = binary_data$X,
+  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W,
+                 X = binary_data[,6:ncol(binary_data)],
                  wt = binary_data$ipcw, ps = binary_data$ps_score)
 
   flasso_fit <- Flasso(x = b_data$X,

@@ -28,10 +28,10 @@
 #' \donttest{
 #' # Generate data
 #' n <- 1000
-#' p <- 5
-#' data <- generate_causal_survival_data(n, p, p_b = 1, p_i = 1, f_b = "L", f_i = "L", times = 0.2)
+#' p <- 25
+#' data <- generate_tutorial_survival_data(n, p, p_b = 1, p_i = 1, f_b = "L", f_i = "L", times = 0.2)
 #' # Get true CATE in terms of difference in survival probabilities at time 0.2
-#' cate <- generate_causal_survival_data(n, p, p_b = 1, p_i = 1, f_b = "L", f_i = "L", times = 0.2)$cate
+#' cate <- generate_tutorial_survival_data(n, p, p_b = 1, p_i = 1, f_b = "L", f_i = "L", times = 0.2)$cate.sp
 #' }
 #'
 #' @export
@@ -39,7 +39,6 @@
 generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = NULL, f_i = NULL,
                                             times = NULL, pi = 0.5, beta = 1, gamma = 1, rho = 2, cen_scale = 4,
                                             cenM = "indX", Y.max = NULL, n.mc = 10000, dgp = "fcomplex") {
-  dgp <- match.arg(dgp)
 
   if (dgp == "fcomplex") {
     if (is.null(Y.max)) {

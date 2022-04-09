@@ -36,7 +36,7 @@ surv_fl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit
     shuffle <- sample(length(data$Y))
     kmdat <- data.frame(Y = data$Y[shuffle], D = data$D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
-    c_hat <- rep(NA, nrow(kmdat))
+    C.Y.hat <- rep(NA, nrow(kmdat))
     for(z in 1:10){
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
@@ -44,7 +44,7 @@ surv_fl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit
       c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
       cent <- testData$Y
       cent[testData$D==0] <- times
-      c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
+      C.Y.hat[testIndexes] <- summary(c_fit, times = cent)$surv
     }
     shudat <- data.frame(shuffle, C.Y.hat)
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
@@ -69,11 +69,12 @@ surv_fl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit
   }
 
   # Subset of uncensored subjects
-  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, pscore, ipcw, X = data$X)
+  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, pscore, ipcw, data$X)
   binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
   binary_data <- binary_data[complete.cases(binary_data), ]
-  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W, X = binary_data$X,
+  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W,
+                 X = binary_data[,6:ncol(binary_data)],
                  wt = binary_data$ipcw, ps = binary_data$pscore)
 
   fgrf_fit <- Fgrf(x = b_data$X,

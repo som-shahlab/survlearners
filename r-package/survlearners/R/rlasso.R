@@ -108,14 +108,15 @@ rlasso = function(x, w, y, D,
     foldid <- sample(rep(seq(k_folds), length = length(w)))
     survt1 <- survt0 <- rep(NA, length(w))
     for (k in 1:k_folds){
-      y_fit <- glmnet::cv.glmnet(cbind(w[!foldid==k], x[!foldid==k, ]),
+      xw <- data.frame(w[!foldid==k], x[!foldid==k, ]); colnames(xw)[1] <- "covariate_0"
+      y_fit <- glmnet::cv.glmnet(as.matrix(xw),
                                  Surv(y[!foldid==k], D[!foldid==k]),
                                  family = "cox",
                                  nfolds = k_folds,
                                  lambda = lambda_y,
                                  alpha = 1,
                                  penalty.factor = penalty_factor_nuisance_m)
-      S0 <- base_surv(y_fit, y[!foldid==k], D[!foldid==k], cbind(w[!foldid==k], x[!foldid==k, ]), lambda = y_fit$lambda.min)
+      S0 <- base_surv(y_fit, y[!foldid==k], D[!foldid==k], as.matrix(xw), lambda = y_fit$lambda.min)
       survt1[foldid==k] <- pred_surv(y_fit, S0, cbind(rep(1, length(w[foldid==k])), x[foldid==k, ]), times = times, lambda = y_fit$lambda.min)
       survt0[foldid==k] <- pred_surv(y_fit, S0, cbind(rep(0, length(w[foldid==k])), x[foldid==k, ]), times = times, lambda = y_fit$lambda.min)
     }

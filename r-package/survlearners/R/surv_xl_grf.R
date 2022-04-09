@@ -49,8 +49,8 @@ surv_xl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit
                                   prediction.type = "Nelson-Aalen")
   surf0 <- rep(NA, length(data$W))
   times.index <- findInterval(times, grffit0$failure.times)
-  surf0[traindat$W==0] <- predict(grffit0)$predictions[, times.index]
-  surf0[traindat$W==1] <- predict(grffit0, data$X[data$W==1,])$predictions[, times.index]
+  surf0[data$W==0] <- predict(grffit0)$predictions[, times.index]
+  surf0[data$W==1] <- predict(grffit0, data$X[data$W==1,])$predictions[, times.index]
 
   Tgrf1 <- 1-surf1
   Tgrf0 <- 1-surf0
@@ -95,19 +95,19 @@ surv_xl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit
   weight <- ipcw/ps.train  # censoring weight * treatment weight
 
   # X-learner
-  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, weight, X = data$X, Tgrf0, Tgrf1)
+  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, weight, data$X, Tgrf0, Tgrf1)
   binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
   binary_data <- binary_data[complete.cases(binary_data), ]
-  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W, X = binary_data$X,
+  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W, X = binary_data[, 5:(ncol(binary_data)-2)],
                  wt = binary_data$weight, mu0 = binary_data$Tgrf0, mu1 = binary_data$Tgrf1)
 
-  XLfit1 <- grf::regression_forest(b_data$X[b_data$W==1, ],
+  XLfit1 <- grf::regression_forest(as.matrix(b_data$X[b_data$W==1, ]),
                                    b_data$D[b_data$W==1] - b_data$mu0[b_data$W==1],
                                    sample.weights = b_data$wt[b_data$W==1])
   XLtau1 <- -predict(XLfit1, data.frame(data.test$X))
 
-  XLfit0 <- grf::regression_forest(b_data$X[b_data$W==0, ],
+  XLfit0 <- grf::regression_forest(as.matrix(b_data$X[b_data$W==0, ]),
                                    b_data$mu1[b_data$W==0] - b_data$D[b_data$W==0],
                                    sample.weights = b_data$wt[b_data$W==0])
   XLtau0 <- -predict(XLfit0, data.frame(data.test$X))

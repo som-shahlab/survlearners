@@ -4,7 +4,7 @@ base_surv <- function(fit, Y, D, x, lambda){
   y <- as.numeric(as.character(sort(unique(tab[,1]))))
   d <- tab[,2]  # number of events at each unique time
 
-  betaHat <- as.vector((fit$glmnet.fit$beta)[,fit$lambda==lambda])
+  betaHat <- as.vector(fit$glmnet.fit$beta[,fit$lambda==lambda])
   h0 <- rep(NA, length(y))
   for(l in 1:length(y)){
     h0[l] <- d[l] / sum(exp(x[data$t_event >= y[l], rownames(fit$glmnet.fit$beta)] %*% betaHat))

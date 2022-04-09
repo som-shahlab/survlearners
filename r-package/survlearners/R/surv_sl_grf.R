@@ -30,8 +30,8 @@
 surv_sl_grf <- function(data, data.test, times, alpha = 0.05){
 
   grffit <- survival_forest(cbind(data$W, data$X),
-                            traindat$Y,
-                            traindat$D,
+                            data$Y,
+                            data$D,
                             alpha = alpha,
                             prediction.type = "Nelson-Aalen")
   index <- findInterval(times, grffit$failure.times)
