@@ -21,7 +21,7 @@
 #' @param alpha Imbalance tuning parameter for a split in a tree
 #' @param cen_fit The choice of model fitting for censoring
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2
@@ -210,7 +210,7 @@ rlasso = function(x, w, y, D,
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2

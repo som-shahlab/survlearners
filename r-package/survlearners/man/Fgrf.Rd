@@ -26,7 +26,7 @@ An Flasso object
 F-learner, implemented via the grf package
 }
 \examples{
-\dontrun{
+\donttest{
 n = 1000; p = 25
 times = 0.2
 Y.max <- 2
@@ -43,7 +43,7 @@ weight <- rep(1, length(Y))
 data <- list(X = X, W = W, Y = Y, D = D)
 data.test <- list(X = X, W = W, Y = Y, D = D)
 
-Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight = weight)
+Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight = weight) 
 Fgrf_cate = predict(Fgrf_fit, data.test$X)
 }
 }

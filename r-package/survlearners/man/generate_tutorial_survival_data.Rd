@@ -61,7 +61,7 @@ A simulation data set
 Simulation data sets for comparing metalearners on estimating CATE in survival outcomes
 }
 \examples{
-\dontrun{
+\donttest{
 n = 1000; p = 25
 data = generate_tutorial_survival_data(n, p, p_b = 1, p_i = 1, f_b = "L", f_i = "L", times = 0.2)
 cate.true = generate_tutorial_survival_data(n, p, p_b = 1, p_i = 1, f_b = "L", f_i = "L", times = 0.2)$catesp

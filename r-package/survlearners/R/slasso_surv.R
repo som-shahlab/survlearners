@@ -14,7 +14,7 @@
 #' @param lambda_choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
 #' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in x
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2
@@ -128,7 +128,7 @@ slasso_surv = function(x, w, y, D, times,
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2

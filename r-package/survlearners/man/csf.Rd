@@ -26,7 +26,7 @@ A vector of estimated conditional average treatment effects
 causal survival forest, implemented via the grf R package
 }
 \examples{
-\dontrun{
+\donttest{
 n = 1000; p = 25
 times = 0.2
 Y.max <- 2

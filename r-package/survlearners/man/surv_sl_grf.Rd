@@ -22,7 +22,7 @@ A vector of estimated conditional average treatment effects
 S-learner, implemented via survival_forest (grf package)
 }
 \examples{
-\dontrun{
+\donttest{
 n = 1000; p = 25
 times = 0.2
 Y.max <- 2

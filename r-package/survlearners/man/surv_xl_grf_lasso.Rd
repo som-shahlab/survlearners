@@ -34,7 +34,7 @@ X-learner, implemented via grf (for nuisance parameter estimation)
 and glmnet (lasso) with 'coxph' distribution (for target function CATE estimation)
 }
 \examples{
-\dontrun{
+\donttest{
 n = 1000; p = 25
 times = 0.2
 Y.max <- 2

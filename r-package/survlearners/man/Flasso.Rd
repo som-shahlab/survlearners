@@ -28,7 +28,7 @@ An Flasso object
 F-learner, implemented via glmnet (lasso)
 }
 \examples{
-\dontrun{
+\donttest{
 n = 1000; p = 25
 times = 0.2
 Y.max <- 2

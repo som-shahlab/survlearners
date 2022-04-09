@@ -30,7 +30,6 @@ source("./R/Fgrf.R")
 source("./R/rlasso.R")
 source("./R/rgrf.R")
 source("./R/rlasgrf.R")
-# <--- Can do library(survlearners) instead of these. Don't know what you want do do about sprint_dgp
 source("./R/comparison_estimators.R")
 
 # *** Comparison methods ***
@@ -81,7 +80,7 @@ grid[13, ]$rho <- 1
 grid <- rbind(grid, grid[1,])             # vary censoring generating model (= dX)
 grid[15, ]$cenM <- "dX"
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary heterogeneity: sd(CATE)/sd(mu0sp) 0.17, 0.55, 0.9 (baseline)
-grid[16:21, ]$gamma <- c(rep(0.46,3), rep(0,3))
+grid[16:21, ]$gamma <- c(rep(0.46, 3), rep(0, 3))
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary event rate
 grid[22:27, ]$times <- c(rep(0.02,3), rep(0.001,3))
 rownames(grid) <- 1:dim(grid)[1]
@@ -108,7 +107,6 @@ an.error.occured <- rep(NA, n.sim)
 for (sim in 1:n.sim) {
   tryCatch( {
   print(paste("sim", sim))
-
   data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, pi = pi,
                                          gamma = gamma, rho = rho, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
                                          n.mc = 10, times = times)
@@ -136,7 +134,6 @@ for (sim in 1:n.sim) {
       estimator.name = estimator.name,
       mse = mean((predictions[,j] - true.catesp)^2),
       bias = mean(abs(predictions[,j] - true.catesp)),
-
       rcorr = cor(predictions[,j], true.catesp),
       #taucorr = cor(predictions[,j], true.catesp, method = "kendall"),  # use Kendall's tau for next round run
       calib_coef = calib_fit$coefficients[2],

@@ -10,7 +10,7 @@
 #' @param alpha mixing tuning parameter for lasso
 #' @param weight vector of subject level weights
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2
@@ -70,7 +70,7 @@ Flasso = function(x, w, y, weight, pscore = rep(.5, nrow(x)), nfolds = 10, alpha
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2

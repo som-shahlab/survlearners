@@ -9,7 +9,7 @@
 #' @param num.trees number of trees
 #' @param weight vector of subject level weights
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2
@@ -26,7 +26,7 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight = weight)
+#' Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight = weight) 
 #' Fgrf_cate = predict(Fgrf_fit, data.test$X)
 #' }
 #' @return An Flasso object
@@ -69,7 +69,7 @@ Fgrf = function(x, w, y, weight, pscore = rep(.5, nrow(x)), num.trees = 2000) {
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2
