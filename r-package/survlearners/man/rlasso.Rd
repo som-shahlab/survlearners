@@ -9,6 +9,7 @@ rlasso(
   w,
   y,
   D,
+  times = NULL,
   k_folds = 10,
   foldid = NULL,
   lambda_y = NULL,
@@ -18,7 +19,6 @@ rlasso(
   m_hat = NULL,
   c_hat = NULL,
   penalty_factor = NULL,
-  times = NULL,
   failure.times = NULL,
   num.trees = 2000,
   alpha = 0.05,
@@ -33,6 +33,8 @@ rlasso(
 \item{y}{The follow-up time}
 
 \item{D}{The event indicator}
+
+\item{times}{The prediction time of interest}
 
 \item{k_folds}{Number of folds for cross validation}
 
@@ -51,8 +53,6 @@ rlasso(
 \item{c_hat}{Censoring weights}
 
 \item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in x}
-
-\item{times}{The prediction time of interest}
 
 \item{failure.times}{A vector of event times to fit the survival curve at.}
 
@@ -83,7 +83,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-rlasso_fit = rlasso(x, w, y, D, times)
-rlasso_cate = predict(rlasso_fit, x, times)
+rlasso_fit = rlasso(X, W, Y, D, times, p_hat = 0.5)
+rlasso_cate = predict(rlasso_fit, X)
 }
 }

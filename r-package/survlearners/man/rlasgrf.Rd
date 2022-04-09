@@ -126,7 +126,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-rlasgrf_fit = rlasgrf(x, w, y, D, times)
-rlasgrf_cate = predict(rlasgrf_fit, x, times)
+rlasgrf_fit = rlasgrf(X, W, Y, D, times, p_hat = 0.5)
+rlasgrf_cate = predict(rlasgrf_fit, X)
 }
 }

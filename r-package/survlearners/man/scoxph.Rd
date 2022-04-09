@@ -38,7 +38,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-scoxph_fit = scoxph(x, w, y, D, times)
-scoxph_cate = predict(scoxph_fit, x, times)
+scoxph_fit = scoxph(X, W, Y, D, times)
+scoxph_cate = predict(scoxph_fit, X, times)
 }
 }

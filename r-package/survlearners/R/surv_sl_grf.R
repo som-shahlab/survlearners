@@ -29,11 +29,11 @@
 #' @export
 surv_sl_grf <- function(data, data.test, times, alpha = 0.05){
 
-  grffit <- survival_forest(cbind(data$W, data$X),
-                            traindat$Y,
-                            traindat$D,
-                            alpha = alpha,
-                            prediction.type = "Nelson-Aalen")
+  grffit <- grf::survival_forest(cbind(data$W, data$X),
+                                 data$Y,
+                                 data$D,
+                                 alpha = alpha,
+                                 prediction.type = "Nelson-Aalen")
   index <- findInterval(times, grffit$failure.times)
   surf1 <- predict(grffit, cbind(rep(1, length(data.test$Y)), data.test$X))$predictions[, index]
   surf0 <- predict(grffit, cbind(rep(0, length(data.test$Y)), data.test$X))$predictions[, index]

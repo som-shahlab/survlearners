@@ -50,8 +50,8 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasgrf_fit = rlasgrf(x, w, y, D, times)
-#' rlasgrf_cate = predict(rlasgrf_fit, x, times)
+#' rlasgrf_fit = rlasgrf(X, W, Y, D, times, p_hat = 0.5)
+#' rlasgrf_cate = predict(rlasgrf_fit, X)
 #' }
 #' @return a rlasgrf object
 #' @export
@@ -160,7 +160,7 @@ rlasgrf = function(x, w, y, D,
         testIndexes <- which(folds==z, arr.ind=TRUE)
         testData <- kmdat[testIndexes, ]
         trainData <- kmdat[-testIndexes, ]
-        c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+        c_fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
         cent <- testData$Y; cent[testData$D==0] <- times
         c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
       }
@@ -236,8 +236,8 @@ rlasgrf = function(x, w, y, D,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasgrf_fit = rlasgrf(x, w, y, D, times)
-#' rlasgrf_cate = predict(rlasgrf_fit, x, times)
+#' rlasgrf_fit = rlasgrf(X, W, Y, D, times, p_hat = 0.5)
+#' rlasgrf_cate = predict(rlasgrf_fit, X)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects

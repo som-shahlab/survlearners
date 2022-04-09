@@ -117,7 +117,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-rgrf_fit = rgrf(x, w, y, D, times)
-rgrf_cate = predict(rgrf_fit, x, times)
+rgrf_fit = rgrf(X, W, Y, D, times, p_hat = 0.5)
+rgrf_cate = predict(rgrf_fit, X)
 }
 }

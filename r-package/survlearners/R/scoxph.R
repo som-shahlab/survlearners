@@ -22,8 +22,8 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' scoxph_fit = scoxph(x, w, y, D, times)
-#' scoxph_cate = predict(scoxph_fit, x, times)
+#' scoxph_fit = scoxph(X, W, Y, D, times)
+#' scoxph_cate = predict(scoxph_fit, X, times)
 #' }
 #' @return a scoxph object
 #' @export
@@ -40,7 +40,7 @@ scoxph = function(x, w, y, D, times){
   x_pred0 = data.frame(-0.5 * cbind(1, x), x)
 
   colnames(x_tilde) <- colnames(x_pred1) <- colnames(x_pred0) <- paste0("v", 1:dim(x_tilde)[2])
-  formula <- as.formula(paste0("Surv(y, D) ~ ", paste(colnames(x_tilde), sep=" ", collapse = "+")))
+  formula <- as.formula(paste0("survival::Surv(y, D) ~ ", paste(colnames(x_tilde), sep=" ", collapse = "+")))
   tmpdat <- data.frame(y, D, x_tilde)
 
   s_fit <- survival::coxph(formula, data = tmpdat)
@@ -89,8 +89,8 @@ scoxph = function(x, w, y, D, times){
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' scoxph_fit = scoxph(x, w, y, D, times)
-#' scoxph_cate = predict(scoxph_fit, x, times)
+#' scoxph_fit = scoxph(X, W, Y, D, times)
+#' scoxph_cate = predict(scoxph_fit, X, times)
 #' }
 #' @return vector of estimated conditional average treatment effects
 #' @export

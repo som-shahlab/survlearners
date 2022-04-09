@@ -41,7 +41,7 @@ surv_fl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
       trainData <- kmdat[-testIndexes, ]
-      c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+      c_fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
       cent <- testData$Y
       cent[testData$D==0] <- times
       c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
@@ -69,11 +69,12 @@ surv_fl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   }
 
   # Subset of uncensored subjects
-  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, ps_score, ipcw, X = data$X)
+  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, ps_score, ipcw, data$X)
   binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
   binary_data <- binary_data[complete.cases(binary_data), ]
-  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W, X = binary_data$X,
+  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W,
+                 X = as.matrix(binary_data[,6:ncol(binary_data)]),
                  wt = binary_data$ipcw, ps = binary_data$ps_score)
 
   flasso_fit <- Flasso(x = b_data$X,
