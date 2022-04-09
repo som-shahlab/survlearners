@@ -12,7 +12,7 @@
 #' @param lambda_tau User-supplied lambda sequence for cross validation in the cate model
 #' @param lambda_choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
 #' @param p_hat Propensity score
-#' @param m_hat Conditional mean outcome E[Y|X]
+#' @param m_hat Conditional mean outcome E(Y|X)
 #' @param c_hat Censoring weights
 #' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in x
 #' @param times The prediction time of interest

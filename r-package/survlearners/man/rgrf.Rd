@@ -52,7 +52,7 @@ rgrf(
 
 \item{p_hat}{Propensity score}
 
-\item{m_hat}{Conditional mean outcome E\link{Y|X}}
+\item{m_hat}{Conditional mean outcome E(Y|X)}
 
 \item{c_hat}{Censoring weights}
 
