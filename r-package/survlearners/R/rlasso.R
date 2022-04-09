@@ -12,7 +12,7 @@
 #' @param lambda_tau User-supplied lambda sequence for cross validation in the cate model
 #' @param lambda_choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
 #' @param p_hat Propensity score
-#' @param m_hat Conditional mean outcome E[Y|X]
+#' @param m_hat Conditional mean outcome E(Y|X)
 #' @param c_hat Censoring weights
 #' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in x
 #' @param times The prediction time of interest
@@ -152,7 +152,7 @@ rlasso = function(x, w, y, D,
       shudat <- data.frame(shuffle, c_hat)
       c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
-      cc_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
+      cc_fit <- do.call(grf::survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
       C.hat <- predict(c_fit, failure.times = c_fit$failure.times)$predictions
       cent <- y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c_fit$failure.times)
