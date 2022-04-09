@@ -22,6 +22,5 @@ VignetteBuilder: knitr
 Imports:
     MASS,
     mvtnorm,
-    caret,
     glmnet,
     grf
