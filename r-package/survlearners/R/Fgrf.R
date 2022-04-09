@@ -9,7 +9,7 @@
 #' @param num.trees number of trees
 #' @param weight vector of subject level weights
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2
@@ -69,7 +69,7 @@ Fgrf = function(x, w, y, pscore = rep(.5, nrow(x)), num.trees = 2000, weight) {
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2

@@ -9,7 +9,7 @@
 #' @param ps The propensity score
 #' @param cen_fit The choice of model fitting for censoring
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2

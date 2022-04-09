@@ -8,7 +8,7 @@
 #' @param D The event indicator
 #' @param times The prediction time of interest
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2
@@ -75,7 +75,7 @@ scoxph = function(x, w, y, D, times){
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2

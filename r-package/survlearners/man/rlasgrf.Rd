@@ -112,7 +112,7 @@ a rlasgrf object
 R-learner, implemented via the grf package for nuisance parameter estimation and lasso for target parameter
 }
 \examples{
-\dontrun{
+\donttest{
 n = 1000; p = 25
 times = 0.2
 Y.max <- 2

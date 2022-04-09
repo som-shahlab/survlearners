@@ -6,7 +6,7 @@
 #' @param data.test The testing data set
 #' @param times The prediction time of interest
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2

@@ -33,7 +33,7 @@
 #' @param seed See grf documentation
 #' @param cen_fit The choice of model fitting for censoring
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2
@@ -212,7 +212,7 @@ rgrf = function(x, w, y, D,
 #' @param ... additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' n = 1000; p = 25
 #' times = 0.2
 #' Y.max <- 2
