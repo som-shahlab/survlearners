@@ -111,8 +111,7 @@ slasso_surv = function(x, w, y, D, times,
              s_beta = s_beta_adj,
              S0_t = S0_t,
              tau_hat = tau_hat,
-             lambda_choice = lambda_choice,
-             standardization = standardization)
+             lambda_choice = lambda_choice)
 
   class(ret) <- "slasso_surv"
   ret
@@ -155,7 +154,7 @@ predict.slasso_surv <- function(object,
                                 ...) {
   if (!is.null(newx)) {
     newx = sanitize_x(newx)
-    newx_scl = predict(object$standardization, newx)
+    newx_scl = scale(newx, center = TRUE, scale = TRUE)
     newx_scl = newx_scl[,!is.na(colSums(newx_scl)), drop = FALSE]
     newx_scl_pred1 = cbind(1, newx_scl, newx_scl)
     newx_scl_pred0 = cbind(0, 0 * newx_scl, newx_scl)
