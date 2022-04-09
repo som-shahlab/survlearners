@@ -31,7 +31,7 @@
 #' }
 #' @return An Flasso object
 #' @export
-Fgrf = function(x, w, y, pscore = rep(.5, nrow(x)), num.trees = 2000, weight) {
+Fgrf = function(x, w, y, weight, pscore = rep(.5, nrow(x)), num.trees = 2000) {
 
   # Input sanitization
   x <- as.matrix(x)

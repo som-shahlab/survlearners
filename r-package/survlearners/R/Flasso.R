@@ -32,7 +32,7 @@
 #' }
 #' @return An Flasso object
 #' @export
-Flasso = function(x, w, y, pscore = rep(.5, nrow(x)), nfolds = 10, alpha = 1, weight) {
+Flasso = function(x, w, y, weight, pscore = rep(.5, nrow(x)), nfolds = 10, alpha = 1) {
 
   # Input sanitization
   x = as.matrix(x)

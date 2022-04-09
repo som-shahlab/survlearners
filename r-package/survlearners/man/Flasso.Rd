@@ -4,7 +4,7 @@
 \alias{Flasso}
 \title{F-learner of lasso}
 \usage{
-Flasso(x, w, y, pscore = rep(0.5, nrow(x)), nfolds = 10, alpha = 1, weight)
+Flasso(x, w, y, weight, pscore = rep(0.5, nrow(x)), nfolds = 10, alpha = 1)
 }
 \arguments{
 \item{x}{matrix of covariates}
@@ -13,13 +13,13 @@ Flasso(x, w, y, pscore = rep(0.5, nrow(x)), nfolds = 10, alpha = 1, weight)
 
 \item{y}{vector of response values}
 
+\item{weight}{vector of subject level weights}
+
 \item{pscore}{vector of propensity scores}
 
 \item{nfolds}{number of cross-validation}
 
 \item{alpha}{mixing tuning parameter for lasso}
-
-\item{weight}{vector of subject level weights}
 }
 \value{
 An Flasso object
