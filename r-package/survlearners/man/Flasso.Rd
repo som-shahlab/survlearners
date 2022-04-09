@@ -28,9 +28,9 @@ An Flasso object
 F-learner, implemented via glmnet (lasso)
 }
 \examples{
-\dontrun{
-n = 1000; p = 25
-times = 0.2
+\donttest{
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -42,10 +42,8 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 weight <- rep(1, length(Y))
-data <- list(X = X, W = W, Y = Y, D = D)
-data.test <- list(X = X, W = W, Y = Y, D = D)
 
-Flasso_fit = Flasso(data$X, data$W, data$Y, weight)
+Flasso_fit = Flasso(X, W, D, weight = weight)
 Flasso_cate = predict(Flasso_fit, data.test$X)
 }
 }

@@ -26,9 +26,9 @@ A vector of estimated conditional average treatment effects
 X-learner, implemented via survival_forest in the grf package
 }
 \examples{
-\dontrun{
-n = 1000; p = 25
-times = 0.2
+\donttest{
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -42,6 +42,6 @@ D <- as.integer(failure.time <= censor.time)
 data <- list(X = X, W = W, Y = Y, D = D)
 data.test <- list(X = X, W = W, Y = Y, D = D)
 
-cate = surv_xl_grf(data, data.test, times, ps = 0.5)
+cate <- surv_xl_grf(data, data.test, times, ps = 0.5)
 }
 }

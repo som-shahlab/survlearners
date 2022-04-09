@@ -24,9 +24,9 @@ a scoxph object
 S-learner, implemented via Cox proportional hazard models
 }
 \examples{
-\dontrun{
-n = 1000; p = 25
-times = 0.2
+\donttest{
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -38,7 +38,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-scoxph_fit = scoxph(x, w, y, D, times)
+scoxph_fit = scoxph(X, W, Y, D, times)
 scoxph_cate = predict(scoxph_fit, x, times)
 }
 }

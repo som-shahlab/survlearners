@@ -22,9 +22,9 @@ vector of estimated conditional average treatment effects
 get estimated tau(x) using the trained slasso_surv model
 }
 \examples{
-\dontrun{
-n = 1000; p = 25
-times = 0.2
+\donttest{
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -36,9 +36,8 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-slasso_surv_fit = slasso_surv(x, w, y, D, times)
-slasso_surv_cate = predict(slasso_surv_fit, x, times)
+slasso_surv_fit = slasso_surv(X, W, Y, D, times)
+slasso_surv_cate = predict(slasso_surv_fit, X, times)
 }
-
 
 }
