@@ -62,7 +62,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-slasso_surv_fit = slasso_surv(x, w, y, D, times)
-slasso_surv_cate = predict(slasso_surv_fit, x, times)
+slasso_surv_fit = slasso_surv(X, W, Y, D, times)
+slasso_surv_cate = predict(slasso_surv_fit, X, times)
 }
 }

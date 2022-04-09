@@ -35,12 +35,13 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasso_fit = rlasso(x, w, y, D, times)
-#' rlasso_cate = predict(rlasso_fit, x, times)
+#' rlasso_fit = rlasso(X, W, Y, D, times, p_hat = 0.5)
+#' rlasso_cate = predict(rlasso_fit, X)
 #' }
 #' @return a rlasso object
 #' @export
 rlasso = function(x, w, y, D,
+                  times = NULL,
                   k_folds = 10,
                   foldid = NULL,
                   lambda_y = NULL,
@@ -50,7 +51,6 @@ rlasso = function(x, w, y, D,
                   m_hat = NULL,
                   c_hat = NULL,
                   penalty_factor = NULL,
-                  times = NULL,
                   failure.times = NULL,
                   num.trees = 2000,
                   alpha = 0.05,
@@ -108,14 +108,15 @@ rlasso = function(x, w, y, D,
     foldid <- sample(rep(seq(k_folds), length = length(w)))
     survt1 <- survt0 <- rep(NA, length(w))
     for (k in 1:k_folds){
-      y_fit <- glmnet::cv.glmnet(cbind(w[!foldid==k], x[!foldid==k, ]),
-                                 Surv(y[!foldid==k], D[!foldid==k]),
+      xw <- as.matrix(data.frame(w[!foldid==k], x[!foldid==k, ]))
+      y_fit <- glmnet::cv.glmnet(xw,
+                                 survival::Surv(y[!foldid==k], D[!foldid==k]),
                                  family = "cox",
-                                 nfolds = k_folds,
+                                 nfolds = 10,
                                  lambda = lambda_y,
                                  alpha = 1,
                                  penalty.factor = penalty_factor_nuisance_m)
-      S0 <- base_surv(y_fit, y[!foldid==k], D[!foldid==k], cbind(w[!foldid==k], x[!foldid==k, ]), lambda = y_fit$lambda.min)
+      S0 <- base_surv(y_fit, y[!foldid==k], D[!foldid==k], xw, lambda = y_fit$lambda.min)
       survt1[foldid==k] <- pred_surv(y_fit, S0, cbind(rep(1, length(w[foldid==k])), x[foldid==k, ]), times = times, lambda = y_fit$lambda.min)
       survt0[foldid==k] <- pred_surv(y_fit, S0, cbind(rep(0, length(w[foldid==k])), x[foldid==k, ]), times = times, lambda = y_fit$lambda.min)
     }
@@ -145,7 +146,7 @@ rlasso = function(x, w, y, D,
         testIndexes <- which(folds==z, arr.ind=TRUE)
         testData <- kmdat[testIndexes, ]
         trainData <- kmdat[-testIndexes, ]
-        c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+        c_fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
         cent <- testData$Y; cent[testData$D==0] <- times
         c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
       }
@@ -223,8 +224,8 @@ rlasso = function(x, w, y, D,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasso_fit = rlasso(x, w, y, D, times)
-#' rlasso_cate = predict(rlasso_fit, x, times)
+#' rlasso_fit = rlasso(X, W, Y, D, times, p_hat = 0.5)
+#' rlasso_cate = predict(rlasso_fit, X)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects

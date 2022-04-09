@@ -47,8 +47,8 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rgrf_fit = rgrf(x, w, y, D, times)
-#' rgrf_cate = predict(rgrf_fit, x, times)
+#' rgrf_fit = rgrf(X, W, Y, D, times, p_hat = 0.5)
+#' rgrf_cate = predict(rgrf_fit, X)
 #' }
 #' @return a rgrf object
 #' @export
@@ -145,7 +145,7 @@ rgrf = function(x, w, y, D,
         testIndexes <- which(folds==z, arr.ind=TRUE)
         testData <- kmdat[testIndexes, ]
         trainData <- kmdat[-testIndexes, ]
-        c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+        c_fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
         cent <- testData$Y; cent[testData$D==0] <- times
         c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
       }
@@ -226,8 +226,8 @@ rgrf = function(x, w, y, D,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rgrf_fit = rgrf(x, w, y, D, times)
-#' rgrf_cate = predict(rgrf_fit, x, times)
+#' rgrf_fit = rgrf(X, W, Y, D, times, p_hat = 0.5)
+#' rgrf_cate = predict(rgrf_fit, X)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects

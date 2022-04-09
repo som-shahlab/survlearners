@@ -28,8 +28,8 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' slasso_surv_fit = slasso_surv(x, w, y, D, times)
-#' slasso_surv_cate = predict(slasso_surv_fit, x, times)
+#' slasso_surv_fit = slasso_surv(X, W, Y, D, times)
+#' slasso_surv_cate = predict(slasso_surv_fit, X, times)
 #' }
 #' @return a slasso_surv object
 #' @export
@@ -77,9 +77,9 @@ slasso_surv = function(x, w, y, D, times,
     }
     penalty_factor = c(0, rep(1, 2 * pobs))
   }
-
+  x_scl_tilde <- as.matrix(data.frame(x_scl_tilde))
   s_fit <- glmnet::cv.glmnet(x_scl_tilde,
-                             Surv(y, D),
+                             survival::Surv(y, D),
                              family = "cox",
                              foldid = foldid,
                              lambda = lambda,
@@ -87,7 +87,7 @@ slasso_surv = function(x, w, y, D, times,
                              standardize = FALSE,
                              alpha = alpha)
 
-  s_beta <- as.vector(t(coef(s_fit, s = lambda_choice)))
+  s_beta <- t(as.vector(coef(s_fit, s = lambda_choice)))
   s_beta_adj <- c(0.5 * s_beta[1:(1 + dim(x)[2])], s_beta[(2 + dim(x)[2]):dim(x_scl_tilde)[2]])
 
   link1 <- exp(x_scl_pred1 %*% s_beta_adj)
@@ -97,9 +97,10 @@ slasso_surv = function(x, w, y, D, times,
                     D = D,
                     x = x_scl_tilde,
                     lambda = s_fit$lambda.min)
-
-  surv1 <- S0_t^exp(link1)
-  surv0 <- S0_t^exp(link0)
+  index <- findInterval(times, S0_t$time)
+  S0 <- S0_t[index,]$survival
+  surv1 <- S0^exp(link1)
+  surv0 <- S0^exp(link0)
 
   tau_hat <- as.numeric(surv1 - surv0)
 
@@ -109,7 +110,7 @@ slasso_surv = function(x, w, y, D, times,
              D_org = D,
              beta_org = s_beta,
              s_beta = s_beta_adj,
-             S0_t = S0_t,
+             S0_t = S0,
              tau_hat = tau_hat,
              lambda_choice = lambda_choice)
 
@@ -141,8 +142,8 @@ slasso_surv = function(x, w, y, D, times,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' slasso_surv_fit = slasso_surv(x, w, y, D, times)
-#' slasso_surv_cate = predict(slasso_surv_fit, x, times)
+#' slasso_surv_fit = slasso_surv(X, W, Y, D, times)
+#' slasso_surv_cate = predict(slasso_surv_fit, X, times)
 #' }
 #'
 #'

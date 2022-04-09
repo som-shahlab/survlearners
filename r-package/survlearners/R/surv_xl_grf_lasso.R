@@ -51,8 +51,8 @@ grffit0 <- grf::survival_forest(data$X[data$W==0,],
                                 prediction.type = "Nelson-Aalen")
 surf0 <- rep(NA, length(data$W))
 times.index <- findInterval(times, grffit0$failure.times)
-surf0[traindat$W==0] <- predict(grffit0)$predictions[, times.index]
-surf0[traindat$W==1] <- predict(grffit0, data$X[data$W==1,])$predictions[, times.index]
+surf0[data$W==0] <- predict(grffit0)$predictions[, times.index]
+surf0[data$W==1] <- predict(grffit0, data$X[data$W==1,])$predictions[, times.index]
 
 Tgrf1 <- 1-surf1
 Tgrf0 <- 1-surf0
@@ -67,7 +67,7 @@ if(cen_fit == "KM"){
     testIndexes <- which(folds==z, arr.ind=TRUE)
     testData <- kmdat[testIndexes, ]
     trainData <- kmdat[-testIndexes, ]
-    c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+    c_fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
     cent <- testData$Y; cent[testData$D==0] <- times
     C.Y.hat[testIndexes] <- summary(c_fit, times = cent)$surv
   }
@@ -97,11 +97,12 @@ if (is.null(ps)){
 weight <- ipcw/ps.train  # censoring weight * treatment weight
 
 # X-learner
-tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, weight, X = data$X, Tgrf0, Tgrf1)
+tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, weight, data$X, Tgrf0, Tgrf1)
 binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
 binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
 binary_data <- binary_data[complete.cases(binary_data), ]
-b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W, X = binary_data$X,
+b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W,
+               X = as.matrix(binary_data[,5:(ncol(binary_data)-2)]),
                wt = binary_data$weight, mu0 = binary_data$Tgrf0, mu1 = binary_data$Tgrf1)
 
 foldid <- sample(rep(seq(10), length = length(b_data$Y[b_data$W==1])))

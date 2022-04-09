@@ -841,12 +841,38 @@ generate_cui_data <- function(n, p, p_b, p_i, Y.max = NULL, X = NULL, n.mc = 100
   list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
 }
 
-# Metalearners-Benchmark dgps
+
+#' @title Metalearners-Benchmark dgps
+#'
+#' @description  Simulation data sets for comparing metalearners on estimating CATE in survival outcomes
+#'
+#' @param n The sample size
+#' @param p The number of covariates
+#' @param p_b The number of variables in the main effect function
+#' @param p_i The number of variables in the interaction term
+#' @param f_b The function form of the main effects (linear/nonlinear)
+#' @param f_i The function form of the treatment-covariate interactions (linear/nonlinear)
+#' @param p_i The propensity score
+#' @param beta The coefficients of variables in the main effect
+#' @param gamma The coefficients of variables in the interaction
+#' @param rho The shape parameter in Weibull distribution for censoring time
+#' @param cen_scale The scale parameter in Weibull distribution for censoring time
+#' @param cenM The complexity of censoring mechanism (dependent/independent to covariates)
+#' @param n.mc The number of monte carlo draws to estimate the treatment effect with. Default is 10000.
+#' @param times The time of interest
+#' @param Y.max The maximum failure time
+#' @param dgp The type of DGP
+#' @examples
+#' \dontrun{
+#' n = 1000; p = 25
+#' data = generate_tutorial_survival_data(n, p, p_b = 1, p_i = 1, f_b = "L", f_i = "L", times = 0.2)
+#' cate.true = generate_tutorial_survival_data(n, p, p_b = 1, p_i = 1, f_b = "L", f_i = "L", times = 0.2)$catesp
+#' }
+#' @return A simulation data set
+#' @export
 generate_tutorial_survival_data <- function(n, p, p_b = NULL, p_i = NULL, f_b = NULL, f_i = NULL,
-                                            n.mc = 10000, times = NULL, Y.max = NULL, pi = 0.5,
-                                            beta = 1, gamma = 1, rho = 2, cen_scale = 4,
-                                            cenM = "indX", dgp = "fcomplex") {
-  dgp <- match.arg(dgp)
+                                            pi = 0.5, beta = 1, gamma = 1, rho = 2, cen_scale = 4, cenM = "indX",
+                                            n.mc = 10000, times = NULL, Y.max = NULL, dgp = "fcomplex") {
 
   if (dgp == "fcomplex") {
     if (is.null(Y.max)) {
