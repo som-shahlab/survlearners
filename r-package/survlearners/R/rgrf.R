@@ -33,9 +33,9 @@
 #' @param seed See grf documentation
 #' @param cen_fit The choice of model fitting for censoring
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -47,8 +47,8 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rgrf_fit = rgrf(x, w, y, D, times)
-#' rgrf_cate = predict(rgrf_fit, x, times)
+#' rgrf_fit = rgrf(X, W, Y, D, times)
+#' rgrf_cate = predict(rgrf_fit, X)
 #' }
 #' @return a rgrf object
 #' @export
@@ -212,9 +212,9 @@ rgrf = function(x, w, y, D,
 #' @param ... additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -226,8 +226,8 @@ rgrf = function(x, w, y, D,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rgrf_fit = rgrf(x, w, y, D, times)
-#' rgrf_cate = predict(rgrf_fit, x, times)
+#' rgrf_fit = rgrf(X, W, Y, D, times)
+#' rgrf_cate = predict(rgrf_fit, X)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects

@@ -6,9 +6,9 @@
 #' @param data.test The testing data set
 #' @param times The prediction time of interest
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)

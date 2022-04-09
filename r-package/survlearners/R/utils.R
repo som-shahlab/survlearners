@@ -1,4 +1,45 @@
-# For computing baseline hazard in coxph
+
+#' @title Compute baseline survival probability from lasso models
+#'
+#' @description Compute baseline survival probability from lasso models under a Cox PH distribution
+#'
+#' @param fit A cv.glmnet object
+#' @param Y The follow-up time
+#' @param D The event indicator
+#' @param x A marix of covariates
+#' @param lambda The mixing tuning parameter in glmnet
+#'
+#' @return A two-column matrix vector of baseline survival probabilities and corresponding failure times.
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
+#' data <- list(X = X, W = W, Y = Y, D = D)
+#' data.test <- list(X = X, W = W, Y = Y, D = D)
+#'
+#' foldid <- sample(rep(seq(10), length = length(data$Y)))
+#' lasso_fit <- glmnet::cv.glmnet(data$X,
+#'                                 Surv(data$Y, data$D),
+#'                                 family = "cox",
+#'                                 alpha = 1,
+#'                                 foldid = foldid)
+#'
+#' S0 <- base_surv(fit = lasso_fit,
+#'                   Y = data$Y,
+#'                   D = data$D,
+#'                   x = data$X,
+#'                   lambda = lasso_fit$lambda.min)
+#' }
+#' @export
 base_surv <- function(fit, Y, D, x, lambda){
   data <- data.frame(t_event=Y, event=D, x)
   tab <- data.frame(table(data[data$event == 1, "t_event"]))
@@ -15,6 +56,55 @@ base_surv <- function(fit, Y, D, x, lambda){
   outcome <- data.frame(time=y,survival=S0)
   outcome
 }
+
+#' @title Compute survival probability from lasso models
+#'
+#' @description Compute survival probability from lasso models under a Cox PH distribution
+#'
+#' @param fit A cv.glmnet object
+#' @param S0 The baseline hazard
+#' @param x A marix of covariates
+#' @param times The time of interest
+#' @param lambda The mixing tuning parameter in glmnet
+#'
+#' @return A vector of survival probabilities at time t
+#' @examples
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
+#' data <- list(X = X, W = W, Y = Y, D = D)
+#' data.test <- list(X = X, W = W, Y = Y, D = D)
+#'
+#' foldid <- sample(rep(seq(10), length = length(data$Y)))
+#' lasso_fit <- glmnet::cv.glmnet(data$X,
+#'                                 Surv(data$Y, data$D),
+#'                                 family = "cox",
+#'                                 alpha = 1,
+#'                                 foldid = foldid)
+#'
+#' S0 <- base_surv(fit = lasso_fit,
+#'                   Y = data$Y,
+#'                   D = data$D,
+#'                   x = data$X,
+#'                   lambda = lasso_fit$lambda.min)
+#'
+#' surf <- pred_surv(fit = lasso_fit,
+#'                     S0 = S0,
+#'                      x = data.test$X,
+#'                      times = times,
+#'                      lambda = lasso_fit$lambda.min)
+#' }
+#' @export
 pred_surv <- function(fit, S0, x, times, lambda){
   link <- predict(fit$glmnet.fit,x,type = "link")[,fit$lambda==lambda]
   colnames(link) <- NULL
@@ -31,6 +121,7 @@ pred_surv <- function(fit, S0, x, times, lambda){
   surv <- S0_t^exp(link)
   surv
 }
+
 pred_surv_preval <- function(fit, S0, times, lambda){
   link <- fit$fit.preval[,!is.na(colSums(fit$fit.preval))][, fit$lambda[!is.na(colSums(fit$fit.preval))] == lambda]
   colnames(link) <- NULL
@@ -48,7 +139,20 @@ pred_surv_preval <- function(fit, S0, times, lambda){
   surv
 }
 
-
+#' @title Clean design matrix
+#'
+#' @description Make sure the covariate matrix is numeric and with no missing values
+#'
+#' @param x  A raw covariate matrix
+#'
+#' @return A cleaned analysis-ready covariate matrix
+#' @examples
+#' \donttest{
+#' n <- 1000; p <- 25
+#' X <- matrix(rnorm(n * p), n, p)
+#' cleanX <- sanitize_x(X)
+#' }
+#' @export
 sanitize_x = function(x){
 	# make sure x is a numeric matrix with named columns (for caret)
 	if (!is.matrix(x) | !is.numeric(x) | any(is.na(x))) {
@@ -58,6 +162,33 @@ sanitize_x = function(x){
 	return(x)
 }
 
+#' @title Clean input data
+#'
+#' @description Make sure the input covariate matrix and outcomes are numeric and with no missing values
+#'
+#' @param x  A raw covariate matrix
+#' @param w  The treatment variable
+#' @param y  The follow-up time
+#' @param D  The event indicator
+#'
+#' @return A cleaned analysis-ready data set
+#' @examples
+#' \donttest{
+#' n <- 1000; p <- 25
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
+#'
+#' data = sanitize_input(X, W, Y, D)
+#' }
+#' @export
 sanitize_input = function(x,w,y,D) {
   x = sanitize_x(x)
 

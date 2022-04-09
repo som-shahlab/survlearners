@@ -9,9 +9,9 @@
 #' @param num.trees number of trees
 #' @param weight vector of subject level weights
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -23,10 +23,8 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' weight <- rep(1, length(Y))
-#' data <- list(X = X, W = W, Y = Y, D = D)
-#' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight)
+#' Fgrf_fit = Fgrf(X, W, D, weight = weight)
 #' Fgrf_cate = predict(Fgrf_fit, data.test$X)
 #' }
 #' @return An Flasso object
@@ -69,9 +67,9 @@ Fgrf = function(x, w, y, pscore = rep(.5, nrow(x)), num.trees = 2000, weight) {
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -83,10 +81,8 @@ Fgrf = function(x, w, y, pscore = rep(.5, nrow(x)), num.trees = 2000, weight) {
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' weight <- rep(1, length(Y))
-#' data <- list(X = X, W = W, Y = Y, D = D)
-#' data.test <- list(X = X, W = W, Y = Y, D = D)
-#'
-#' Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight)
+#' 
+#' Fgrf_fit = Fgrf(X, W, D, weight = weight)
 #' Fgrf_cate = predict(Fgrf_fit, data.test$X)
 #' }
 #'

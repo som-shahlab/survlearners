@@ -7,9 +7,9 @@
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)

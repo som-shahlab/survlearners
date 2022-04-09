@@ -36,9 +36,9 @@
 #' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in x
 #' @param cen_fit The choice of model fitting for censoring
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -50,8 +50,8 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasgrf_fit = rlasgrf(x, w, y, D, times)
-#' rlasgrf_cate = predict(rlasgrf_fit, x, times)
+#' rlasgrf_fit = rlasgrf(X, W, Y, D, times)
+#' rlasgrf_cate = predict(rlasgrf_fit, X)
 #' }
 #' @return a rlasgrf object
 #' @export
@@ -222,9 +222,9 @@ rlasgrf = function(x, w, y, D,
 #' @param ... additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -236,8 +236,8 @@ rlasgrf = function(x, w, y, D,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasgrf_fit = rlasgrf(x, w, y, D, times)
-#' rlasgrf_cate = predict(rlasgrf_fit, x, times)
+#' rlasgrf_fit = rlasgrf(X, W, Y, D, times)
+#' rlasgrf_cate = predict(rlasgrf_fit, X)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects
@@ -247,7 +247,7 @@ predict.rlasgrf <- function(object,
                             ...) {
   if (!is.null(newx)) {
     newx = sanitize_x(newx)
-    newx_scl = scale(newx, center = TRUE, scale = TRUE)     
+    newx_scl = scale(newx, center = TRUE, scale = TRUE)
     newx_scl = newx_scl[,!is.na(colSums(newx_scl)), drop = FALSE]
     newx_scl_pred = cbind(1, newx_scl)
     tau_hat = newx_scl_pred %*% object$tau_beta

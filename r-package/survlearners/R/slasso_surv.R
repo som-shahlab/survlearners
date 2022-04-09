@@ -14,9 +14,9 @@
 #' @param lambda_choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
 #' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in x
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -28,10 +28,10 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' slasso_surv_fit = slasso_surv(x, w, y, D, times)
-#' slasso_surv_cate = predict(slasso_surv_fit, x, times)
+#' slasso_surv_fit = slasso_surv(X, W, Y, D, times)
+#' slasso_surv_cate = predict(slasso_surv_fit, X, times)
 #' }
-#' @return a slasso_surv object
+#' @return A slasso_surv object
 #' @export
 slasso_surv = function(x, w, y, D, times,
                        alpha = 1,
@@ -127,9 +127,9 @@ slasso_surv = function(x, w, y, D, times,
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -141,10 +141,9 @@ slasso_surv = function(x, w, y, D, times,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' slasso_surv_fit = slasso_surv(x, w, y, D, times)
-#' slasso_surv_cate = predict(slasso_surv_fit, x, times)
+#' slasso_surv_fit = slasso_surv(X, W, Y, D, times)
+#' slasso_surv_cate = predict(slasso_surv_fit, X, times)
 #' }
-#'
 #'
 #' @return vector of estimated conditional average treatment effects
 #' @export

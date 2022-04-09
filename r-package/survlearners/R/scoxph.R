@@ -8,9 +8,9 @@
 #' @param D The event indicator
 #' @param times The prediction time of interest
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -22,7 +22,7 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' scoxph_fit = scoxph(x, w, y, D, times)
+#' scoxph_fit = scoxph(X, W, Y, D, times)
 #' scoxph_cate = predict(scoxph_fit, x, times)
 #' }
 #' @return a scoxph object
@@ -75,9 +75,9 @@ scoxph = function(x, w, y, D, times){
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
-#' \dontrun{
-#' n = 1000; p = 25
-#' times = 0.2
+#' \donttest{
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -89,10 +89,10 @@ scoxph = function(x, w, y, D, times){
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' scoxph_fit = scoxph(x, w, y, D, times)
+#' scoxph_fit = scoxph(X, W, Y, D, times)
 #' scoxph_cate = predict(scoxph_fit, x, times)
 #' }
-#' @return vector of estimated conditional average treatment effects
+#' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.scoxph <- function(object,
                            newx = NULL,
