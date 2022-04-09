@@ -14,7 +14,8 @@
 #' # The following script demonstrates...
 #' }
 #'
-#' @importFrom stats as.formula coef lm median model.matrix predict sd var weighted.mean
-#' @importFrom stats complete.cases dbeta pnorm rbinom rgamma rexp rlnorm rnorm runif rpois
+#' @importFrom stats as.formula coef complete.cases lm median model.matrix predict sd var
+#' @importFrom stats dbeta pnorm rbinom rgamma rexp rlnorm rnorm runif rpois
+#' @importFrom survival Surv
 #' @keywords internal
 "_PACKAGE"
