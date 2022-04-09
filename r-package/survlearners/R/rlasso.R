@@ -62,8 +62,7 @@ rlasso = function(x, w, y, D,
     y = input$y
     D = input$D
 
-    standardization = caret::preProcess(x, method=c("center", "scale")) # get the standardization params
-    x_scl = predict(standardization, x)					                    		# standardize the input
+    x_scl = scale(x, center = TRUE, scale = TRUE)
     x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
 
     nobs = nrow(x_scl)
@@ -195,8 +194,7 @@ rlasso = function(x, w, y, D,
                p_hat = p_hat,
                m_hat = m_hat,
                c_hat = c_hat,
-               tau_hat = tau_hat,
-               standardization = standardization)
+               tau_hat = tau_hat)
     class(ret) <- "rlasso"
     ret
 }
@@ -236,7 +234,7 @@ predict.rlasso <- function(object,
                            ...) {
   if (!is.null(newx)) {
     newx = sanitize_x(newx)
-    newx_scl = predict(object$standardization, newx) # standardize the new data using the same standardization as with the training data
+    newx_scl = scale(newx, center = TRUE, scale = TRUE)
     newx_scl = newx_scl[,!is.na(colSums(newx_scl)), drop = FALSE]
     newx_scl_pred = cbind(1, newx_scl)
     tau_hat = newx_scl_pred %*% object$tau_beta
