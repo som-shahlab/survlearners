@@ -133,7 +133,7 @@ rlasgrf = function(x, w, y, D,
                         seed = seed)
 
   if (is.null(m_hat)){
-    y_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = D), args.nuisance))
+    y_fit <- do.call(grf::survival_forest, c(list(X = cbind(x, w), Y = y, D = D), args.nuisance))
     y_fit[["X.orig"]][, ncol(x) + 1] <- rep(1, nrow(x))
     S1.hat <- predict(y_fit)$predictions
     y_fit[["X.orig"]][, ncol(x) + 1] <- rep(0, nrow(x))
@@ -167,7 +167,7 @@ rlasgrf = function(x, w, y, D,
       shudat <- data.frame(shuffle, c_hat)
       c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
-      c_fit <- do.call(survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
+      c_fit <- do.call(grf::survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
       C.hat <- predict(c_fit, failure.times = c_fit$failure.times)$predictions
       cent <- y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c_fit$failure.times)
@@ -247,7 +247,7 @@ predict.rlasgrf <- function(object,
                             ...) {
   if (!is.null(newx)) {
     newx = sanitize_x(newx)
-    newx_scl = scale(newx, center = TRUE, scale = TRUE)     
+    newx_scl = scale(newx, center = TRUE, scale = TRUE)
     newx_scl = newx_scl[,!is.na(colSums(newx_scl)), drop = FALSE]
     newx_scl_pred = cbind(1, newx_scl)
     tau_hat = newx_scl_pred %*% object$tau_beta
