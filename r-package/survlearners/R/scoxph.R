@@ -40,7 +40,7 @@ scoxph = function(x, w, y, D, times){
   x_pred0 = data.frame(-0.5 * cbind(1, x), x)
 
   colnames(x_tilde) <- colnames(x_pred1) <- colnames(x_pred0) <- paste0("v", 1:dim(x_tilde)[2])
-  formula <- as.formula(paste0("Surv(y, D) ~ ", paste(colnames(x_tilde), sep=" ", collapse = "+")))
+  formula <- as.formula(paste0("survival::Surv(y, D) ~ ", paste(colnames(x_tilde), sep=" ", collapse = "+")))
   tmpdat <- data.frame(y, D, x_tilde)
 
   s_fit <- survival::coxph(formula, data = tmpdat)

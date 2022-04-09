@@ -34,7 +34,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   # fit model on W==1 (cross-fitted using 'preval' in glmnet)
   foldid1 <- sample(rep(seq(10), length = length(data$Y[dataW==1])))
   lasso_fit1 <- glmnet::cv.glmnet(data$X[dataW==1, ],
-                                  Surv(data$Y[dataW==1], data$D[dataW==1]),
+                                  survival::Surv(data$Y[dataW==1], data$D[dataW==1]),
                                   family = "cox",
                                   alpha = 1,
                                   keep = TRUE,
@@ -52,7 +52,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   # fit model on W==0 (cross-fitted using 'preval' in glmnet)
   foldid0 <- sample(rep(seq(10), length = length(data$Y[dataW==0])))
   lasso_fit0 <- glmnet::cv.glmnet(data$X[dataW==0, ],
-                                  Surv(data$Y[dataW==0], data$D[dataW==0]),
+                                  survival::Surv(data$Y[dataW==0], data$D[dataW==0]),
                                   family = "cox",
                                   alpha = 1,
                                   keep = TRUE,
@@ -80,7 +80,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
       trainData <- kmdat[-testIndexes, ]
-      c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+      c_fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
       cent <- testData$Y
       cent[testData$D==0] <- times
       c_hat[testIndexes] <- summary(c_fit, times = cent)$surv

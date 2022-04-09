@@ -79,7 +79,7 @@ slasso_surv = function(x, w, y, D, times,
   }
 
   s_fit <- glmnet::cv.glmnet(x_scl_tilde,
-                             Surv(y, D),
+                             survival::Surv(y, D),
                              family = "cox",
                              foldid = foldid,
                              lambda = lambda,

@@ -109,7 +109,7 @@ rlasso = function(x, w, y, D,
     survt1 <- survt0 <- rep(NA, length(w))
     for (k in 1:k_folds){
       y_fit <- glmnet::cv.glmnet(cbind(w[!foldid==k], x[!foldid==k, ]),
-                                 Surv(y[!foldid==k], D[!foldid==k]),
+                                 survival::Surv(y[!foldid==k], D[!foldid==k]),
                                  family = "cox",
                                  nfolds = k_folds,
                                  lambda = lambda_y,
@@ -145,7 +145,7 @@ rlasso = function(x, w, y, D,
         testIndexes <- which(folds==z, arr.ind=TRUE)
         testData <- kmdat[testIndexes, ]
         trainData <- kmdat[-testIndexes, ]
-        c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+        c_fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
         cent <- testData$Y; cent[testData$D==0] <- times
         c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
       }

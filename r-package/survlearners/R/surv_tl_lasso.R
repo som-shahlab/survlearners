@@ -31,7 +31,7 @@ surv_tl_lasso <- function(data, data.test, times){
   # Model for W = 1
   foldid <- sample(rep(seq(10), length = length(data$Y[data$W==1])))
   lasso_fit1 <- glmnet::cv.glmnet(data$X[data$W==1, ],
-                                  Surv(data$Y[data$W==1], data$D[data$W==1]),
+                                  survival::Surv(data$Y[data$W==1], data$D[data$W==1]),
                                   family = "cox",
                                   alpha = 1,
                                   foldid = foldid)
@@ -52,7 +52,7 @@ surv_tl_lasso <- function(data, data.test, times){
   # Model for W = 0
   foldid <- sample(rep(seq(10), length = length(data$Y[data$W==0])))
   lasso_fit0 <- glmnet::cv.glmnet(data$X[data$W==0, ],
-                                  Surv(data$Y[data$W==0], data$D[data$W==0]),
+                                  survival::Surv(data$Y[data$W==0], data$D[data$W==0]),
                                   family = "cox",
                                   alpha = 1,
                                   foldid = foldid)
