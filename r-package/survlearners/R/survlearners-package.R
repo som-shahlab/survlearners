@@ -15,7 +15,7 @@
 #' }
 #'
 #' @importFrom stats as.formula coef complete.cases lm median model.matrix predict sd var
-#' @importFrom stats dbeta pnorm rbinom rgamma rexp rmvnorm rlnorm rnorm runif rpois
+#' @importFrom stats dbeta pnorm rbinom rgamma rexp rlnorm rnorm runif rpois
 #' @importFrom survival Surv
 #' @keywords internal
 "_PACKAGE"
