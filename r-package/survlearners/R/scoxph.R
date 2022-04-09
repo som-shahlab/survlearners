@@ -23,7 +23,7 @@
 #' D <- as.integer(failure.time <= censor.time)
 #'
 #' scoxph_fit = scoxph(X, W, Y, D, times)
-#' scoxph_cate = predict(scoxph_fit, x, times)
+#' scoxph_cate = predict(scoxph_fit, X, times)
 #' }
 #' @return a scoxph object
 #' @export

@@ -109,7 +109,7 @@ rlasso = function(x, w, y, D,
     survt1 <- survt0 <- rep(NA, length(w))
     for (k in 1:k_folds){
       xw <- data.frame(w[!foldid==k], x[!foldid==k, ]); colnames(xw)[1] <- "covariate_0"
-      y_fit <- glmnet::cv.glmnet(as.matrix(xw),
+      y_fit <- glmnet::cv.glmnet(as.matrix(xw), 
                                  Surv(y[!foldid==k], D[!foldid==k]),
                                  family = "cox",
                                  nfolds = k_folds,
