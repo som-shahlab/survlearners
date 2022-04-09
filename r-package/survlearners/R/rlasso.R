@@ -41,7 +41,7 @@
 #' @return a rlasso object
 #' @export
 rlasso = function(x, w, y, D,
-                  k_folds = 10, 
+                  k_folds = 10,
                   foldid = NULL,
                   lambda_y = NULL,
                   lambda_tau = NULL,
@@ -146,7 +146,7 @@ rlasso = function(x, w, y, D,
         testIndexes <- which(folds==z, arr.ind=TRUE)
         testData <- kmdat[testIndexes, ]
         trainData <- kmdat[-testIndexes, ]
-        c_fit <- survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
+        c_fit <- survival::survfit(Surv(trainData$Y, 1 - trainData$D) ~ 1)
         cent <- testData$Y; cent[testData$D==0] <- times
         c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
       }

@@ -24,4 +24,5 @@ Imports:
     mvtnorm,
     caret,
     glmnet,
-    grf
+    grf,
+    survival
