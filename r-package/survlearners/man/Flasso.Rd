@@ -44,6 +44,6 @@ D <- as.integer(failure.time <= censor.time)
 weight <- rep(1, length(Y))
 
 Flasso_fit = Flasso(X, W, D, weight = weight)
-Flasso_cate = predict(Flasso_fit, data.test$X)
+Flasso_cate = predict(Flasso_fit, X)
 }
 }

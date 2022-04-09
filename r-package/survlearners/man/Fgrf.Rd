@@ -42,6 +42,6 @@ D <- as.integer(failure.time <= censor.time)
 weight <- rep(1, length(Y))
 
 Fgrf_fit = Fgrf(X, W, D, weight = weight)
-Fgrf_cate = predict(Fgrf_fit, data.test$X)
+Fgrf_cate = predict(Fgrf_fit, X)
 }
 }
