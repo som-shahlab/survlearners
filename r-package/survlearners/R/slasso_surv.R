@@ -87,7 +87,7 @@ slasso_surv = function(x, w, y, D, times,
                              standardize = FALSE,
                              alpha = alpha)
 
-  s_beta <- as.vector(t(coef(s_fit, s = lambda_choice)))
+  s_beta <- as.vector(t(as.matrix(coef(s_fit, s = lambda_choice))))
   s_beta_adj <- c(0.5 * s_beta[1:(1 + dim(x)[2])], s_beta[(2 + dim(x)[2]):dim(x_scl_tilde)[2]])
 
   link1 <- exp(x_scl_pred1 %*% s_beta_adj)
