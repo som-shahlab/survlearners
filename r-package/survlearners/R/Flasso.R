@@ -27,12 +27,12 @@
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' Flasso_fit = Flasso(data$X, data$W, data$Y, weight = weight)
+#' Flasso_fit = Flasso(data$X, data$W, data$Y, weight)
 #' Flasso_cate = predict(Flasso_fit, data.test$X)
 #' }
 #' @return An Flasso object
 #' @export
-Flasso = function(x, w, y, pscore = rep(.5, nrow(x)), nfolds = 10, alpha = 1, weight) {
+Flasso = function(x, w, y, weight, pscore = rep(.5, nrow(x)), nfolds = 10, alpha = 1) {
 
   # Input sanitization
   x = as.matrix(x)

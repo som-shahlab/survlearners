@@ -4,7 +4,7 @@
 \alias{Fgrf}
 \title{F-learner of grf}
 \usage{
-Fgrf(x, w, y, pscore = rep(0.5, nrow(x)), num.trees = 2000, weight)
+Fgrf(x, w, y, weight, pscore = rep(0.5, nrow(x)), num.trees = 2000)
 }
 \arguments{
 \item{x}{matrix of covariates}
@@ -13,11 +13,11 @@ Fgrf(x, w, y, pscore = rep(0.5, nrow(x)), num.trees = 2000, weight)
 
 \item{y}{vector of response values}
 
+\item{weight}{vector of subject level weights}
+
 \item{pscore}{vector of propensity scores}
 
 \item{num.trees}{number of trees}
-
-\item{weight}{vector of subject level weights}
 }
 \value{
 An Flasso object
@@ -43,7 +43,7 @@ weight <- rep(1, length(Y))
 data <- list(X = X, W = W, Y = Y, D = D)
 data.test <- list(X = X, W = W, Y = Y, D = D)
 
-Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight = weight)
+Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight)
 Fgrf_cate = predict(Fgrf_fit, data.test$X)
 }
 }
