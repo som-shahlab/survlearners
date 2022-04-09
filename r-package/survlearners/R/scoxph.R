@@ -90,7 +90,7 @@ scoxph = function(x, w, y, D, times){
 #' D <- as.integer(failure.time <= censor.time)
 #'
 #' scoxph_fit = scoxph(X, W, Y, D, times)
-#' scoxph_cate = predict(scoxph_fit, x, times)
+#' scoxph_cate = predict(scoxph_fit, X, times)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
