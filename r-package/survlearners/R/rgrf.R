@@ -8,7 +8,7 @@
 #' @param D The event indicator
 #' @param k_folds Number of folds for cross validation
 #' @param p_hat Propensity score
-#' @param m_hat Conditional mean outcome E[Y|X]
+#' @param m_hat Conditional mean outcome E(Y|X)
 #' @param c_hat Censoring weights
 #' @param times The prediction time of interest
 #' @param failure.times A vector of event times to fit the survival curve at.
