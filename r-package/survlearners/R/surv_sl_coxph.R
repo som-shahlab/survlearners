@@ -28,9 +28,9 @@
 #' @export
 surv_sl_coxph <- function(data, data.test, times){
 
-  scoxph_fit <- scoxph(x = data$X,
-                       w = data$W,
-                       y = data$Y,
+  scoxph_fit <- scoxph(X = data$X,
+                       W = data$W,
+                       Y = data$Y,
                        D = data$D,
                        times = times)
 

@@ -1,22 +1,22 @@
 # For computing baseline hazard in coxph
-base_surv <- function(fit, Y, D, x, lambda){
-  data <- data.frame(t_event=Y, event=D, x)
+base_surv <- function(fit, Y, D, X, lambda){
+  data <- data.frame(t_event=Y, event=D, X)
   tab <- data.frame(table(data[data$event == 1, "t_event"]))
-  y <- as.numeric(as.character(sort(unique(tab[,1]))))
-  d <- tab[,2]  # number of events at each unique time
+  Y <- as.numeric(as.character(sort(unique(tab[,1]))))
+  D <- tab[,2]  # number of events at each unique time
 
   betaHat <- as.vector((fit$glmnet.fit$beta)[,fit$lambda==lambda])
-  h0 <- rep(NA, length(y))
-  for(l in 1:length(y)){
-    h0[l] <- d[l] / sum(exp(x[data$t_event >= y[l], rownames(fit$glmnet.fit$beta)] %*% betaHat))
+  h0 <- rep(NA, length(Y))
+  for(l in 1:length(Y)){
+    h0[l] <- D[l] / sum(exp(X[data$t_event >= Y[l], rownames(fit$glmnet.fit$beta)] %*% betaHat))
   }
 
   S0 <- exp(-cumsum(h0))
-  outcome <- data.frame(time=y,survival=S0)
+  outcome <- data.frame(time=Y,survival=S0)
   outcome
 }
-pred_surv <- function(fit, S0, x, times, lambda){
-  link <- predict(fit$glmnet.fit,x,type = "link")[,fit$lambda==lambda]
+pred_surv <- function(fit, S0, X, times, lambda){
+  link <- predict(fit$glmnet.fit,X,type = "link")[,fit$lambda==lambda]
   colnames(link) <- NULL
 
   if(length(times)>1){
@@ -49,28 +49,28 @@ pred_surv_preval <- function(fit, S0, times, lambda){
 }
 
 
-sanitize_x = function(x){
-	# make sure x is a numeric matrix with named columns (for caret)
-	if (!is.matrix(x) | !is.numeric(x) | any(is.na(x))) {
-		stop("x must be a numeric matrix with no missing values")
+sanitize_x = function(X){
+	# make sure X is a numeric matrix with named columns (for caret)
+	if (!is.matrix(X) | !is.numeric(X) | any(is.na(X))) {
+		stop("X must be a numeric matrix with no missing values")
 	}
-	colnames(x) = paste0("covariate_", 1:ncol(x))
-	return(x)
+	colnames(X) = paste0("covariate_", 1:ncol(X))
+	return(X)
 }
 
-sanitize_input = function(x,w,y,D) {
-  x = sanitize_x(x)
+sanitize_input = function(X,W,Y,D) {
+  X = sanitize_x(X)
 
-  if (!is.numeric(w)) {
-		stop("the input w should be a numeric vector")
+  if (!is.numeric(W)) {
+		stop("the input W should be a numeric vector")
   }
-	if (is.numeric(w) & all(w %in% c(0,1))) {
-		w = w==1
+	if (is.numeric(W) & all(W %in% c(0,1))) {
+		W = W==1
 	}
 
-	# make sure y is a numeric vector
-	if (!is.numeric(y)) {
-		stop("y should be a numeric vector")
+	# make sure Y is a numeric vector
+	if (!is.numeric(Y)) {
+		stop("Y should be a numeric vector")
 	}
 
   if (!is.numeric(D)) {
@@ -81,12 +81,12 @@ sanitize_input = function(x,w,y,D) {
   }
 
 	# make sure the dimensions align
-	if (length(y)!=nrow(x) | length(w)!=nrow(x) | length(D)!=nrow(x)) {
-		stop("nrow(x), length(w), length(y), and length(D) should all be equal")
+	if (length(Y)!=nrow(X) | length(W)!=nrow(X) | length(D)!=nrow(X)) {
+		stop("nrow(X), length(W), length(Y), and length(D) should all be equal")
 	}
 
-	return(list(x=x,
-	            w=w,
-	            y=y,
+	return(list(X=X,
+	            W=W,
+	            Y=Y,
 	            D=D))
 }

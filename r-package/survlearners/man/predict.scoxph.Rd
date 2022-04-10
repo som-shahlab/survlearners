@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{A scoxph object}
 
-\item{newx}{Covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data}
+\item{newx}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{times}{The prediction time of interest}
 
@@ -19,7 +19,7 @@
 vector of estimated conditional average treatment effects
 }
 \description{
-get estimated tau(x) using the trained scoxph model
+get estimated tau(X) using the trained scoxph model
 }
 \examples{
 \donttest{

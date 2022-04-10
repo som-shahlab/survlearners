@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{a rlasgrf object}
 
-\item{newx}{covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data}
+\item{newx}{covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{...}{additional arguments (currently not used)}
 }
@@ -17,7 +17,7 @@
 A vector of predicted conditional average treatment effects
 }
 \description{
-get estimated tau(x) using the trained rlasgrf model
+get estimated tau(X) using the trained rlasgrf model
 }
 \examples{
 \donttest{

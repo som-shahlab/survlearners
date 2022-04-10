@@ -76,9 +76,9 @@ surv_fl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit
                  X = as.matrix(binary_data[,6:ncol(binary_data)]),
                  wt = binary_data$ipcw, ps = binary_data$pscore)
 
-  fgrf_fit <- Fgrf(x = b_data$X,
-                   w = b_data$W,
-                   y = b_data$D,
+  fgrf_fit <- Fgrf(X = b_data$X,
+                   W = b_data$W,
+                   Y = b_data$D,
                    pscore = b_data$ps,
                    weight = b_data$wt)
   pred_fgrf <- -predict(fgrf_fit, data.test$X)

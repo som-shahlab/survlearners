@@ -30,9 +30,9 @@
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 surv_rl_grf <- function(data, data.test, times, ps = NULL, alpha = 0.05, cen_fit = "KM"){
-  rgrf_fit <- rgrf(x = data$X,
-                   w = data$W,
-                   y = data$Y,
+  rgrf_fit <- rgrf(X = data$X,
+                   W = data$W,
+                   Y = data$Y,
                    D = data$D,
                    p_hat = ps,
                    alpha = alpha,
