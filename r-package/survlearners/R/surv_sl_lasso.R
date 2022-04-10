@@ -27,9 +27,9 @@
 #' @export
 surv_sl_lasso <- function(X, W, Y, D, times, newX = NULL){
 
-  slasso_fit <- slasso_surv(x = X,
-                            w = W,
-                            y = Y,
+  slasso_fit <- slasso_surv(X = X,
+                            W = W,
+                            Y = Y,
                             D = D,
                             times = times)
 

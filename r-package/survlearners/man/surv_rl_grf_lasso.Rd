@@ -5,9 +5,9 @@
 \title{R-learner of grf and lasso}
 \usage{
 surv_rl_grf_lasso(
-  x,
-  w,
-  y,
+  X,
+  W,
+  Y,
   D,
   times,
   ps = NULL,

@@ -24,11 +24,11 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' cate = surv_xl_grf(data, data.test, times, ps = 0.5, newX = X)
+#' cate = surv_xl_grf(X, W, Y, D, times, ps = 0.5, newX = X)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_xl_grf <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
+surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
   # fit model on W==1
   grffit1 <- grf::survival_forest(X[W==1,],
                                   Y[W==1],

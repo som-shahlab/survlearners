@@ -29,9 +29,9 @@
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 surv_rl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
-  rlasso_fit <- rlasso(x = X,
-                       w = W,
-                       y = Y,
+  rlasso_fit <- rlasso(X = X,
+                       W = W,
+                       Y = Y,
                        D = D,
                        p_hat = ps,
                        alpha = alpha,

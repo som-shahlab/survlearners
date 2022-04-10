@@ -28,10 +28,10 @@
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_rl_grf_lasso <- function(x, w, y, D, times, ps = NULL, alpha = 0.05, cen_fit = "KM", newX = NULL){
-  rlasgrf_fit <- rlasgrf(x = x,
-                         w = w,
-                         y = y,
+surv_rl_grf_lasso <- function(X, W, Y, D, times, ps = NULL, alpha = 0.05, cen_fit = "KM", newX = NULL){
+  rlasgrf_fit <- rlasgrf(X = X,
+                         W = W,
+                         Y = Y,
                          D = D,
                          p_hat = ps,
                          alpha = alpha,

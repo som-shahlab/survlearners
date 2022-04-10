@@ -24,11 +24,11 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' cate = surv_xl_lasso(data, data.test, times, ps = 0.5, newX = X)
+#' cate = surv_xl_lasso(X, W, Y, D, times, ps = 0.5, newX = X)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
+surv_xl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
 
   # fit model on W==1 (cross-fitted using 'preval' in glmnet)
   foldid1 <- sample(rep(seq(10), length = length(Y[W==1])))
@@ -45,7 +45,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   surf1[W==1] <- pred_surv_preval(lasso_fit1, S0, times = times, lambda = lambda_1_min)
   surf1[W==0] <- pred_surv(fit = lasso_fit1,
                                 S0 = S0,
-                                x = X[W==0, ],
+                                X = X[W==0, ],
                                 times = times,
                                 lambda = lasso_fit1$lambda.min)
 
@@ -64,7 +64,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   surf0[W==0] <- pred_surv_preval(lasso_fit0, S0, times = times, lambda = lambda_0_min)
   surf0[W==1] <- pred_surv(fit = lasso_fit0,
                                 S0 = S0,
-                                x = X[W==1, ],
+                                X = X[W==1, ],
                                 times = times,
                                 lambda = lasso_fit0$lambda.min)
 

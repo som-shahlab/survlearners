@@ -5,8 +5,10 @@
 \title{X-learner of lasso and grf}
 \usage{
 surv_xl_grf_lasso(
-  data,
-  data.test,
+  X,
+  W,
+  Y,
+  D,
   times,
   alpha = 0.05,
   ps = NULL,
@@ -15,10 +17,6 @@ surv_xl_grf_lasso(
 )
 }
 \arguments{
-\item{data}{The training data set}
-
-\item{data.test}{The testing data set}
-
 \item{times}{The prediction time of interest}
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
@@ -28,6 +26,10 @@ surv_xl_grf_lasso(
 \item{cen_fit}{The choice of model fitting for censoring}
 
 \item{newX}{The test data set (covariates only)}
+
+\item{data}{The training data set}
+
+\item{data.test}{The testing data set}
 }
 \value{
 A vector of estimated conditional average treatment effects
@@ -51,6 +53,6 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-cate = surv_xl_grf_lasso(data, data.test, times, ps = 0.5, newX = X)
+cate = surv_xl_grf_lasso(X, W, Y, D, times, ps = 0.5, newX = X)
 }
 }

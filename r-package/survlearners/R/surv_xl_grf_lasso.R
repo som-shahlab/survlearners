@@ -25,11 +25,11 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' cate = surv_xl_grf_lasso(data, data.test, times, ps = 0.5, newX = X)
+#' cate = surv_xl_grf_lasso(X, W, Y, D, times, ps = 0.5, newX = X)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_xl_grf_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
+surv_xl_grf_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
 
 # fit model on W==1
 grffit1 <- grf::survival_forest(X[W==1,],
@@ -98,24 +98,24 @@ weight <- ipcw/ps.train  # censoring weight * treatment weight
 # X-learner
 tempdat <- data.frame(Y = Y, D = D, W = W, weight, X, Tgrf0, Tgrf1)
 binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
-binary_D[binary_D==1 & binary_Y > times] <- 0
+binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
 binary_data <- binary_data[complete.cases(binary_data), ]
-b_data <- list(Y = binary_Y, D = binary_D, W = binary_W,
+b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W,
                X = as.matrix(binary_data[,5:(ncol(binary_data)-2)]),
-               wt = binary_weight, mu0 = binary_Tgrf0, mu1 = binary_Tgrf1)
+               wt = binary_data$weight, mu0 = binary_data$Tgrf0, mu1 = binary_data$Tgrf1)
 
-foldid <- sample(rep(seq(10), length = length(b_Y[b_W==1])))
-XLfit1 <- glmnet::cv.glmnet(b_X[b_W==1, ],
-                            b_D[b_W==1] - b_mu0[b_W==1],
-                            weights = b_wt[b_W==1],
+foldid <- sample(rep(seq(10), length = length(b_data$Y[b_data$W==1])))
+XLfit1 <- glmnet::cv.glmnet(b_data$X[b_data$W==1, ],
+                            b_data$D[b_data$W==1] - b_data$mu0[b_data$W==1],
+                            weights = b_data$wt[b_data$W==1],
                             foldid = foldid,
                             alpha = 1)
 XLtau1 <- as.vector(-predict(XLfit1, newX, s = "lambda.min"))
 
-foldid <- sample(rep(seq(10), length = length(b_Y[b_W==0])))
-XLfit0 <- glmnet::cv.glmnet(b_X[b_W==0, ],
-                            b_mu1[b_W==0] - b_D[b_W==0],
-                            weights = b_wt[b_W==0],
+foldid <- sample(rep(seq(10), length = length(b_data$Y[b_data$W==0])))
+XLfit0 <- glmnet::cv.glmnet(b_data$X[b_data$W==0, ],
+                            b_data$mu1[b_data$W==0] - b_data$D[b_data$W==0],
+                            weights = b_data$wt[b_data$W==0],
                             foldid = foldid,
                             alpha = 1)
 XLtau0 <- as.vector(-predict(XLfit0, newX, s = "lambda.min"))
