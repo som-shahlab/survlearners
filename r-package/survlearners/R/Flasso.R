@@ -24,11 +24,9 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' weight <- rep(1, length(Y))
-#' data <- list(X = X, W = W, Y = Y, D = D)
-#' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' Flasso_fit = Flasso(data$X, data$W, data$Y, weight = weight)
-#' Flasso_cate = predict(Flasso_fit, data.test$X)
+#' Flasso_fit = Flasso(X, W, Y, weight = weight)
+#' Flasso_cate = predict(Flasso_fit, X)
 #' }
 #' @return An Flasso object
 #' @export
@@ -87,8 +85,8 @@ Flasso = function(X, W, Y, weight, pscore = rep(.5, nrow(X)), nfolds = 10, alpha
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' Flasso_fit = Flasso(data$X, data$W, data$Y, weight)
-#' Flasso_cate = predict(Flasso_fit, data.test$X)
+#' Flasso_fit = Flasso(X, W, Y, weight)
+#' Flasso_cate = predict(Flasso_fit, X)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects

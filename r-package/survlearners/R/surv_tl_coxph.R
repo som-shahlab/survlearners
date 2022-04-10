@@ -5,6 +5,7 @@
 #' @param data The training data set
 #' @param data.test The testing data set
 #' @param times The prediction time of interest
+#' @param newX The test data set (covariates only)
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25
@@ -19,16 +20,14 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
-#' data <- list(X = X, W = W, Y = Y, D = D)
-#' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' cate = surv_tl_coxph(data, data.test, times)
+#' cate = surv_tl_coxph(X, W, Y, D, times, newX = X)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_tl_coxph <- function(data, data.test, times){
+surv_tl_coxph <- function(X, W, Y, D, times, newX = NULL){
 
-  traindat <- data.frame(Y = data$Y, D = data$D, W = data$W, data$X)
+  traindat <- data.frame(Y = Y, D = D, W = W, X)
   traindat1 <- traindat[traindat$W==1, !colnames(traindat) %in% c("W")]
   traindat0 <- traindat[traindat$W==0, !colnames(traindat) %in% c("W")]
 
@@ -37,7 +36,7 @@ surv_tl_coxph <- function(data, data.test, times){
   bh_dat <- survival::basehaz(coxph_fit1, centered = FALSE)
   index <- findInterval(times, bh_dat$time)
   bh <- bh_dat[index, 1]
-  est_r1 <- predict(coxph_fit1, newdata = data.frame(data.test$X), type="risk")
+  est_r1 <- predict(coxph_fit1, newdata = data.frame(newX), type="risk")
   surf1 <- exp(-bh)^est_r1
 
   # Model for W = 0
@@ -45,7 +44,7 @@ surv_tl_coxph <- function(data, data.test, times){
   bh_dat <- survival::basehaz(coxph_fit0, centered = FALSE)
   index <- findInterval(times, bh_dat$time)
   bh <- bh_dat[index, 1]
-  est_r0 <- predict(coxph_fit0, newdata = data.frame(data.test$X), type="risk")
+  est_r0 <- predict(coxph_fit0, newdata = data.frame(newX), type="risk")
   surf0 <- exp(-bh)^est_r0
 
   pred_T_coxph <- surf1 - surf0

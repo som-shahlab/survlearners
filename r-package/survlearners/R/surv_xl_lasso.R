@@ -8,6 +8,7 @@
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param ps The propensity score
 #' @param cen_fit The choice of model fitting for censoring
+#' @param newX The test data set (covariates only)
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25
@@ -22,50 +23,48 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
-#' data <- list(X = X, W = W, Y = Y, D = D)
-#' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' cate = surv_xl_lasso(data, data.test, times, ps = 0.5)
+#' cate = surv_xl_lasso(X, W, Y, D, times, ps = 0.5, newX = X)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
+surv_xl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
 
   # fit model on W==1 (cross-fitted using 'preval' in glmnet)
-  foldid1 <- sample(rep(seq(10), length = length(data$Y[data$W==1])))
-  x1 <- as.matrix(data.frame(data$X[data$W==1, ]))
+  foldid1 <- sample(rep(seq(10), length = length(Y[W==1])))
+  x1 <- as.matrix(data.frame(X[W==1, ]))
   lasso_fit1 <- glmnet::cv.glmnet(x1,
-                                  survival::Surv(data$Y[data$W==1], data$D[data$W==1]),
+                                  survival::Surv(Y[W==1], D[W==1]),
                                   family = "cox",
                                   alpha = 1,
                                   keep = TRUE,
                                   foldid = foldid1)
   lambda_1_min <- lasso_fit1$lambda[which.min(lasso_fit1$cvm[!is.na(colSums(lasso_fit1$fit.preval))])]
-  S0 <- base_surv(lasso_fit1, data$Y[data$W==1], data$D[data$W==1], x1, lambda = lambda_1_min)
-  surf1 <- rep(NA, length(data$W))
-  surf1[data$W==1] <- pred_surv_preval(lasso_fit1, S0, times = times, lambda = lambda_1_min)
-  surf1[data$W==0] <- pred_surv(fit = lasso_fit1,
+  S0 <- base_surv(lasso_fit1, Y[W==1], D[W==1], x1, lambda = lambda_1_min)
+  surf1 <- rep(NA, length(W))
+  surf1[W==1] <- pred_surv_preval(lasso_fit1, S0, times = times, lambda = lambda_1_min)
+  surf1[W==0] <- pred_surv(fit = lasso_fit1,
                                 S0 = S0,
-                                X = data$X[data$W==0, ],
+                                X = X[W==0, ],
                                 times = times,
                                 lambda = lasso_fit1$lambda.min)
 
   # fit model on W==0 (cross-fitted using 'preval' in glmnet)
-  foldid0 <- sample(rep(seq(10), length = length(data$Y[data$W==0])))
-  x0 <- as.matrix(data.frame(data$X[data$W==0, ]))
+  foldid0 <- sample(rep(seq(10), length = length(Y[W==0])))
+  x0 <- as.matrix(data.frame(X[W==0, ]))
   lasso_fit0 <- glmnet::cv.glmnet(x0,
-                                  survival::Surv(data$Y[data$W==0], data$D[data$W==0]),
+                                  survival::Surv(Y[W==0], D[W==0]),
                                   family = "cox",
                                   alpha = 1,
                                   keep = TRUE,
                                   foldid = foldid0)
   lambda_0_min <- lasso_fit0$lambda[which.min(lasso_fit0$cvm[!is.na(colSums(lasso_fit0$fit.preval))])]
-  S0 <- base_surv(lasso_fit0, data$Y[data$W==0], data$D[data$W==0], x0, lambda = lambda_0_min)
-  surf0 <- rep(NA, length(data$W))
-  surf0[data$W==0] <- pred_surv_preval(lasso_fit0, S0, times = times, lambda = lambda_0_min)
-  surf0[data$W==1] <- pred_surv(fit = lasso_fit0,
+  S0 <- base_surv(lasso_fit0, Y[W==0], D[W==0], x0, lambda = lambda_0_min)
+  surf0 <- rep(NA, length(W))
+  surf0[W==0] <- pred_surv_preval(lasso_fit0, S0, times = times, lambda = lambda_0_min)
+  surf0[W==1] <- pred_surv(fit = lasso_fit0,
                                 S0 = S0,
-                                X = data$X[data$W==1, ],
+                                X = X[W==1, ],
                                 times = times,
                                 lambda = lasso_fit0$lambda.min)
 
@@ -74,8 +73,8 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
 
   # IPCW weights (cross-fitted using 'preval' in glmnet)
   if(cen_fit == "KM"){
-    shuffle <- sample(length(data$Y))
-    kmdat <- data.frame(Y = data$Y[shuffle], D = data$D[shuffle])
+    shuffle <- sample(length(Y))
+    kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
     c_hat <- rep(NA, nrow(kmdat))
     for(z in 1:10){
@@ -90,29 +89,29 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
     shudat <- data.frame(shuffle, c_hat)
     c_hat <- shudat[order(shuffle), ]$c_hat
   }else if (cen_fit == "survival.forest"){
-    c_fit <- grf::survival_forest(cbind(data$W, data$X),
-                                  data$Y,
-                                  1 - data$D,
+    c_fit <- grf::survival_forest(cbind(W, X),
+                                  Y,
+                                  1 - D,
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
     C.hat <- predict(c_fit)$predictions
-    cent <- data$Y; cent[data$D==0] <- times
+    cent <- Y; cent[D==0] <- times
     cen.times.index <- findInterval(cent, c_fit$failure.times)
-    c_hat <- C.hat[cbind(1:length(data$Y), cen.times.index)]
+    c_hat <- C.hat[cbind(1:length(Y), cen.times.index)]
   }
 
   # Propensity score (cross-fitted using 'preval' in glmnet)
   if (is.null(ps)){
     stop("propensity score needs to be supplied")
   }else{
-    ps.train <- rep(ps, length(data$W))
-    ps.test <- rep(ps, length(data.test$W))
+    ps.train <- rep(ps, length(W))
+    ps.test <- rep(ps, nrow(newX))
   }
 
   weight <- (1 / c_hat) * (1 / ps.train)
 
   # X-learner
-  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, weight, data$X, Tlasso0, Tlasso1)
+  tempdat <- data.frame(Y = Y, D = D, W = W, weight, X, Tlasso0, Tlasso1)
   binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
   binary_data <- binary_data[complete.cases(binary_data), ]
@@ -126,7 +125,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
                               weights = b_data$wt[b_data$W==1],
                               foldid = foldid,
                               alpha = 1)
-  XLtau1 <- as.vector(-predict(XLfit1, data.test$X, s = "lambda.min"))
+  XLtau1 <- as.vector(-predict(XLfit1, newX, s = "lambda.min"))
 
   foldid <- sample(rep(seq(10), length = length(b_data$Y[b_data$W==0])))
   XLfit0 <- glmnet::cv.glmnet(b_data$X[b_data$W==0, ],
@@ -134,7 +133,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
                               weights = b_data$wt[b_data$W==0],
                               foldid = foldid,
                               alpha = 1)
-  XLtau0 <- as.vector(-predict(XLfit0, data.test$X, s = "lambda.min"))
+  XLtau0 <- as.vector(-predict(XLfit0, newX, s = "lambda.min"))
 
   # weighted CATE
   pred_X_lasso <- XLtau1 * (1 - ps.test) + XLtau0 * ps.test
