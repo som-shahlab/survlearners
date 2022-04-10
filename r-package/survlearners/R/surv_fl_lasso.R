@@ -8,6 +8,7 @@
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param ps The propensity score
 #' @param cen_fit The choice of model fitting for censoring
+#' @param newX The test data set (covariates only)
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25
@@ -22,19 +23,17 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
-#' data <- list(X = X, W = W, Y = Y, D = D)
-#' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' cate = surv_fl_lasso(data, data.test, times, ps = 0.5)
+#' cate = surv_fl_lasso(X, W, Y, D, times, ps = 0.5, newX = X)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_fl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
+surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
 
   # IPCW weights
   if(cen_fit == "KM"){
-    shuffle <- sample(length(data$Y))
-    kmdat <- data.frame(Y = data$Y[shuffle], D = data$D[shuffle])
+    shuffle <- sample(length(Y))
+    kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
     c_hat <- rep(NA, nrow(kmdat))
     for(z in 1:10){
@@ -49,15 +48,15 @@ surv_fl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
     shudat <- data.frame(shuffle, c_hat)
     c_hat <- shudat[order(shuffle), ]$c_hat
   }else if (cen_fit == "survival.forest"){
-    c_fit <- grf::survival_forest(cbind(data$W, data$X),
-                                  data$Y,
-                                  1 - data$D,
+    c_fit <- grf::survival_forest(cbind(W, X),
+                                  Y,
+                                  1 - D,
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
     C.hat <- predict(c_fit)$predictions
-    cent <- data$Y; cent[data$D==0] <- times
+    cent <- Y; cent[D==0] <- times
     cen.times.index <- findInterval(cent, c_fit$failure.times)
-    c_hat <- C.hat[cbind(1:length(data$Y), cen.times.index)]
+    c_hat <- C.hat[cbind(1:length(Y), cen.times.index)]
   }
   ipcw <- 1 / c_hat
 
@@ -65,11 +64,11 @@ surv_fl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   if (is.null(ps)){
     stop("propensity score needs to be supplied")
   }else{
-    ps_score <- rep(ps, length(data$Y))
+    ps_score <- rep(ps, length(Y))
   }
 
   # Subset of uncensored subjects
-  tempdat <- data.frame(Y = data$Y, D = data$D, W = data$W, ps_score, ipcw, data$X)
+  tempdat <- data.frame(Y = Y, D = D, W = W, ps_score, ipcw, X)
   binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
   binary_data <- binary_data[complete.cases(binary_data), ]
@@ -82,6 +81,6 @@ surv_fl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
                        y = b_data$D,
                        pscore = b_data$ps,
                        weight = b_data$wt)
-  pred_flasso <- as.vector(-predict(flasso_fit, data.test$X))
+  pred_flasso <- as.vector(-predict(flasso_fit, newX))
   pred_flasso
 }

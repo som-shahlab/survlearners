@@ -5,6 +5,7 @@
 #' @param data The training data set
 #' @param data.test The testing data set
 #' @param times The prediction time of interest
+#' @param newX The test data set (covariates only)
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25
@@ -19,55 +20,53 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
-#' data <- list(X = X, W = W, Y = Y, D = D)
-#' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' cate = surv_tl_lasso(data, data.test, times)
+#' cate = surv_tl_lasso(X, W, Y, D, times, newX = X)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_tl_lasso <- function(data, data.test, times){
+surv_tl_lasso <- function(X, W, Y, D, times, newX = NULL){
 
   # Model for W = 1
-  foldid <- sample(rep(seq(10), length = length(data$Y[data$W==1])))
-  x1 <- as.matrix(data.frame(data$X[data$W==1, ]))
+  foldid <- sample(rep(seq(10), length = length(Y[W==1])))
+  x1 <- as.matrix(data.frame(X[W==1, ]))
   lasso_fit1 <- glmnet::cv.glmnet(x1,
-                                  survival::Surv(data$Y[data$W==1], data$D[data$W==1]),
+                                  survival::Surv(Y[W==1], D[W==1]),
                                   family = "cox",
                                   alpha = 1,
                                   foldid = foldid)
 
   S0 <- base_surv(fit = lasso_fit1,
-                    Y = data$Y[data$W==1],
-                    D = data$D[data$W==1],
+                    Y = Y[W==1],
+                    D = D[W==1],
                     x = x1,
                     lambda = lasso_fit1$lambda.min)
 
   surf1 <- pred_surv(fit = lasso_fit1,
                       S0 = S0,
-                       x = data.test$X,
+                       x = newX,
                        times = times,
                        lambda = lasso_fit1$lambda.min)
 
 
   # Model for W = 0
-  foldid <- sample(rep(seq(10), length = length(data$Y[data$W==0])))
-  x0 <- as.matrix(data.frame(data$X[data$W==0, ]))
+  foldid <- sample(rep(seq(10), length = length(Y[W==0])))
+  x0 <- as.matrix(data.frame(X[W==0, ]))
   lasso_fit0 <- glmnet::cv.glmnet(x0,
-                                  survival::Surv(data$Y[data$W==0], data$D[data$W==0]),
+                                  survival::Surv(Y[W==0], D[W==0]),
                                   family = "cox",
                                   alpha = 1,
                                   foldid = foldid)
 
   S0 <- base_surv(fit = lasso_fit0,
-                    Y = data$Y[data$W==0],
-                    D = data$D[data$W==0],
+                    Y = Y[W==0],
+                    D = D[W==0],
                     x = x0,
                     lambda = lasso_fit0$lambda.min)
 
   surf0 <- pred_surv(fit = lasso_fit0,
                        S0 = S0,
-                       x = data.test$X,
+                       x = newX,
                        times = times,
                        lambda = lasso_fit0$lambda.min)
 

@@ -23,11 +23,9 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' weight <- rep(1, length(Y))
-#' data <- list(X = X, W = W, Y = Y, D = D)
-#' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight = weight) 
-#' Fgrf_cate = predict(Fgrf_fit, data.test$X)
+#' Fgrf_fit = Fgrf(X, W, Y, weight = weight)
+#' Fgrf_cate = predict(Fgrf_fit, X)
 #' }
 #' @return An Flasso object
 #' @export
@@ -86,7 +84,7 @@ Fgrf = function(x, w, y, weight, pscore = rep(.5, nrow(x)), num.trees = 2000) {
 #' data <- list(X = X, W = W, Y = Y, D = D)
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight)
+#' Fgrf_fit = Fgrf(X, W, Y, weight)
 #' Fgrf_cate = predict(Fgrf_fit, data.test$X)
 #' }
 #'

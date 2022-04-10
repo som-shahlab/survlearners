@@ -10,7 +10,8 @@ surv_xl_grf_lasso(
   times,
   alpha = 0.05,
   ps = NULL,
-  cen_fit = "KM"
+  cen_fit = "KM",
+  newX = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ surv_xl_grf_lasso(
 \item{ps}{The propensity score}
 
 \item{cen_fit}{The choice of model fitting for censoring}
+
+\item{newX}{The test data set (covariates only)}
 }
 \value{
 A vector of estimated conditional average treatment effects
@@ -47,9 +50,7 @@ numeratorC <- -log(runif(n))
 censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
-data <- list(X = X, W = W, Y = Y, D = D)
-data.test <- list(X = X, W = W, Y = Y, D = D)
 
-cate = surv_xl_grf_lasso(data, data.test, times, ps = 0.5)
+cate = surv_xl_grf_lasso(data, data.test, times, ps = 0.5, newX = X)
 }
 }
