@@ -2,9 +2,9 @@
 #'
 #' @description  S-learner, implemented via Cox proportional hazard models
 #'
-#' @param x The baseline covariates
-#' @param w The treatment variable (0 or 1)
-#' @param y The follow-up time
+#' @param X The baseline covariates
+#' @param W The treatment variable (0 or 1)
+#' @param Y The follow-up time
 #' @param D The event indicator
 #' @param times The prediction time of interest
 #' @examples
@@ -27,21 +27,21 @@
 #' }
 #' @return a scoxph object
 #' @export
-scoxph = function(x, w, y, D, times){
+scoxph = function(X, W, Y, D, times){
 
-  input = sanitize_input(x,w,y,D)
-  x = input$x
-  w = input$w
-  y = input$y
+  input = sanitize_input(X,W,Y,D)
+  X = input$X
+  W = input$W
+  Y = input$Y
   D = input$D
 
-  x_tilde = data.frame(as.numeric(w - 0.5) * cbind(1, x), x)
-  x_pred1 = data.frame(0.5 * cbind(1, x), x)
-  x_pred0 = data.frame(-0.5 * cbind(1, x), x)
+  x_tilde = data.frame(as.numeric(W - 0.5) * cbind(1, X), X)
+  x_pred1 = data.frame(0.5 * cbind(1, X), X)
+  x_pred0 = data.frame(-0.5 * cbind(1, X), X)
 
   colnames(x_tilde) <- colnames(x_pred1) <- colnames(x_pred0) <- paste0("v", 1:dim(x_tilde)[2])
-  formula <- as.formula(paste0("survival::Surv(y, D) ~ ", paste(colnames(x_tilde), sep=" ", collapse = "+")))
-  tmpdat <- data.frame(y, D, x_tilde)
+  formula <- as.formula(paste0("survival::Surv(Y, D) ~ ", paste(colnames(x_tilde), sep=" ", collapse = "+")))
+  tmpdat <- data.frame(Y, D, x_tilde)
 
   s_fit <- survival::coxph(formula, data = tmpdat)
   bh_dat <- survival::basehaz(s_fit, centered = FALSE)
@@ -67,10 +67,10 @@ scoxph = function(x, w, y, D, times){
 
 #' predict for scoxph
 #'
-#' get estimated tau(x) using the trained scoxph model
+#' get estimated tau(X) using the trained scoxph model
 #'
 #' @param object A scoxph object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data
+#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param times The prediction time of interest
 #' @param ... Additional arguments (currently not used)
 #'

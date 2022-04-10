@@ -2,9 +2,9 @@
 #'
 #' @description  R-learner, implemented via the grf package for nuisance parameter estimation and lasso for target parameter
 #'
-#' @param x The baseline covariates
-#' @param w The treatment variable (0 or 1)
-#' @param y The follow-up time
+#' @param X The baseline covariates
+#' @param W The treatment variable (0 or 1)
+#' @param Y The follow-up time
 #' @param D The event indicator
 #' @param k_folds Number of folds for cross validation
 #' @param p_hat Propensity score
@@ -33,7 +33,7 @@
 #' @param seed See grf documentation
 #' @param lambda_tau User-supplied lambda sequence for cross validation in the cate model
 #' @param lambda_choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
-#' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in x
+#' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in X
 #' @param cen_fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
@@ -55,7 +55,7 @@
 #' }
 #' @return a rlasgrf object
 #' @export
-rlasgrf = function(x, w, y, D,
+rlasgrf = function(X, W, Y, D,
                    times = NULL,
                    k_folds = 10,
                    p_hat = NULL,
@@ -67,7 +67,7 @@ rlasgrf = function(x, w, y, D,
                    clusters = NULL,
                    equalize.cluster.weights = FALSE,
                    sample.fraction = 0.5,
-                   mtry = min(ceiling(sqrt(ncol(x)) + 20), ncol(x)),
+                   mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
                    min.node.size = 5,
                    honesty = TRUE,
                    honesty.fraction = 0.5,
@@ -86,21 +86,21 @@ rlasgrf = function(x, w, y, D,
                    cen_fit = "KM",
                    verbose = FALSE){
 
-  input = sanitize_input(x,w,y,D)
-  x = input$x
-  w = as.numeric(input$w)
-  y = input$y
+  input = sanitize_input(X,W,Y,D)
+  X = input$X
+  W = as.numeric(input$W)
+  Y = input$Y
   D = input$D
-  nobs = nrow(x)
-  pobs = ncol(x)
+  nobs = nrow(X)
+  pobs = ncol(X)
 
-  x_scl = scale(x, center = TRUE, scale = TRUE)
+  x_scl = scale(X, center = TRUE, scale = TRUE)
   x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
 
   # penalty factor for tau estimator
   if (is.null(penalty_factor) || (length(penalty_factor) != pobs)) {
     if (!is.null(penalty_factor) && length(penalty_factor) != pobs) {
-      warning("penalty_factor supplied is not of the same length as the number of columns in x after removing NA columns. Using all ones instead.")
+      warning("penalty_factor supplied is not of the same length as the number of columns in X after removing NA columns. Using all ones instead.")
     }
     penalty_factor_tau = c(0, rep(1, pobs))
   } else {
@@ -110,8 +110,8 @@ rlasgrf = function(x, w, y, D,
   if (is.null(p_hat)){
     stop("propensity score needs to be supplied")
   }else if (length(p_hat) == 1) {
-    p_hat <- rep(p_hat, nrow(x))
-  }else if (length(p_hat) != nrow(x)){
+    p_hat <- rep(p_hat, nrow(X))
+  }else if (length(p_hat) != nrow(X)){
     stop("p_hat has incorrect length.")
   }
 
@@ -133,12 +133,12 @@ rlasgrf = function(x, w, y, D,
                         seed = seed)
 
   if (is.null(m_hat)){
-    y_fit <- do.call(grf::survival_forest, c(list(X = cbind(x, w), Y = y, D = D), args.nuisance))
-    y_fit[["X.orig"]][, ncol(x) + 1] <- rep(1, nrow(x))
+    y_fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = D), args.nuisance))
+    y_fit[["X.orig"]][, ncol(X) + 1] <- rep(1, nrow(X))
     S1.hat <- predict(y_fit)$predictions
-    y_fit[["X.orig"]][, ncol(x) + 1] <- rep(0, nrow(x))
+    y_fit[["X.orig"]][, ncol(X) + 1] <- rep(0, nrow(X))
     S0.hat <- predict(y_fit)$predictions
-    y_fit[["X.orig"]][, ncol(x) + 1] <- w
+    y_fit[["X.orig"]][, ncol(X) + 1] <- W
 
     times.index <- findInterval(times, y_fit$failure.times)
     surf1 <- S1.hat[, times.index]
@@ -151,7 +151,7 @@ rlasgrf = function(x, w, y, D,
   args.nuisance$compute.oob.predictions <- TRUE
   if (is.null(c_hat)){
     if(cen_fit == "KM"){
-      traindat <- data.frame(Y = y, D = D)
+      traindat <- data.frame(Y = Y, D = D)
       shuffle <- sample(nrow(traindat))
       kmdat <- traindat[shuffle,]
       folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
@@ -167,28 +167,28 @@ rlasgrf = function(x, w, y, D,
       shudat <- data.frame(shuffle, c_hat)
       c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
-      c_fit <- do.call(grf::survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
+      c_fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = 1 - D), args.nuisance))
       C.hat <- predict(c_fit, failure.times = c_fit$failure.times)$predictions
-      cent <- y; cent[D==0] <- times
+      cent <- Y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c_fit$failure.times)
-      c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
+      c_hat <- C.hat[cbind(1:length(Y), cen.times.index)]
     }
   }else{
     c_fit <- NULL
   }
 
   # create binary data
-  tempdat <- data.frame(y, D, w, m_hat, p_hat, c_hat, x_scl)
-  binary_data <- tempdat[tempdat$D==1|tempdat$y > times,]          # remove subjects who got censored before the time of interest t50
-  binary_data$D[binary_data$D==1 & binary_data$y > times] <- 0     # recode the event status for subjects who had events after t50
+  tempdat <- data.frame(Y, D, W, m_hat, p_hat, c_hat, x_scl)
+  binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]          # remove subjects who got censored before the time of interest t50
+  binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0     # recode the event status for subjects who had events after t50
   binary_data <- binary_data[complete.cases(binary_data),]
 
   weights = 1/binary_data$c_hat     # the treatment weight is already accounted
   y_tilde = (1 - binary_data$D) - binary_data$m_hat
   x_scl = binary_data[, 7:dim(binary_data)[2]]
-  foldid2 = sample(rep(seq(k_folds), length = length(binary_data$w)))
+  foldid2 = sample(rep(seq(k_folds), length = length(binary_data$W)))
 
-  x_scl_tilde = cbind(as.numeric(binary_data$w - binary_data$p_hat) * cbind(1, x_scl))
+  x_scl_tilde = cbind(as.numeric(binary_data$W - binary_data$p_hat) * cbind(1, x_scl))
   x_scl_pred = cbind(1, x_scl)
 
   tau_fit = glmnet::cv.glmnet(as.matrix(x_scl_tilde),
@@ -215,10 +215,10 @@ rlasgrf = function(x, w, y, D,
 
 #' predict for rlasgrf
 #'
-#' get estimated tau(x) using the trained rlasgrf model
+#' get estimated tau(X) using the trained rlasgrf model
 #'
 #' @param object a rlasgrf object
-#' @param newx covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data
+#' @param newx covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param ... additional arguments (currently not used)
 #'
 #' @examples

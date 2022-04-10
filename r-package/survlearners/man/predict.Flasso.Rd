@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{An Flasso object}
 
-\item{newx}{Covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data}
+\item{newx}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{...}{Additional arguments (currently not used)}
 }
@@ -17,7 +17,7 @@
 A vector of estimated conditional average treatment effects
 }
 \description{
-get estimated tau(x) using the trained Flasso model
+get estimated tau(X) using the trained Flasso model
 }
 \examples{
 \donttest{
