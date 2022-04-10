@@ -2,19 +2,19 @@
 #'
 #' @description  R-learner, implemented via glmnet (lasso)
 #'
-#' @param x The baseline covariates
-#' @param w The treatment variable (0 or 1)
-#' @param y The follow-up time
+#' @param X The baseline covariates
+#' @param W The treatment variable (0 or 1)
+#' @param Y The follow-up time
 #' @param D The event indicator
 #' @param k_folds Number of folds for cross validation
-#' @param foldid User-supplied foldid. Must have length equal to length(w). If provided, it overrides the k_folds option.
+#' @param foldid User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k_folds option.
 #' @param lambda_y User-supplied lambda sequence for cross validation in the outcome model
 #' @param lambda_tau User-supplied lambda sequence for cross validation in the cate model
 #' @param lambda_choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
 #' @param p_hat Propensity score
 #' @param m_hat Conditional mean outcome E(Y|X)
 #' @param c_hat Censoring weights
-#' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in x
+#' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in X
 #' @param times The prediction time of interest
 #' @param failure.times A vector of event times to fit the survival curve at.
 #' @param num.trees Number of trees grown in the forest
@@ -40,7 +40,7 @@
 #' }
 #' @return a rlasso object
 #' @export
-rlasso = function(x, w, y, D,
+rlasso = function(X, W, Y, D,
                   times = NULL,
                   k_folds = 10,
                   foldid = NULL,
@@ -56,37 +56,37 @@ rlasso = function(x, w, y, D,
                   alpha = 0.05,
                   cen_fit = "KM"){
 
-    input = sanitize_input(x, w, y, D)
-    x = input$x
-    w = input$w
-    y = input$y
+    input = sanitize_input(X, W, Y, D)
+    X = input$X
+    W = input$W
+    Y = input$Y
     D = input$D
 
-    x_scl = scale(x, center = TRUE, scale = TRUE)
+    x_scl = scale(X, center = TRUE, scale = TRUE)
     x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
 
     nobs = nrow(x_scl)
     pobs = ncol(x_scl)
 
-    if (is.null(foldid) || length(foldid) != length(w)) {
+    if (is.null(foldid) || length(foldid) != length(W)) {
 
-      if (!is.null(foldid) && length(foldid) != length(w)) {
+      if (!is.null(foldid) && length(foldid) != length(W)) {
         warning("supplied foldid does not have the same length ")
       }
 
       if (is.null(k_folds)) {
-          k_folds = floor(max(3, min(10,length(w)/4)))
+          k_folds = floor(max(3, min(10,length(W)/4)))
       }
 
       # fold ID for cross-validation; balance treatment assignments
-      foldid = sample(rep(seq(k_folds), length = length(w)))
+      foldid = sample(rep(seq(k_folds), length = length(W)))
 
     }
 
     # penalty factor for nuisance and tau estimators
     if (is.null(penalty_factor) || (length(penalty_factor) != pobs)) {
       if (!is.null(penalty_factor) && length(penalty_factor) != pobs) {
-        warning("penalty_factor supplied is not of the same length as the number of columns in x after removing NA columns. Using all ones instead.")
+        warning("penalty_factor supplied is not of the same length as the number of columns in X after removing NA columns. Using all ones instead.")
       }
       penalty_factor_nuisance_w = rep(1, pobs)
       penalty_factor_nuisance_m = rep(1, (pobs+1))
@@ -99,26 +99,26 @@ rlasso = function(x, w, y, D,
     if (is.null(p_hat)){
       stop("propensity score needs to be supplied")
     }else if (length(p_hat) == 1) {
-      p_hat <- rep(p_hat, nrow(x))
-    }else if (length(p_hat) != nrow(x)){
+      p_hat <- rep(p_hat, nrow(X))
+    }else if (length(p_hat) != nrow(X)){
       stop("p_hat has incorrect length.")
     }
 
     if (is.null(m_hat)){
-    foldid <- sample(rep(seq(k_folds), length = length(w)))
-    survt1 <- survt0 <- rep(NA, length(w))
+    foldid <- sample(rep(seq(k_folds), length = length(W)))
+    survt1 <- survt0 <- rep(NA, length(W))
     for (k in 1:k_folds){
-      xw <- as.matrix(data.frame(w[!foldid==k], x[!foldid==k, ]))
-      y_fit <- glmnet::cv.glmnet(xw,
-                                 survival::Surv(y[!foldid==k], D[!foldid==k]),
+      XW <- as.matrix(data.frame(W[!foldid==k], X[!foldid==k, ]))
+      y_fit <- glmnet::cv.glmnet(XW,
+                                 survival::Surv(Y[!foldid==k], D[!foldid==k]),
                                  family = "cox",
                                  nfolds = 10,
                                  lambda = lambda_y,
                                  alpha = 1,
                                  penalty.factor = penalty_factor_nuisance_m)
-      S0 <- base_surv(y_fit, y[!foldid==k], D[!foldid==k], xw, lambda = y_fit$lambda.min)
-      survt1[foldid==k] <- pred_surv(y_fit, S0, cbind(rep(1, length(w[foldid==k])), x[foldid==k, ]), times = times, lambda = y_fit$lambda.min)
-      survt0[foldid==k] <- pred_surv(y_fit, S0, cbind(rep(0, length(w[foldid==k])), x[foldid==k, ]), times = times, lambda = y_fit$lambda.min)
+      S0 <- base_surv(y_fit, Y[!foldid==k], D[!foldid==k], XW, lambda = y_fit$lambda.min)
+      survt1[foldid==k] <- pred_surv(y_fit, S0, cbind(rep(1, length(W[foldid==k])), X[foldid==k, ]), times = times, lambda = y_fit$lambda.min)
+      survt0[foldid==k] <- pred_surv(y_fit, S0, cbind(rep(0, length(W[foldid==k])), X[foldid==k, ]), times = times, lambda = y_fit$lambda.min)
     }
     m_hat  <- p_hat * survt1 + (1 - p_hat) * survt0
     }else {
@@ -137,7 +137,7 @@ rlasso = function(x, w, y, D,
 
     if (is.null(c_hat)){
     if(cen_fit == "KM"){
-      traindat <- data.frame(Y = y, D = D)
+      traindat <- data.frame(Y = Y, D = D)
       shuffle <- sample(nrow(traindat))
       kmdat <- traindat[shuffle,]
       folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
@@ -153,28 +153,28 @@ rlasso = function(x, w, y, D,
       shudat <- data.frame(shuffle, c_hat)
       c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
-      cc_fit <- do.call(grf::survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
+      cc_fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = 1 - D), args.nuisance))
       C.hat <- predict(c_fit, failure.times = c_fit$failure.times)$predictions
-      cent <- y; cent[D==0] <- times
+      cent <- Y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c_fit$failure.times)
-      c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
+      c_hat <- C.hat[cbind(1:length(Y), cen.times.index)]
      }
     }else {
       c_fit = NULL
     }
 
     # use binary data
-    tempdat <- data.frame(y, D, w, m_hat, p_hat, c_hat, foldid, x_scl)
-    binary_data <- tempdat[tempdat$D==1|tempdat$y > times,]          # remove subjects who got censored before the time of interest t50
-    binary_data$D[binary_data$D==1 & binary_data$y > times] <- 0     # recode the event status for subjects who had events after t50
+    tempdat <- data.frame(Y, D, W, m_hat, p_hat, c_hat, foldid, x_scl)
+    binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]          # remove subjects who got censored before the time of interest t50
+    binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0     # recode the event status for subjects who had events after t50
     binary_data <- binary_data[complete.cases(binary_data),]
 
     weights = 1/binary_data$c_hat
     y_tilde = (1 - binary_data$D) - binary_data$m_hat
     x_scl = binary_data[, 8:dim(binary_data)[2]]
-    foldid2 = sample(rep(seq(k_folds), length = length(binary_data$w)))
+    foldid2 = sample(rep(seq(k_folds), length = length(binary_data$W)))
 
-    x_scl_tilde = cbind(as.numeric(binary_data$w - binary_data$p_hat) * cbind(1, x_scl))
+    x_scl_tilde = cbind(as.numeric(binary_data$W - binary_data$p_hat) * cbind(1, x_scl))
     x_scl_pred = cbind(1, x_scl)
 
     tau_fit = glmnet::cv.glmnet(as.matrix(x_scl_tilde),
@@ -203,10 +203,10 @@ rlasso = function(x, w, y, D,
 
 #' predict for rlasso
 #'
-#' get estimated tau(x) using the trained rlasso model
+#' get estimated tau(X) using the trained rlasso model
 #'
 #' @param object An rlasso object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data
+#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples

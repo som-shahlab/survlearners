@@ -5,9 +5,9 @@
 \title{S-learner of lasso}
 \usage{
 slasso_surv(
-  x,
-  w,
-  y,
+  X,
+  W,
+  Y,
   D,
   times,
   alpha = 1,
@@ -19,11 +19,11 @@ slasso_surv(
 )
 }
 \arguments{
-\item{x}{The baseline covariates}
+\item{X}{The baseline covariates}
 
-\item{w}{The treatment variable (0 or 1)}
+\item{W}{The treatment variable (0 or 1)}
 
-\item{y}{The follow-up time}
+\item{Y}{The follow-up time}
 
 \item{D}{The event indicator}
 
@@ -33,13 +33,13 @@ slasso_surv(
 
 \item{k_folds}{Number of folds for cross validation}
 
-\item{foldid}{User-supplied foldid. Must have length equal to length(w). If provided, it overrides the k_folds option.}
+\item{foldid}{User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k_folds option.}
 
 \item{lambda}{User-supplied lambda sequence for cross validation}
 
 \item{lambda_choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
 
-\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in x}
+\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 }
 \value{
 a slasso_surv object

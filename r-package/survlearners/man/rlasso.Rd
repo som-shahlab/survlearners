@@ -5,9 +5,9 @@
 \title{R-learner of lasso}
 \usage{
 rlasso(
-  x,
-  w,
-  y,
+  X,
+  W,
+  Y,
   D,
   times = NULL,
   k_folds = 10,
@@ -26,11 +26,11 @@ rlasso(
 )
 }
 \arguments{
-\item{x}{The baseline covariates}
+\item{X}{The baseline covariates}
 
-\item{w}{The treatment variable (0 or 1)}
+\item{W}{The treatment variable (0 or 1)}
 
-\item{y}{The follow-up time}
+\item{Y}{The follow-up time}
 
 \item{D}{The event indicator}
 
@@ -38,7 +38,7 @@ rlasso(
 
 \item{k_folds}{Number of folds for cross validation}
 
-\item{foldid}{User-supplied foldid. Must have length equal to length(w). If provided, it overrides the k_folds option.}
+\item{foldid}{User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k_folds option.}
 
 \item{lambda_y}{User-supplied lambda sequence for cross validation in the outcome model}
 
@@ -52,7 +52,7 @@ rlasso(
 
 \item{c_hat}{Censoring weights}
 
-\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in x}
+\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 
 \item{failure.times}{A vector of event times to fit the survival curve at.}
 

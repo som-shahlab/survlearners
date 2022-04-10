@@ -76,9 +76,9 @@ surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = 
                  X = as.matrix(binary_data[,6:ncol(binary_data)]),
                  wt = binary_data$ipcw, ps = binary_data$ps_score)
 
-  flasso_fit <- Flasso(x = b_data$X,
-                       w = b_data$W,
-                       y = b_data$D,
+  flasso_fit <- Flasso(X = b_data$X,
+                       W = b_data$W,
+                       Y = b_data$D,
                        pscore = b_data$ps,
                        weight = b_data$wt)
   pred_flasso <- as.vector(-predict(flasso_fit, newX))
