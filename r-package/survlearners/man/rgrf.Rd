@@ -5,9 +5,9 @@
 \title{R-learner of grf}
 \usage{
 rgrf(
-  x,
-  w,
-  y,
+  X,
+  W,
+  Y,
   D,
   times = NULL,
   k_folds = NULL,
@@ -20,7 +20,7 @@ rgrf(
   clusters = NULL,
   equalize.cluster.weights = FALSE,
   sample.fraction = 0.5,
-  mtry = min(ceiling(sqrt(ncol(x)) + 20), ncol(x)),
+  mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
   min.node.size = 5,
   honesty = TRUE,
   honesty.fraction = 0.5,
@@ -38,11 +38,11 @@ rgrf(
 )
 }
 \arguments{
-\item{x}{The baseline covariates}
+\item{X}{The baseline covariates}
 
-\item{w}{The treatment variable (0 or 1)}
+\item{W}{The treatment variable (0 or 1)}
 
-\item{y}{The follow-up time}
+\item{Y}{The follow-up time}
 
 \item{D}{The event indicator}
 

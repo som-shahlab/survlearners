@@ -40,12 +40,12 @@ surv_tl_lasso <- function(data, data.test, times){
   S0 <- base_surv(fit = lasso_fit1,
                     Y = data$Y[data$W==1],
                     D = data$D[data$W==1],
-                    x = x1,
+                    X = x1,
                     lambda = lasso_fit1$lambda.min)
 
   surf1 <- pred_surv(fit = lasso_fit1,
                       S0 = S0,
-                       x = data.test$X,
+                       X = data.test$X,
                        times = times,
                        lambda = lasso_fit1$lambda.min)
 
@@ -62,12 +62,12 @@ surv_tl_lasso <- function(data, data.test, times){
   S0 <- base_surv(fit = lasso_fit0,
                     Y = data$Y[data$W==0],
                     D = data$D[data$W==0],
-                    x = x0,
+                    X = x0,
                     lambda = lasso_fit0$lambda.min)
 
   surf0 <- pred_surv(fit = lasso_fit0,
                        S0 = S0,
-                       x = data.test$X,
+                       X = data.test$X,
                        times = times,
                        lambda = lasso_fit0$lambda.min)
 

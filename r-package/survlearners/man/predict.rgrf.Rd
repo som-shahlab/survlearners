@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{a rgrf object}
 
-\item{newx}{covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data}
+\item{newx}{covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{tau_only}{if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.}
 
@@ -19,7 +19,7 @@
 A vector of predicted conditional average treatment effects
 }
 \description{
-get estimated tau(x) using the trained rgrf model
+get estimated tau(X) using the trained rgrf model
 }
 \examples{
 \donttest{

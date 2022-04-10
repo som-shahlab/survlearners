@@ -5,9 +5,9 @@
 \title{R-learner of grf and lasso}
 \usage{
 rlasgrf(
-  x,
-  w,
-  y,
+  X,
+  W,
+  Y,
   D,
   times = NULL,
   k_folds = 10,
@@ -20,7 +20,7 @@ rlasgrf(
   clusters = NULL,
   equalize.cluster.weights = FALSE,
   sample.fraction = 0.5,
-  mtry = min(ceiling(sqrt(ncol(x)) + 20), ncol(x)),
+  mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
   min.node.size = 5,
   honesty = TRUE,
   honesty.fraction = 0.5,
@@ -41,11 +41,11 @@ rlasgrf(
 )
 }
 \arguments{
-\item{x}{The baseline covariates}
+\item{X}{The baseline covariates}
 
-\item{w}{The treatment variable (0 or 1)}
+\item{W}{The treatment variable (0 or 1)}
 
-\item{y}{The follow-up time}
+\item{Y}{The follow-up time}
 
 \item{D}{The event indicator}
 
@@ -101,7 +101,7 @@ rlasgrf(
 
 \item{lambda_choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
 
-\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in x}
+\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 
 \item{cen_fit}{The choice of model fitting for censoring}
 }

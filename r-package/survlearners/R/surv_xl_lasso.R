@@ -46,7 +46,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   surf1[data$W==1] <- pred_surv_preval(lasso_fit1, S0, times = times, lambda = lambda_1_min)
   surf1[data$W==0] <- pred_surv(fit = lasso_fit1,
                                 S0 = S0,
-                                x = data$X[data$W==0, ],
+                                X = data$X[data$W==0, ],
                                 times = times,
                                 lambda = lasso_fit1$lambda.min)
 
@@ -65,7 +65,7 @@ surv_xl_lasso <- function(data, data.test, times, alpha = 0.05, ps = NULL, cen_f
   surf0[data$W==0] <- pred_surv_preval(lasso_fit0, S0, times = times, lambda = lambda_0_min)
   surf0[data$W==1] <- pred_surv(fit = lasso_fit0,
                                 S0 = S0,
-                                x = data$X[data$W==1, ],
+                                X = data$X[data$W==1, ],
                                 times = times,
                                 lambda = lasso_fit0$lambda.min)
 
