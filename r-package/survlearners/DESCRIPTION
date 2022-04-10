@@ -20,8 +20,6 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 Imports:
-    MASS,
-    mvtnorm,
     glmnet,
     grf,
     survival
