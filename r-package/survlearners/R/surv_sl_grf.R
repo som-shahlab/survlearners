@@ -34,8 +34,8 @@ surv_sl_grf <- function(X, W, Y, D, times, alpha = 0.05, newX = NULL){
                                  alpha = alpha,
                                  prediction.type = "Nelson-Aalen")
   index <- findInterval(times, grffit$failure.times)
-  surf1 <- predict(grffit, cbind(rep(1, length(data.test$Y)), newX))$predictions[, index]
-  surf0 <- predict(grffit, cbind(rep(0, length(data.test$Y)), newX))$predictions[, index]
+  surf1 <- predict(grffit, cbind(rep(1, length(Y)), newX))$predictions[, index]
+  surf0 <- predict(grffit, cbind(rep(0, length(Y)), newX))$predictions[, index]
   pred_S_grf <- surf1 - surf0
   pred_S_grf
 }
