@@ -38,7 +38,7 @@ data <- list(X = X, W = W, Y = Y, D = D)
 data.test <- list(X = X, W = W, Y = Y, D = D)
 
 Flasso_fit = Flasso(X, W, Y, weight)
-Flasso_cate = predict(Flasso_fit, data.test$X)
+Flasso_cate = predict(Flasso_fit, X)
 }
 
 }

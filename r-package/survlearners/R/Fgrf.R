@@ -85,7 +85,7 @@ Fgrf = function(x, w, y, weight, pscore = rep(.5, nrow(x)), num.trees = 2000) {
 #' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
 #' Fgrf_fit = Fgrf(X, W, Y, weight)
-#' Fgrf_cate = predict(Fgrf_fit, data.test$X)
+#' Fgrf_cate = predict(Fgrf_fit, X)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects
