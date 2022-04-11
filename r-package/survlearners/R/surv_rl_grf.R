@@ -46,9 +46,11 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_rl_grf_fit = surv_rl_grf(X, W, Y, D, times, p_hat = 0.5)
 #' cate = predict(surv_rl_grf_fit)
+#' cate.test = predict(surv_rl_grf_fit, X.test)
 #' }
 #' @return a surv_rl_grf_fit object
 #' @export
@@ -225,9 +227,11 @@ surv_rl_grf = function(X, W, Y, D,
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_rl_grf_fit = surv_rl_grf(X, W, Y, D, times, p_hat = 0.5)
 #' cate = predict(surv_rl_grf_fit)
+#' cate.test = predict(surv_rl_grf_fit, X.test)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects

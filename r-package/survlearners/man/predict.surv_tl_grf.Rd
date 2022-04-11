@@ -35,9 +35,11 @@ numeratorC <- -log(runif(n))
 censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
+X.test <- matrix(rnorm(n * p), n, p)
 
 surv_tl_grf_fit = surv_tl_grf(X, W, Y, D, times)
 cate = predict(surv_tl_grf_fit)
+cate.test = predict(surv_tl_grf_fit, X.test)
 }
 
 }

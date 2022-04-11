@@ -23,9 +23,11 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_xl_grf_fit = surv_xl_grf(X, W, Y, D, times, ps = 0.5)
 #' cate = predict(surv_xl_grf_fit)
+#' cate.test = predict(surv_xl_grf_fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
@@ -146,9 +148,11 @@ surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "K
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_xl_grf_fit = surv_xl_grf(X, W, Y, D, times, ps = 0.5)
 #' cate = predict(surv_xl_grf_fit)
+#' cate.test = predict(surv_xl_grf_fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects

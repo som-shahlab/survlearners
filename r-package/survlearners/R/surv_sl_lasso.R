@@ -27,9 +27,11 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_sl_lasso_fit = surv_sl_lasso(X, W, Y, D, times)
 #' cate = predict(surv_sl_lasso_fit)
+#' cate.test = predict(surv_sl_lasso_fit, X.test)
 #' }
 #' @return a surv_sl_lasso object
 #' @export
@@ -142,9 +144,11 @@ surv_sl_lasso = function(X, W, Y, D, times,
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_sl_lasso_fit = surv_sl_lasso(X, W, Y, D, times)
 #' cate = predict(surv_sl_lasso_fit)
+#' cate.test = predict(surv_sl_lasso_fit, X.test)
 #' }
 #'
 #' @return vector of estimated conditional average treatment effects
@@ -169,8 +173,8 @@ predict.surv_sl_lasso <- function(object,
     index <- findInterval(times, object$S0_t$time)
     S0 <- object$S0_t[index,]$survival
 
-    surv1 <- S0_t^exp(link1)
-    surv0 <- S0_t^exp(link0)
+    surv1 <- S0^exp(link1)
+    surv0 <- S0^exp(link0)
 
     tau_hat <- as.numeric(surv1 - surv0)
   }

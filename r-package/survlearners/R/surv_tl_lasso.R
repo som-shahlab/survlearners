@@ -20,9 +20,11 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_tl_lasso_fit = surv_tl_lasso(X, W, Y, D, times)
 #' cate = predict(surv_tl_lasso_fit)
+#' cate.test = predict(surv_tl_lasso_fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
@@ -106,9 +108,11 @@ surv_tl_lasso <- function(X, W, Y, D, times, newX = NULL){
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_tl_lasso_fit = surv_tl_lasso(X, W, Y, D, times)
 #' cate = predict(surv_tl_lasso_fit)
+#' cate.test = predict(surv_tl_lasso_fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects
@@ -123,25 +127,25 @@ predict.surv_tl_lasso = function(object,
     if(is.null(times)){
       surf1 <- pred_surv(fit = object$fit1,
                          S0 = object$bsurv1,
-                         X = newX,
+                         X = newx,
                          times = object$times,
                          lambda = object$fit1$lambda.min)
 
       surf0 <- pred_surv(fit = object$fit0,
                          S0 = object$bsurv0,
-                         X = newX,
+                         X = newx,
                          times = object$times,
                          lambda = object$fit0$lambda.min)
     }else{
       surf1 <- pred_surv(fit = object$fit1,
                          S0 = object$bsurv1,
-                         X = newX,
+                         X = newx,
                          times = times,
                          lambda = object$fit1$lambda.min)
 
       surf0 <- pred_surv(fit = object$fit0,
                          S0 = object$bsurv0,
-                         X = newX,
+                         X = newx,
                          times = times,
                          lambda = object$fit0$lambda.min)
     }

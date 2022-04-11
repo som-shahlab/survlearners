@@ -21,9 +21,11 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_sl_coxph_fit = surv_sl_coxph(X, W, Y, D, times)
 #' cate = predict(surv_sl_coxph_fit)
+#' cate.test = predict(surv_sl_coxph_fit, X.test)
 #' }
 #' @return a surv_sl_coxph object
 #' @export
@@ -89,9 +91,11 @@ surv_sl_coxph = function(X, W, Y, D, times){
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' X.test <- matrix(rnorm(n * p), n, p)
 #'
 #' surv_sl_coxph_fit = surv_sl_coxph(X, W, Y, D, times)
 #' cate = predict(surv_sl_coxph_fit)
+#' cate.test = predict(surv_sl_coxph_fit, X.test)
 #' }
 #' @return vector of estimated conditional average treatment effects
 #' @export
