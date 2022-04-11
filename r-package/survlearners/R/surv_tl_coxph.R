@@ -20,7 +20,8 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
-#' X.test <- matrix(rnorm(n * p), n, p)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
 #' surv_tl_coxph_fit = surv_tl_coxph(X, W, Y, D, times)
 #' cate = predict(surv_tl_coxph_fit)
@@ -85,7 +86,8 @@ surv_tl_coxph <- function(X, W, Y, D, times){
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
-#' X.test <- matrix(rnorm(n * p), n, p)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
 #' surv_tl_coxph_fit = surv_tl_coxph(X, W, Y, D, times)
 #' cate = predict(surv_tl_coxph_fit)
