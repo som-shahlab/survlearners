@@ -139,7 +139,7 @@ ret
 #' get estimated tau(X) using the trained surv_xl_grf_lasso model
 #'
 #' @param object An surv_xl_grf_lasso object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param ps The propensity score
 #' @param ... Additional arguments (currently not used)
 #'
@@ -168,19 +168,19 @@ ret
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_xl_grf_lasso = function(object,
-                                     newx = NULL,
+                                     newdata = NULL,
                                      ps = NULL,
                                      ...) {
-  if(is.null(newx)){
+  if(is.null(newdata)){
     return(object$tau)
   }else{
-    XLtau1 <- as.vector(-predict(object$fit1, newx, s = "lambda.min"))
-    XLtau0 <- as.vector(-predict(object$fit0, newx, s = "lambda.min"))
+    XLtau1 <- as.vector(-predict(object$fit1, newdata, s = "lambda.min"))
+    XLtau0 <- as.vector(-predict(object$fit0, newdata, s = "lambda.min"))
     if(is.null(ps)){
-      ps <- rep(object$ps[1], nrow(newx))
+      ps <- rep(object$ps[1], nrow(newdata))
     }else{
       if(length(ps)==1){
-      ps <- rep(ps, nrow(newx))
+      ps <- rep(ps, nrow(newdata))
       }
     }
     return(as.vector(XLtau1 * (1 - ps) + XLtau0 * ps))

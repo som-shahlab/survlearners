@@ -4,12 +4,12 @@
 \alias{predict.surv_xl_lasso}
 \title{predict for surv_xl_lasso}
 \usage{
-\method{predict}{surv_xl_lasso}(object, newx = NULL, ps = NULL, ...)
+\method{predict}{surv_xl_lasso}(object, newdata = NULL, ps = NULL, ...)
 }
 \arguments{
 \item{object}{An surv_xl_lasso object}
 
-\item{newx}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
+\item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{ps}{The propensity score}
 

@@ -127,7 +127,7 @@ surv_sl_lasso = function(X, W, Y, D, times,
 #' get estimated tau(X) using the trained surv_sl_lasso model
 #'
 #' @param object A surv_sl_lasso object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param times The prediction time of interest
 #' @param ... Additional arguments (currently not used)
 #'
@@ -156,18 +156,18 @@ surv_sl_lasso = function(X, W, Y, D, times,
 #' @return vector of estimated conditional average treatment effects
 #' @export
 predict.surv_sl_lasso <- function(object,
-                                  newx = NULL,
+                                  newdata = NULL,
                                   times = NULL,
                                   ...) {
-  if (!is.null(newx)) {
-    newx = sanitize_x(newx)
-    newx_scl = scale(newx, center = TRUE, scale = TRUE)
-    newx_scl = newx_scl[,!is.na(colSums(newx_scl)), drop = FALSE]
-    newx_scl_pred1 = cbind(1, newx_scl, newx_scl)
-    newx_scl_pred0 = cbind(0, 0 * newx_scl, newx_scl)
+  if (!is.null(newdata)) {
+    newdata = sanitize_x(newdata)
+    newdata_scl = scale(newdata, center = TRUE, scale = TRUE)
+    newdata_scl = newdata_scl[,!is.na(colSums(newdata_scl)), drop = FALSE]
+    newdata_scl_pred1 = cbind(1, newdata_scl, newdata_scl)
+    newdata_scl_pred0 = cbind(0, 0 * newdata_scl, newdata_scl)
 
-    link1 <- exp(newx_scl_pred1 %*% object$s_beta)
-    link0 <- exp(newx_scl_pred0 %*% object$s_beta)
+    link1 <- exp(newdata_scl_pred1 %*% object$s_beta)
+    link0 <- exp(newdata_scl_pred0 %*% object$s_beta)
 
     if(is.null(times)){
     times <- object$times

@@ -4,12 +4,12 @@
 \alias{predict.surv_fl_grf}
 \title{predict for surv_fl_grf}
 \usage{
-\method{predict}{surv_fl_grf}(object, newx = NULL, ...)
+\method{predict}{surv_fl_grf}(object, newdata = NULL, ...)
 }
 \arguments{
 \item{object}{An surv_fl_grf object}
 
-\item{newx}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
+\item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{...}{Additional arguments (currently not used)}
 }

@@ -210,7 +210,7 @@ surv_rl_grf = function(X, W, Y, D,
 #' get estimated tau(X) using the trained surv_rl_grf model
 #'
 #' @param object a surv_rl_grf object
-#' @param newx covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param tau_only if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.
 #' @param ... additional arguments (currently not used)
 #'
@@ -239,18 +239,18 @@ surv_rl_grf = function(X, W, Y, D,
 #' @return A vector of predicted conditional average treatment effects
 #' @export
 predict.surv_rl_grf <- function(object,
-                                newx = NULL,
+                                newdata = NULL,
                                 tau_only = TRUE,
                                 ...) {
-  if (!is.null(newx)){
-    newx = sanitize_x(newx)
+  if (!is.null(newdata)){
+    newdata = sanitize_x(newdata)
   }
   if (tau_only) {
-    return(predict(object$tau_fit, newx)$predictions)
+    return(predict(object$tau_fit, newdata)$predictions)
   } else {
-    tau <- predict(object$tau_fit, newx)$predictions
-    e = predict(object$w_fit, newx)$predictions
-    m = predict(object$y_fit, newx)$predictions
+    tau <- predict(object$tau_fit, newdata)$predictions
+    e = predict(object$w_fit, newdata)$predictions
+    m = predict(object$y_fit, newdata)$predictions
     mu1 = m + (1-e) * tau
     mu0 = m - e * tau
     return(list(tau=tau, e=e, m=m, mu1 = mu1, mu0 = mu0))

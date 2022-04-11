@@ -68,7 +68,7 @@ surv_tl_coxph <- function(X, W, Y, D, times){
 #' get estimated tau(X) using the trained surv_tl_coxph model
 #'
 #' @param object An surv_tl_coxph object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param times The prediction time of interest
 #' @param ... Additional arguments (currently not used)
 #'
@@ -97,10 +97,10 @@ surv_tl_coxph <- function(X, W, Y, D, times){
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_tl_coxph = function(object,
-                                 newx = NULL,
+                                 newdata = NULL,
                                  times = NULL,
                                  ...) {
-  if(is.null(newx)){
+  if(is.null(newdata)){
     return(object$tau)
   }else{
     if(is.null(times)){
@@ -114,10 +114,10 @@ predict.surv_tl_coxph = function(object,
     bh1 <- object$bh1[index1, 1]
     bh0 <- object$bh0[index0, 1]
 
-    est_r1 <- predict(object$fit1, newdata = data.frame(newx), type="risk")
+    est_r1 <- predict(object$fit1, newdata = data.frame(newdata), type="risk")
     surf1 <- exp(-bh1)^est_r1
 
-    est_r0 <- predict(object$fit0, newdata = data.frame(newx), type="risk")
+    est_r0 <- predict(object$fit0, newdata = data.frame(newdata), type="risk")
     surf0 <- exp(-bh0)^est_r0
 
     return(surf1 - surf0)

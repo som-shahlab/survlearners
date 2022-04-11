@@ -74,7 +74,7 @@ surv_sl_coxph = function(X, W, Y, D, times){
 #' get estimated tau(X) using the trained surv_sl_coxph model
 #'
 #' @param object A surv_sl_coxph object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param times The prediction time of interest
 #' @param ... Additional arguments (currently not used)
 #'
@@ -102,11 +102,11 @@ surv_sl_coxph = function(X, W, Y, D, times){
 #' @return vector of estimated conditional average treatment effects
 #' @export
 predict.surv_sl_coxph <- function(object,
-                                  newx = NULL,
+                                  newdata = NULL,
                                   times = NULL,
                                   ...) {
-  if (!is.null(newx)) {
-    newx <- sanitize_x(newx)
+  if (!is.null(newdata)) {
+    newdata <- sanitize_x(newdata)
 
     if(is.null(times)){
     times <- object$times
@@ -116,8 +116,8 @@ predict.surv_sl_coxph <- function(object,
     index <- findInterval(times, bh_dat$time)
     bh <- bh_dat[index, 1]
 
-    x_pred1 <- data.frame(0.5, 0.5 * newx, newx)
-    x_pred0 <- data.frame(-0.5, -0.5 * newx, newx)
+    x_pred1 <- data.frame(0.5, 0.5 * newdata, newdata)
+    x_pred0 <- data.frame(-0.5, -0.5 * newdata, newdata)
 
     link1 <- exp(as.matrix(x_pred1) %*% object$s_beta)
     link0 <- exp(as.matrix(x_pred0) %*% object$s_beta)

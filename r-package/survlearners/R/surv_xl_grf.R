@@ -131,7 +131,7 @@ surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "K
 #' get estimated tau(X) using the trained surv_xl_grf model
 #'
 #' @param object An surv_xl_grf object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param ps The propensity score
 #' @param ... Additional arguments (currently not used)
 #'
@@ -160,19 +160,19 @@ surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "K
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_xl_grf = function(object,
-                               newx = NULL,
+                               newdata = NULL,
                                ps = NULL,
                                ...) {
-  if(is.null(newx)){
+  if(is.null(newdata)){
     return(object$tau)
   }else{
-    XLtau1 <- -predict(object$fit1, data.frame(newx))
-    XLtau0 <- -predict(object$fit0, data.frame(newx))
+    XLtau1 <- -predict(object$fit1, data.frame(newdata))
+    XLtau0 <- -predict(object$fit0, data.frame(newdata))
     if(is.null(ps)){
-      ps <- rep(object$ps[1], nrow(newx))
+      ps <- rep(object$ps[1], nrow(newdata))
     }else{
       if(length(ps)==1){
-      ps <- rep(ps, nrow(newx))
+      ps <- rep(ps, nrow(newdata))
       }
     }
     return(as.vector(XLtau1 * (1 - ps) + XLtau0 * ps))

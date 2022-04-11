@@ -4,12 +4,12 @@
 \alias{predict.surv_sl_lasso}
 \title{predict for surv_sl_lasso}
 \usage{
-\method{predict}{surv_sl_lasso}(object, newx = NULL, times = NULL, ...)
+\method{predict}{surv_sl_lasso}(object, newdata = NULL, times = NULL, ...)
 }
 \arguments{
 \item{object}{A surv_sl_lasso object}
 
-\item{newx}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
+\item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{times}{The prediction time of interest}
 
