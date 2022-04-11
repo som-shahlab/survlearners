@@ -24,11 +24,12 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' cate = surv_fl_grf(X, W, Y, D, times, ps = 0.5, newX = X)
+#' surv_fl_grf_fit = surv_fl_grf(X, W, Y, D, times, ps = 0.5)
+#' cate = predict(surv_fl_grf_fit)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_fl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
+surv_fl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
 
   # IPCW weights
   if(cen_fit == "KM"){
@@ -80,6 +81,50 @@ surv_fl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "K
                    Y = b_data$D,
                    pscore = b_data$ps,
                    weight = b_data$wt)
-  pred_fgrf <- -predict(fgrf_fit, newX)
-  pred_fgrf
+
+  fgrf_tau <- -predict(fgrf_fit, X)
+
+  ret <- list(fit = fgrf_fit,
+              tau = fgrf_tau)
+  class(ret) <- 'surv_fl_grf'
+  ret
+}
+
+#' predict for surv_fl_grf
+#'
+#' get estimated tau(X) using the trained surv_fl_grf model
+#'
+#' @param object An surv_fl_grf object
+#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param ... Additional arguments (currently not used)
+#'
+#' @examples
+#' \donttest{
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
+#'
+#' surv_fl_grf_fit = surv_fl_grf(X, W, Y, D, times, ps = 0.5)
+#' cate = predict(surv_fl_grf_fit)
+#' }
+#'
+#' @return A vector of estimated conditional average treatment effects
+#' @export
+predict.surv_fl_grf = function(object,
+                               newx = NULL,
+                               ...) {
+  if(is.null(newx)){
+    return(object$tau)
+  }else{
+    return(-predict(object$fit, newx))
+  }
 }

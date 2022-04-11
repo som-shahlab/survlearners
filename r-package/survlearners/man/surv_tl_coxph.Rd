@@ -4,16 +4,16 @@
 \alias{surv_tl_coxph}
 \title{T-learner of Cox PH}
 \usage{
-surv_tl_coxph(X, W, Y, D, times, newX = NULL)
+surv_tl_coxph(X, W, Y, D, times)
 }
 \arguments{
 \item{times}{The prediction time of interest}
 
-\item{newX}{The test data set (covariates only)}
-
 \item{data}{The training data set}
 
 \item{data.test}{The testing data set}
+
+\item{newX}{The test data set (covariates only)}
 }
 \value{
 A vector of estimated conditional average treatment effects
@@ -36,6 +36,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-cate = surv_tl_coxph(X, W, Y, D, times, newX = X)
+surv_tl_coxph_fit = surv_tl_coxph(X, W, Y, D, times)
+cate = predict(surv_tl_coxph_fit)
 }
 }

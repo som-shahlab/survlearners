@@ -4,17 +4,7 @@
 \alias{surv_xl_lasso}
 \title{X-learner of lasso}
 \usage{
-surv_xl_lasso(
-  X,
-  W,
-  Y,
-  D,
-  times,
-  alpha = 0.05,
-  ps = NULL,
-  cen_fit = "KM",
-  newX = NULL
-)
+surv_xl_lasso(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM")
 }
 \arguments{
 \item{times}{The prediction time of interest}
@@ -25,11 +15,11 @@ surv_xl_lasso(
 
 \item{cen_fit}{The choice of model fitting for censoring}
 
-\item{newX}{The test data set (covariates only)}
-
 \item{data}{The training data set}
 
 \item{data.test}{The testing data set}
+
+\item{newX}{The test data set (covariates only)}
 }
 \value{
 A vector of estimated conditional average treatment effects
@@ -52,6 +42,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-cate = surv_xl_lasso(X, W, Y, D, times, ps = 0.5, newX = X)
+surv_xl_lasso_fit = surv_xl_lasso(X, W, Y, D, times, ps = 0.5)
+cate = predict(surv_xl_lasso_fit)
 }
 }
