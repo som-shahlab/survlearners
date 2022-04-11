@@ -36,8 +36,7 @@ surv_rl_grf_lasso(
   lambda_tau = NULL,
   lambda_choice = "lambda.min",
   penalty_factor = NULL,
-  cen_fit = "KM",
-  verbose = FALSE
+  cen_fit = "KM"
 )
 }
 \arguments{

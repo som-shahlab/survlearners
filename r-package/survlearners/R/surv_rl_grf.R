@@ -80,8 +80,7 @@ surv_rl_grf = function(X, W, Y, D,
                        compute.oob.predictions = TRUE,
                        num.threads = NULL,
                        seed = runif(1, 0, .Machine$integer.max),
-                       cen_fit = "KM",
-                       verbose = FALSE){
+                       cen_fit = "KM"){
 
   input = sanitize_input(X,W,Y,D)
   X = input$X

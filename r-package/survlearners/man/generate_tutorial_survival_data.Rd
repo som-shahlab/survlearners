@@ -30,11 +30,13 @@ generate_tutorial_survival_data(
 
 \item{p_b}{The number of variables in the main effect function}
 
-\item{p_i}{The propensity score}
+\item{p_i}{The number of variables in the interaction term}
 
 \item{f_b}{The function form of the main effects (linear/nonlinear)}
 
 \item{f_i}{The function form of the treatment-covariate interactions (linear/nonlinear)}
+
+\item{pi}{The propensity score}
 
 \item{beta}{The coefficients of variables in the main effect}
 
