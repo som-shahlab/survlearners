@@ -79,12 +79,8 @@ surv_fl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "K
                  X = as.matrix(binary_data[,6:ncol(binary_data)]),
                  wt = binary_data$ipcw, ps = binary_data$pscore)
 
-  fgrf_fit <- Fgrf(X = b_data$X,
-                   W = b_data$W,
-                   Y = b_data$D,
-                   pscore = b_data$ps,
-                   weight = b_data$wt)
-
+  Z <- b_data$W * b_data$D / b_data$ps - (1 - b_data$W) * b_data$D / (1 - b_data$ps)
+  fgrf_fit <- grf::regression_forest(b_data$X, Z, sample.weights = b_data$wt)
   fgrf_tau <- -predict(fgrf_fit, X)
 
   ret <- list(fit = fgrf_fit,

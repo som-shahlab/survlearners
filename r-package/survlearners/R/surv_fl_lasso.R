@@ -80,12 +80,8 @@ surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = 
                  X = as.matrix(binary_data[,6:ncol(binary_data)]),
                  wt = binary_data$ipcw, ps = binary_data$ps_score)
 
-  flasso_fit <- Flasso(X = b_data$X,
-                       W = b_data$W,
-                       Y = b_data$D,
-                       pscore = b_data$ps,
-                       weight = b_data$wt)
-
+  Z <- b_data$W * b_data$D / b_data$ps - (1 - b_data$W) * b_data$D / (1 - b_data$ps)
+  flasso_fit <- glmnet::cv.glmnet(b_data$X, Z, family = "gaussian", weights = b_data$wt, nfolds = 10, alpha = 1)
   flasso_tau <- -predict(flasso_fit, X)
 
   ret <- list(fit = flasso_fit,
