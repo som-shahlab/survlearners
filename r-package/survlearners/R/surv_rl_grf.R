@@ -47,38 +47,38 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rgrf_fit = rgrf(X, W, Y, D, times, p_hat = 0.5)
-#' rgrf_cate = predict(rgrf_fit, X)
+#' surv_rl_grf_fit = surv_rl_grf(X, W, Y, D, times, p_hat = 0.5)
+#' cate = predict(surv_rl_grf_fit)
 #' }
-#' @return a rgrf object
+#' @return a surv_rl_grf_fit object
 #' @export
-rgrf = function(X, W, Y, D,
-                times = NULL,
-                k_folds = NULL,
-                p_hat = NULL,
-                m_hat = NULL,
-                c_hat = NULL,
-                failure.times = NULL,
-                num.trees = 2000,
-                sample.weights = NULL,
-                clusters = NULL,
-                equalize.cluster.weights = FALSE,
-                sample.fraction = 0.5,
-                mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
-                min.node.size = 5,
-                honesty = TRUE,
-                honesty.fraction = 0.5,
-                honesty.prune.leaves = TRUE,
-                alpha = 0.05,
-                imbalance.penalty = 0,
-                stabilize.splits = TRUE,
-                ci.group.size = 2,
-                tune.parameters = "none",
-                compute.oob.predictions = TRUE,
-                num.threads = NULL,
-                seed = runif(1, 0, .Machine$integer.max),
-                cen_fit = "KM",
-                verbose = FALSE){
+surv_rl_grf = function(X, W, Y, D,
+                       times = NULL,
+                       k_folds = NULL,
+                       p_hat = NULL,
+                       m_hat = NULL,
+                       c_hat = NULL,
+                       failure.times = NULL,
+                       num.trees = 2000,
+                       sample.weights = NULL,
+                       clusters = NULL,
+                       equalize.cluster.weights = FALSE,
+                       sample.fraction = 0.5,
+                       mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
+                       min.node.size = 5,
+                       honesty = TRUE,
+                       honesty.fraction = 0.5,
+                       honesty.prune.leaves = TRUE,
+                       alpha = 0.05,
+                       imbalance.penalty = 0,
+                       stabilize.splits = TRUE,
+                       ci.group.size = 2,
+                       tune.parameters = "none",
+                       compute.oob.predictions = TRUE,
+                       num.threads = NULL,
+                       seed = runif(1, 0, .Machine$integer.max),
+                       cen_fit = "KM",
+                       verbose = FALSE){
 
   input = sanitize_input(X,W,Y,D)
   X = input$X
@@ -198,15 +198,15 @@ rgrf = function(X, W, Y, D,
               p_hat = p_hat,
               m_hat = m_hat,
               c_hat = c_hat)
-  class(ret) <- "rgrf"
+  class(ret) <- "surv_rl_grf"
   ret
 }
 
-#' predict for rgrf
+#' predict for surv_rl_grf
 #'
-#' get estimated tau(X) using the trained rgrf model
+#' get estimated tau(X) using the trained surv_rl_grf model
 #'
-#' @param object a rgrf object
+#' @param object a surv_rl_grf object
 #' @param newx covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param tau_only if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.
 #' @param ... additional arguments (currently not used)
@@ -226,16 +226,16 @@ rgrf = function(X, W, Y, D,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rgrf_fit = rgrf(X, W, Y, D, times, p_hat = 0.5)
-#' rgrf_cate = predict(rgrf_fit, X)
+#' surv_rl_grf_fit = surv_rl_grf(X, W, Y, D, times, p_hat = 0.5)
+#' cate = predict(surv_rl_grf_fit)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects
 #' @export
-predict.rgrf <- function(object,
-                         newx = NULL,
-                         tau_only = TRUE,
-                          ...) {
+predict.surv_rl_grf <- function(object,
+                                newx = NULL,
+                                tau_only = TRUE,
+                                ...) {
   if (!is.null(newx)){
     newx = sanitize_x(newx)
   }

@@ -50,41 +50,41 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasgrf_fit = rlasgrf(X, W, Y, D, times, p_hat = 0.5)
-#' rlasgrf_cate = predict(rlasgrf_fit, X)
+#' surv_rl_grf_lasso_fit = surv_rl_grf_lasso(X, W, Y, D, times, p_hat = 0.5)
+#' cate = predict(surv_rl_grf_lasso_fit)
 #' }
-#' @return a rlasgrf object
+#' @return a surv_rl_grf_lasso object
 #' @export
-rlasgrf = function(X, W, Y, D,
-                   times = NULL,
-                   k_folds = 10,
-                   p_hat = NULL,
-                   m_hat = NULL,
-                   c_hat = NULL,
-                   failure.times = NULL,
-                   num.trees = 2000,
-                   sample.weights = NULL,
-                   clusters = NULL,
-                   equalize.cluster.weights = FALSE,
-                   sample.fraction = 0.5,
-                   mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
-                   min.node.size = 5,
-                   honesty = TRUE,
-                   honesty.fraction = 0.5,
-                   honesty.prune.leaves = TRUE,
-                   alpha = 0.05,
-                   imbalance.penalty = 0,
-                   stabilize.splits = TRUE,
-                   ci.group.size = 2,
-                   tune.parameters = "none",
-                   compute.oob.predictions = TRUE,
-                   num.threads = NULL,
-                   seed = runif(1, 0, .Machine$integer.max),
-                   lambda_tau = NULL,
-                   lambda_choice = "lambda.min",
-                   penalty_factor = NULL,
-                   cen_fit = "KM",
-                   verbose = FALSE){
+surv_rl_grf_lasso = function(X, W, Y, D,
+                             times = NULL,
+                             k_folds = 10,
+                             p_hat = NULL,
+                             m_hat = NULL,
+                             c_hat = NULL,
+                             failure.times = NULL,
+                             num.trees = 2000,
+                             sample.weights = NULL,
+                             clusters = NULL,
+                             equalize.cluster.weights = FALSE,
+                             sample.fraction = 0.5,
+                             mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
+                             min.node.size = 5,
+                             honesty = TRUE,
+                             honesty.fraction = 0.5,
+                             honesty.prune.leaves = TRUE,
+                             alpha = 0.05,
+                             imbalance.penalty = 0,
+                             stabilize.splits = TRUE,
+                             ci.group.size = 2,
+                             tune.parameters = "none",
+                             compute.oob.predictions = TRUE,
+                             num.threads = NULL,
+                             seed = runif(1, 0, .Machine$integer.max),
+                             lambda_tau = NULL,
+                             lambda_choice = "lambda.min",
+                             penalty_factor = NULL,
+                             cen_fit = "KM",
+                             verbose = FALSE){
 
   input = sanitize_input(X,W,Y,D)
   X = input$X
@@ -209,15 +209,15 @@ rlasgrf = function(X, W, Y, D,
              p_hat = p_hat,
              m_hat = m_hat,
              tau_hat = tau_hat)
-  class(ret) <- "rlasgrf"
+  class(ret) <- "surv_rl_grf_lasso"
   ret
 }
 
-#' predict for rlasgrf
+#' predict for surv_rl_grf_lasso
 #'
-#' get estimated tau(X) using the trained rlasgrf model
+#' get estimated tau(X) using the trained surv_rl_grf_lasso model
 #'
-#' @param object a rlasgrf object
+#' @param object a surv_rl_grf_lasso object
 #' @param newx covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param ... additional arguments (currently not used)
 #'
@@ -236,15 +236,15 @@ rlasgrf = function(X, W, Y, D,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasgrf_fit = rlasgrf(X, W, Y, D, times, p_hat = 0.5)
-#' rlasgrf_cate = predict(rlasgrf_fit, X)
+#' surv_rl_grf_lasso_fit = surv_rl_grf_lasso(X, W, Y, D, times, p_hat = 0.5)
+#' cate = predict(surv_rl_grf_lasso_fit)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects
 #' @export
-predict.rlasgrf <- function(object,
-                            newx = NULL,
-                            ...) {
+predict.surv_rl_grf_lasso <- function(object,
+                                      newx = NULL,
+                                      ...) {
   if (!is.null(newx)) {
     newx = sanitize_x(newx)
     newx_scl = scale(newx, center = TRUE, scale = TRUE)

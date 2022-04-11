@@ -35,26 +35,26 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasso_fit = rlasso(X, W, Y, D, times, p_hat = 0.5)
-#' rlasso_cate = predict(rlasso_fit, X)
+#' surv_rl_lasso_fit = surv_rl_lasso(X, W, Y, D, times, p_hat = 0.5)
+#' cate = predict(surv_rl_lasso_fit)
 #' }
-#' @return a rlasso object
+#' @return a surv_rl_lasso object
 #' @export
-rlasso = function(X, W, Y, D,
-                  times = NULL,
-                  k_folds = 10,
-                  foldid = NULL,
-                  lambda_y = NULL,
-                  lambda_tau = NULL,
-                  lambda_choice = "lambda.min",
-                  p_hat = NULL,
-                  m_hat = NULL,
-                  c_hat = NULL,
-                  penalty_factor = NULL,
-                  failure.times = NULL,
-                  num.trees = 2000,
-                  alpha = 0.05,
-                  cen_fit = "KM"){
+surv_rl_lasso = function(X, W, Y, D,
+                         times = NULL,
+                         k_folds = 10,
+                         foldid = NULL,
+                         lambda_y = NULL,
+                         lambda_tau = NULL,
+                         lambda_choice = "lambda.min",
+                         p_hat = NULL,
+                         m_hat = NULL,
+                         c_hat = NULL,
+                         penalty_factor = NULL,
+                         failure.times = NULL,
+                         num.trees = 2000,
+                         alpha = 0.05,
+                         cen_fit = "KM"){
 
     input = sanitize_input(X, W, Y, D)
     X = input$X
@@ -196,16 +196,16 @@ rlasso = function(X, W, Y, D,
                m_hat = m_hat,
                c_hat = c_hat,
                tau_hat = tau_hat)
-    class(ret) <- "rlasso"
+    class(ret) <- "surv_rl_lasso"
     ret
 }
 
 
-#' predict for rlasso
+#' predict for surv_rl_lasso
 #'
-#' get estimated tau(X) using the trained rlasso model
+#' get estimated tau(X) using the trained surv_rl_lasso model
 #'
-#' @param object An rlasso object
+#' @param object An surv_rl_lasso object
 #' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param ... Additional arguments (currently not used)
 #'
@@ -224,15 +224,15 @@ rlasso = function(X, W, Y, D,
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' rlasso_fit = rlasso(X, W, Y, D, times, p_hat = 0.5)
-#' rlasso_cate = predict(rlasso_fit, X)
+#' surv_rl_lasso_fit = surv_rl_lasso(X, W, Y, D, times, p_hat = 0.5)
+#' cate = predict(surv_rl_lasso_fit)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-predict.rlasso <- function(object,
-                           newx = NULL,
-                           ...) {
+predict.surv_rl_lasso <- function(object,
+                                  newx = NULL,
+                                  ...) {
   if (!is.null(newx)) {
     newx = sanitize_x(newx)
     newx_scl = scale(newx, center = TRUE, scale = TRUE)
