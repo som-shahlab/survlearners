@@ -2,9 +2,9 @@
 #'
 #' @description  R-learner, implemented via the grf package
 #'
-#' @param x The baseline covariates
-#' @param w The treatment variable (0 or 1)
-#' @param y The follow-up time
+#' @param X The baseline covariates
+#' @param W The treatment variable (0 or 1)
+#' @param Y The follow-up time
 #' @param D The event indicator
 #' @param k_folds Number of folds for cross validation
 #' @param p_hat Propensity score
@@ -52,7 +52,7 @@
 #' }
 #' @return a rgrf object
 #' @export
-rgrf = function(x, w, y, D,
+rgrf = function(X, W, Y, D,
                 times = NULL,
                 k_folds = NULL,
                 p_hat = NULL,
@@ -64,7 +64,7 @@ rgrf = function(x, w, y, D,
                 clusters = NULL,
                 equalize.cluster.weights = FALSE,
                 sample.fraction = 0.5,
-                mtry = min(ceiling(sqrt(ncol(x)) + 20), ncol(x)),
+                mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
                 min.node.size = 5,
                 honesty = TRUE,
                 honesty.fraction = 0.5,
@@ -80,23 +80,23 @@ rgrf = function(x, w, y, D,
                 cen_fit = "KM",
                 verbose = FALSE){
 
-  input = sanitize_input(x,w,y,D)
-  x = input$x
-  w = as.numeric(input$w)
-  y = input$y
+  input = sanitize_input(X,W,Y,D)
+  X = input$X
+  W = as.numeric(input$W)
+  Y = input$Y
   D = input$D
-  nobs = nrow(x)
-  pobs = ncol(x)
+  nobs = nrow(X)
+  pobs = ncol(X)
 
   if (is.null(k_folds)) {
-    k_folds = floor(max(3, min(10,length(y)/4)))
+    k_folds = floor(max(3, min(10,length(Y)/4)))
   }
 
   if (is.null(p_hat)){
     stop("propensity score needs to be supplied")
   }else if (length(p_hat) == 1) {
-    p_hat <- rep(p_hat, nrow(x))
-  }else if (length(p_hat) != nrow(x)){
+    p_hat <- rep(p_hat, nrow(X))
+  }else if (length(p_hat) != nrow(X)){
     stop("p_hat has incorrect length.")
   }
 
@@ -118,12 +118,12 @@ rgrf = function(x, w, y, D,
                         seed = seed)
 
   if (is.null(m_hat)){
-    y_fit <- do.call(grf::survival_forest, c(list(X = cbind(x, w), Y = y, D = D), args.nuisance))
-    y_fit[["X.orig"]][, ncol(x) + 1] <- rep(1, nrow(x))
+    y_fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = D), args.nuisance))
+    y_fit[["X.orig"]][, ncol(X) + 1] <- rep(1, nrow(X))
     S1.hat <- predict(y_fit)$predictions
-    y_fit[["X.orig"]][, ncol(x) + 1] <- rep(0, nrow(x))
+    y_fit[["X.orig"]][, ncol(X) + 1] <- rep(0, nrow(X))
     S0.hat <- predict(y_fit)$predictions
-    y_fit[["X.orig"]][, ncol(x) + 1] <- w
+    y_fit[["X.orig"]][, ncol(X) + 1] <- W
 
     times.index <- findInterval(times, y_fit$failure.times)
     surf1 <- S1.hat[, times.index]
@@ -136,7 +136,7 @@ rgrf = function(x, w, y, D,
   args.nuisance$compute.oob.predictions <- TRUE
   if (is.null(c_hat)){
     if(cen_fit == "KM"){
-      traindat <- data.frame(Y = y, D = D)
+      traindat <- data.frame(Y = Y, D = D)
       shuffle <- sample(nrow(traindat))
       kmdat <- traindat[shuffle,]
       folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
@@ -152,24 +152,24 @@ rgrf = function(x, w, y, D,
       shudat <- data.frame(shuffle, c_hat)
       c_hat <- shudat[order(shuffle), ]$c_hat
     }else if (cen_fit == "survival.forest"){
-      c_fit <- do.call(grf::survival_forest, c(list(X = cbind(x, w), Y = y, D = 1 - D), args.nuisance))
+      c_fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = 1 - D), args.nuisance))
       C.hat <- predict(c_fit, failure.times = c_fit$failure.times)$predictions
-      cent <- y; cent[D==0] <- times
+      cent <- Y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c_fit$failure.times)
-      c_hat <- C.hat[cbind(1:length(y), cen.times.index)]
+      c_hat <- C.hat[cbind(1:length(Y), cen.times.index)]
     }
   }else{
     c_fit <- NULL
   }
 
   # create binary data
-  tempdata <- data.frame(y, D, w, m_hat, p_hat, c_hat, x)
-  binary_data <- tempdata[tempdata$D==1|tempdata$y > times,]       # remove subjects who got censored before the time of interest t50
-  binary_data$D[binary_data$D==1 & binary_data$y > times] <- 0     # recode the event status for subjects who had events after t50
+  tempdata <- data.frame(Y, D, W, m_hat, p_hat, c_hat, X)
+  binary_data <- tempdata[tempdata$D==1|tempdata$Y > times,]       # remove subjects who got censored before the time of interest t50
+  binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0     # recode the event status for subjects who had events after t50
   binary_data <- binary_data[complete.cases(binary_data),]
 
   y_tilde <- (1 - binary_data$D) - binary_data$m_hat
-  w_tilde <-  binary_data$w - binary_data$p_hat
+  w_tilde <-  binary_data$W - binary_data$p_hat
   pseudo_outcome <- y_tilde/w_tilde
   weights <- w_tilde^2/binary_data$c_hat
 
@@ -204,10 +204,10 @@ rgrf = function(x, w, y, D,
 
 #' predict for rgrf
 #'
-#' get estimated tau(x) using the trained rgrf model
+#' get estimated tau(X) using the trained rgrf model
 #'
 #' @param object a rgrf object
-#' @param newx covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data
+#' @param newx covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param tau_only if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.
 #' @param ... additional arguments (currently not used)
 #'

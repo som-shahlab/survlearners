@@ -4,14 +4,14 @@
 \alias{Fgrf}
 \title{F-learner of grf}
 \usage{
-Fgrf(x, w, y, weight, pscore = rep(0.5, nrow(x)), num.trees = 2000)
+Fgrf(X, W, Y, weight, pscore = rep(0.5, nrow(X)), num.trees = 2000)
 }
 \arguments{
-\item{x}{matrix of covariates}
+\item{X}{matrix of covariates}
 
-\item{w}{vector of treatment indicators (0 or 1)}
+\item{W}{vector of treatment indicators (0 or 1)}
 
-\item{y}{vector of response values}
+\item{Y}{vector of response values}
 
 \item{weight}{vector of subject level weights}
 
@@ -40,10 +40,8 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 weight <- rep(1, length(Y))
-data <- list(X = X, W = W, Y = Y, D = D)
-data.test <- list(X = X, W = W, Y = Y, D = D)
 
-Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight = weight) 
-Fgrf_cate = predict(Fgrf_fit, data.test$X)
+Fgrf_fit = Fgrf(X, W, Y, weight = weight)
+Fgrf_cate = predict(Fgrf_fit, X)
 }
 }

@@ -1,63 +1,11 @@
 # *** Comparison methods ***
-# Using modified causal_survival_forest simulation code in "grf" package with the following modifications:
-# 1. dgps.R   -- "generate_causal_survival_data" function: the ground truths "cate" and "cate.sign"
-#                 are defined as difference in survival probabilities for all five settings
-# 2. comparison_estimators.R -- added more estimators, e.g., R-, X-, S-, T-learner, PTO, causal BART
-base_surv <- function(fit, Y, D, x, lambda){
-  data <- data.frame(t_event=Y, event=D, x)
-  tab <- data.frame(table(data[data$event == 1, "t_event"]))
-  y <- as.numeric(as.character(sort(unique(tab[,1]))))
-  d <- tab[,2]  # number of events at each unique time
-
-  betaHat <- as.vector((fit$glmnet.fit$beta)[,fit$lambda==lambda])
-  h0 <- rep(NA, length(y))
-  for(l in 1:length(y)){
-    h0[l] <- d[l] / sum(exp(x[data$t_event >= y[l], rownames(fit$glmnet.fit$beta)] %*% betaHat))
-  }
-
-  S0 <- exp(-cumsum(h0))
-  outcome <- data.frame(time=y,survival=S0)
-  outcome
-}
-pred_surv <- function(fit, S0, x, times, lambda){
-  link <- predict(fit$glmnet.fit,x,type = "link")[,fit$lambda==lambda]
-  colnames(link) <- NULL
-
-  if(length(times)>1){
-    S0_t <- rep(NA, length(times))
-    for (i in 1:length(times)){
-      S0_t[i] <- S0$survival[S0$time>=times[i]][1]
-    }
-  }else{
-    S0_t <- S0$survival[S0$time>=times][1]
-  }
-
-  surv <- S0_t^exp(link)
-  surv
-}
-pred_surv_preval <- function(fit, S0, times, lambda){
-  link <- fit$fit.preval[,!is.na(colSums(fit$fit.preval))][, fit$lambda[!is.na(colSums(fit$fit.preval))] == lambda]
-  colnames(link) <- NULL
-
-  if(length(times)>1){
-    S0_t <- rep(NA, length(times))
-    for (i in 1:length(times)){
-      S0_t[i] <- S0$survival[S0$time>=times[i]][1]
-    }
-  }else{
-    S0_t <- S0$survival[S0$time>=times][1]
-  }
-
-  surv <- S0_t^exp(link)
-  surv
-}
 
 # S-learner
 estimate_coxph_sl <- function(data, data.test, times){
 
-  scoxph_fit <- scoxph(x = data$X,
-                       w = data$W,
-                       y = data$Y,
+  scoxph_fit <- scoxph(X = data$X,
+                       W = data$W,
+                       Y = data$Y,
                        D = data$D,
                        times = times)
 
@@ -67,9 +15,9 @@ estimate_coxph_sl <- function(data, data.test, times){
 
 estimate_lasso_sl <- function(data, data.test, times){
 
-  slasso_fit <- slasso_surv(x = data$X,
-                            w = data$W,
-                            y = data$Y,
+  slasso_fit <- slasso_surv(X = data$X,
+                            W = data$W,
+                            Y = data$Y,
                             D = data$D,
                             times = times)
 
@@ -78,14 +26,13 @@ estimate_lasso_sl <- function(data, data.test, times){
 }
 
 estimate_grf_sl <- function(data, data.test, times, alpha = 0.05){
-  Y.grid <- seq(min(data$Y), max(data$Y), (max(data$Y) - min(data$Y))/100)
-  index <- findInterval(times, Y.grid)
+
   grffit <- survival_forest(cbind(data$W, data$X),
                             traindat$Y,
                             traindat$D,
                             alpha = alpha,
-                            prediction.type = "Nelson-Aalen",
-                            failure.times = Y.grid)
+                            prediction.type = "Nelson-Aalen")
+  index <- findInterval(times, grffit$failure.times)
   surf1 <- predict(grffit, cbind(rep(1, length(data.test$Y)), data.test$X))$predictions[, index]
   surf0 <- predict(grffit, cbind(rep(0, length(data.test$Y)), data.test$X))$predictions[, index]
   pred_S_grf <- surf1 - surf0

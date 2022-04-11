@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{An Fgrf object}
 
-\item{newx}{Covariate matrix to make predictions on. If null, return the tau(x) predictions on the training data}
+\item{newx}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{...}{Additional arguments (currently not used)}
 }
@@ -17,7 +17,7 @@
 A vector of estimated conditional average treatment effects
 }
 \description{
-get estimated tau(x) using the trained Fgrf model
+get estimated tau(X) using the trained Fgrf model
 }
 \examples{
 \donttest{
@@ -37,8 +37,8 @@ weight <- rep(1, length(Y))
 data <- list(X = X, W = W, Y = Y, D = D)
 data.test <- list(X = X, W = W, Y = Y, D = D)
 
-Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight)
-Fgrf_cate = predict(Fgrf_fit, data.test$X)
+Fgrf_fit = Fgrf(X, W, Y, weight)
+Fgrf_cate = predict(Fgrf_fit, X)
 }
 
 }

@@ -4,14 +4,14 @@
 \alias{Flasso}
 \title{F-learner of lasso}
 \usage{
-Flasso(x, w, y, weight, pscore = rep(0.5, nrow(x)), nfolds = 10, alpha = 1)
+Flasso(X, W, Y, weight, pscore = rep(0.5, nrow(X)), nfolds = 10, alpha = 1)
 }
 \arguments{
-\item{x}{matrix of covariates}
+\item{X}{matrix of covariates}
 
-\item{w}{vector of treatment indicators (0 or 1)}
+\item{W}{vector of treatment indicators (0 or 1)}
 
-\item{y}{vector of response values}
+\item{Y}{vector of response values}
 
 \item{weight}{vector of subject level weights}
 
@@ -42,10 +42,8 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 weight <- rep(1, length(Y))
-data <- list(X = X, W = W, Y = Y, D = D)
-data.test <- list(X = X, W = W, Y = Y, D = D)
 
-Flasso_fit = Flasso(data$X, data$W, data$Y, weight = weight)
-Flasso_cate = predict(Flasso_fit, data.test$X)
+Flasso_fit = Flasso(X, W, Y, weight = weight)
+Flasso_cate = predict(Flasso_fit, X)
 }
 }

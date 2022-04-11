@@ -4,13 +4,19 @@
 \alias{surv_xl_grf}
 \title{X-learner of grf}
 \usage{
-surv_xl_grf(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM")
+surv_xl_grf(
+  X,
+  W,
+  Y,
+  D,
+  times,
+  alpha = 0.05,
+  ps = NULL,
+  cen_fit = "KM",
+  newX = NULL
+)
 }
 \arguments{
-\item{data}{The training data set}
-
-\item{data.test}{The testing data set}
-
 \item{times}{The prediction time of interest}
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
@@ -18,6 +24,12 @@ surv_xl_grf(data, data.test, times, alpha = 0.05, ps = NULL, cen_fit = "KM")
 \item{ps}{The propensity score}
 
 \item{cen_fit}{The choice of model fitting for censoring}
+
+\item{newX}{The test data set (covariates only)}
+
+\item{data}{The training data set}
+
+\item{data.test}{The testing data set}
 }
 \value{
 A vector of estimated conditional average treatment effects
@@ -39,9 +51,7 @@ numeratorC <- -log(runif(n))
 censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
-data <- list(X = X, W = W, Y = Y, D = D)
-data.test <- list(X = X, W = W, Y = Y, D = D)
 
-cate = surv_xl_grf(data, data.test, times, ps = 0.5)
+cate = surv_xl_grf(X, W, Y, D, times, ps = 0.5, newX = X)
 }
 }

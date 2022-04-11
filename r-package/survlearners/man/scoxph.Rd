@@ -4,14 +4,14 @@
 \alias{scoxph}
 \title{S-learner of Cox PH}
 \usage{
-scoxph(x, w, y, D, times)
+scoxph(X, W, Y, D, times)
 }
 \arguments{
-\item{x}{The baseline covariates}
+\item{X}{The baseline covariates}
 
-\item{w}{The treatment variable (0 or 1)}
+\item{W}{The treatment variable (0 or 1)}
 
-\item{y}{The follow-up time}
+\item{Y}{The follow-up time}
 
 \item{D}{The event indicator}
 
