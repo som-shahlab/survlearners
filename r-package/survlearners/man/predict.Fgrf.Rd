@@ -37,8 +37,8 @@ weight <- rep(1, length(Y))
 data <- list(X = X, W = W, Y = Y, D = D)
 data.test <- list(X = X, W = W, Y = Y, D = D)
 
-Fgrf_fit = Fgrf(data$X, data$W, data$Y, weight)
-Fgrf_cate = predict(Fgrf_fit, data.test$X)
+Fgrf_fit = Fgrf(X, W, Y, weight)
+Fgrf_cate = predict(Fgrf_fit, X)
 }
 
 }

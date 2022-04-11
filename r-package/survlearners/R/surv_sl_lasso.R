@@ -5,6 +5,7 @@
 #' @param data The training data set
 #' @param data.test The testing data set
 #' @param times The prediction time of interest
+#' @param newX The test data set (covariates only)
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25
@@ -19,21 +20,19 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
-#' data <- list(X = X, W = W, Y = Y, D = D)
-#' data.test <- list(X = X, W = W, Y = Y, D = D)
 #'
-#' cate = surv_sl_lasso(data, data.test, times)
+#' cate = surv_sl_lasso(X, W, Y, D, times, newX = X)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_sl_lasso <- function(data, data.test, times){
+surv_sl_lasso <- function(X, W, Y, D, times, newX = NULL){
 
-  slasso_fit <- slasso_surv(X = data$X,
-                            W = data$W,
-                            Y = data$Y,
-                            D = data$D,
+  slasso_fit <- slasso_surv(X = X,
+                            W = W,
+                            Y = Y,
+                            D = D,
                             times = times)
 
-  pred_S_lasso <- predict(slasso_fit, newx = data.test$X, times = times)
+  pred_S_lasso <- predict(slasso_fit, newx = newX, times = times)
   pred_S_lasso
 }
