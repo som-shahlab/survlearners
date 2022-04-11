@@ -52,6 +52,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-cate = surv_xl_grf(X, W, Y, D, times, ps = 0.5, newX = X)
+surv_xl_grf_fit = surv_xl_grf(X, W, Y, D, times, ps = 0.5)
+cate = predict(surv_xl_grf_fit)
 }
 }

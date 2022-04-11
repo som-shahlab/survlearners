@@ -25,11 +25,12 @@
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #'
-#' cate = surv_xl_grf_lasso(X, W, Y, D, times, ps = 0.5, newX = X)
+#' surv_xl_grf_lasso_fit = surv_xl_grf_lasso(X, W, Y, D, times, ps = 0.5)
+#' cate = predict(surv_xl_grf_lasso_fit)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_xl_grf_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM", newX = NULL){
+surv_xl_grf_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
 
 # fit model on W==1
 grffit1 <- grf::survival_forest(X[W==1,],
@@ -90,7 +91,6 @@ if (is.null(ps)){
   stop("propensity score needs to be supplied")
 }else{
   ps.train <- rep(ps, length(W))
-  ps_test <- rep(ps, nrow(newX))
 }
 
 weight <- ipcw/ps.train  # censoring weight * treatment weight
@@ -110,7 +110,7 @@ XLfit1 <- glmnet::cv.glmnet(b_data$X[b_data$W==1, ],
                             weights = b_data$wt[b_data$W==1],
                             foldid = foldid,
                             alpha = 1)
-XLtau1 <- as.vector(-predict(XLfit1, newX, s = "lambda.min"))
+XLtau1 <- as.vector(-predict(XLfit1, X, s = "lambda.min"))
 
 foldid <- sample(rep(seq(10), length = length(b_data$Y[b_data$W==0])))
 XLfit0 <- glmnet::cv.glmnet(b_data$X[b_data$W==0, ],
@@ -118,9 +118,65 @@ XLfit0 <- glmnet::cv.glmnet(b_data$X[b_data$W==0, ],
                             weights = b_data$wt[b_data$W==0],
                             foldid = foldid,
                             alpha = 1)
-XLtau0 <- as.vector(-predict(XLfit0, newX, s = "lambda.min"))
+XLtau0 <- as.vector(-predict(XLfit0, X, s = "lambda.min"))
 
 # weighted CATE
-pred_X_las_grf <- XLtau1 * (1 - ps_test) + XLtau0 * ps_test
-as.vector(pred_X_las_grf)
+pred_X_las_grf <- as.vector(XLtau1 * (1 - ps.train) + XLtau0 * ps.train)
+
+ret <- list(fit1 = XLfit1,
+            fit0 = XLfit0,
+            ps = ps.train,
+            tau = pred_X_las_grf)
+class(ret) <- 'surv_xl_grf_lasso'
+ret
+}
+
+#' predict for surv_xl_grf_lasso
+#'
+#' get estimated tau(X) using the trained surv_xl_grf_lasso model
+#'
+#' @param object An surv_xl_grf_lasso object
+#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param ps The propensity score
+#' @param ... Additional arguments (currently not used)
+#'
+#' @examples
+#' \donttest{
+#' n = 1000; p = 25
+#' times = 0.2
+#' Y.max <- 2
+#' X <- matrix(rnorm(n * p), n, p)
+#' W <- rbinom(n, 1, 0.5)
+#' numeratorT <- -log(runif(n))
+#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' failure.time <- pmin(T, Y.max)
+#' numeratorC <- -log(runif(n))
+#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' Y <- pmin(failure.time, censor.time)
+#' D <- as.integer(failure.time <= censor.time)
+#'
+#' surv_xl_grf_lasso_fit = surv_xl_grf_lasso(X, W, Y, D, times, ps = 0.5)
+#' cate = predict(surv_xl_grf_lasso_fit)
+#' }
+#'
+#' @return A vector of estimated conditional average treatment effects
+#' @export
+predict.surv_xl_grf_lasso = function(object,
+                                     newx = NULL,
+                                     ps = NULL,
+                                     ...) {
+  if(is.null(newx)){
+    return(object$tau)
+  }else{
+    XLtau1 <- as.vector(-predict(object$fit1, newx, s = "lambda.min"))
+    XLtau0 <- as.vector(-predict(object$fit0, newx, s = "lambda.min"))
+    if(is.null(ps)){
+      ps <- rep(object$ps[1], nrow(newx))
+    }else{
+      if(length(ps)==1){
+      ps <- rep(ps, nrow(newx))
+      }
+    }
+    return(as.vector(XLtau1 * (1 - ps) + XLtau0 * ps))
+  }
 }

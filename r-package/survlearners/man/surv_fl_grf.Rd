@@ -4,17 +4,7 @@
 \alias{surv_fl_grf}
 \title{F-learner of grf}
 \usage{
-surv_fl_grf(
-  X,
-  W,
-  Y,
-  D,
-  times,
-  alpha = 0.05,
-  ps = NULL,
-  cen_fit = "KM",
-  newX = NULL
-)
+surv_fl_grf(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM")
 }
 \arguments{
 \item{times}{The prediction time of interest}
@@ -25,11 +15,11 @@ surv_fl_grf(
 
 \item{cen_fit}{The choice of model fitting for censoring}
 
-\item{newX}{The test data set (covariates only)}
-
 \item{data}{The training data set}
 
 \item{data.test}{The testing data set}
+
+\item{newX}{The test data set (covariates only)}
 }
 \value{
 A vector of estimated conditional average treatment effects
@@ -52,6 +42,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-cate = surv_fl_grf(X, W, Y, D, times, ps = 0.5, newX = X)
+surv_fl_grf_fit = surv_fl_grf(X, W, Y, D, times, ps = 0.5)
+cate = predict(surv_fl_grf_fit)
 }
 }

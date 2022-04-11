@@ -4,18 +4,18 @@
 \alias{surv_sl_grf}
 \title{S-learner of grf}
 \usage{
-surv_sl_grf(X, W, Y, D, times, alpha = 0.05, newX = NULL)
+surv_sl_grf(X, W, Y, D, times, alpha = 0.05)
 }
 \arguments{
 \item{times}{The prediction time of interest}
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
 
-\item{newX}{The test data set (covariates only)}
-
 \item{data}{The training data set}
 
 \item{data.test}{The testing data set}
+
+\item{newX}{The test data set (covariates only)}
 }
 \value{
 A vector of estimated conditional average treatment effects
@@ -38,6 +38,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-cate = surv_sl_grf(X, W, Y, D, times, newX = X)
+surv_sl_grf_fit = surv_sl_grf(X, W, Y, D, times)
+cate = predict(surv_sl_grf_fit)
 }
 }

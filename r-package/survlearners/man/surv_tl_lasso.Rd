@@ -36,6 +36,7 @@ censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 
-cate = surv_tl_lasso(X, W, Y, D, times, newX = X)
+surv_tl_lasso_fit = surv_tl_lasso(X, W, Y, D, times)
+cate = predict(surv_tl_lasso_fit)
 }
 }
