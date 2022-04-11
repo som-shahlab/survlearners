@@ -4,12 +4,12 @@
 \alias{predict.surv_rl_grf_lasso}
 \title{predict for surv_rl_grf_lasso}
 \usage{
-\method{predict}{surv_rl_grf_lasso}(object, newx = NULL, ...)
+\method{predict}{surv_rl_grf_lasso}(object, newdata = NULL, ...)
 }
 \arguments{
 \item{object}{a surv_rl_grf_lasso object}
 
-\item{newx}{covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
+\item{newdata}{covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{...}{additional arguments (currently not used)}
 }

@@ -221,7 +221,7 @@ surv_rl_grf_lasso = function(X, W, Y, D,
 #' get estimated tau(X) using the trained surv_rl_grf_lasso model
 #'
 #' @param object a surv_rl_grf_lasso object
-#' @param newx covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param ... additional arguments (currently not used)
 #'
 #' @examples
@@ -249,14 +249,14 @@ surv_rl_grf_lasso = function(X, W, Y, D,
 #' @return A vector of predicted conditional average treatment effects
 #' @export
 predict.surv_rl_grf_lasso <- function(object,
-                                      newx = NULL,
+                                      newdata = NULL,
                                       ...) {
-  if (!is.null(newx)) {
-    newx = sanitize_x(newx)
-    newx_scl = scale(newx, center = TRUE, scale = TRUE)
-    newx_scl = newx_scl[,!is.na(colSums(newx_scl)), drop = FALSE]
-    newx_scl_pred = cbind(1, newx_scl)
-    tau_hat = newx_scl_pred %*% object$tau_beta
+  if (!is.null(newdata)) {
+    newdata = sanitize_x(newdata)
+    newdata_scl = scale(newdata, center = TRUE, scale = TRUE)
+    newdata_scl = newdata_scl[,!is.na(colSums(newdata_scl)), drop = FALSE]
+    newdata_scl_pred = cbind(1, newdata_scl)
+    tau_hat = newdata_scl_pred %*% object$tau_beta
   }
   else {
     tau_hat = object$tau_hat

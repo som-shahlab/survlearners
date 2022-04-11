@@ -95,7 +95,7 @@ surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = 
 #' get estimated tau(X) using the trained surv_fl_lasso model
 #'
 #' @param object An surv_fl_lasso object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
@@ -123,11 +123,11 @@ surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = 
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_fl_lasso = function(object,
-                                 newx = NULL,
+                                 newdata = NULL,
                                  ...) {
-  if(is.null(newx)){
+  if(is.null(newdata)){
     return(object$tau)
   }else{
-    return(-predict(object$fit, newx))
+    return(-predict(object$fit, newdata))
   }
 }

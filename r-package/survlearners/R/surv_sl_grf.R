@@ -55,7 +55,7 @@ surv_sl_grf <- function(X, W, Y, D, times, alpha = 0.05){
 #' get estimated tau(X) using the trained surv_sl_grf model
 #'
 #' @param object An surv_sl_grf object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param times The prediction time of interest
 #' @param ... Additional arguments (currently not used)
 #'
@@ -84,10 +84,10 @@ surv_sl_grf <- function(X, W, Y, D, times, alpha = 0.05){
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_sl_grf = function(object,
-                               newx = NULL,
+                               newdata = NULL,
                                times = NULL,
                                ...) {
-  if(is.null(newx)){
+  if(is.null(newdata)){
     return(object$tau)
   }else{
     if(is.null(times)){
@@ -95,8 +95,8 @@ predict.surv_sl_grf = function(object,
     }else{
       index <- findInterval(times, object$fit$failure.times)
     }
-    surf1 <- predict(object$fit, cbind(rep(1, nrow(newx)), newx))$predictions[, index]
-    surf0 <- predict(object$fit, cbind(rep(0, nrow(newx)), newx))$predictions[, index]
+    surf1 <- predict(object$fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[, index]
+    surf0 <- predict(object$fit, cbind(rep(0, nrow(newdata)), newdata))$predictions[, index]
     return(surf1 - surf0)
   }
 }

@@ -4,12 +4,12 @@
 \alias{predict.surv_xl_grf}
 \title{predict for surv_xl_grf}
 \usage{
-\method{predict}{surv_xl_grf}(object, newx = NULL, ps = NULL, ...)
+\method{predict}{surv_xl_grf}(object, newdata = NULL, ps = NULL, ...)
 }
 \arguments{
 \item{object}{An surv_xl_grf object}
 
-\item{newx}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
+\item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
 \item{ps}{The propensity score}
 

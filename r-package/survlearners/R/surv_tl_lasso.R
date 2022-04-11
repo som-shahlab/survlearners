@@ -91,7 +91,7 @@ surv_tl_lasso <- function(X, W, Y, D, times, newX = NULL){
 #' get estimated tau(X) using the trained surv_tl_lasso model
 #'
 #' @param object An surv_tl_lasso object
-#' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param times The prediction time of interest
 #' @param ... Additional arguments (currently not used)
 #'
@@ -120,34 +120,34 @@ surv_tl_lasso <- function(X, W, Y, D, times, newX = NULL){
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_tl_lasso = function(object,
-                                 newx = NULL,
+                                 newdata = NULL,
                                  times = NULL,
                                  ...) {
-  if(is.null(newx)){
+  if(is.null(newdata)){
     return(object$tau)
   }else{
     if(is.null(times)){
       surf1 <- pred_surv(fit = object$fit1,
                          S0 = object$bsurv1,
-                         X = newx,
+                         X = newdata,
                          times = object$times,
                          lambda = object$fit1$lambda.min)
 
       surf0 <- pred_surv(fit = object$fit0,
                          S0 = object$bsurv0,
-                         X = newx,
+                         X = newdata,
                          times = object$times,
                          lambda = object$fit0$lambda.min)
     }else{
       surf1 <- pred_surv(fit = object$fit1,
                          S0 = object$bsurv1,
-                         X = newx,
+                         X = newdata,
                          times = times,
                          lambda = object$fit1$lambda.min)
 
       surf0 <- pred_surv(fit = object$fit0,
                          S0 = object$bsurv0,
-                         X = newx,
+                         X = newdata,
                          times = times,
                          lambda = object$fit0$lambda.min)
     }
