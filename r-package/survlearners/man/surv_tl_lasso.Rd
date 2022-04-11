@@ -7,13 +7,15 @@
 surv_tl_lasso(X, W, Y, D, times, newX = NULL)
 }
 \arguments{
+\item{X}{The baseline covariates}
+
+\item{W}{The treatment variable (0 or 1)}
+
+\item{Y}{The follow-up time}
+
+\item{D}{The event indicator}
+
 \item{times}{The prediction time of interest}
-
-\item{newX}{The test data set (covariates only)}
-
-\item{data}{The training data set}
-
-\item{data.test}{The testing data set}
 }
 \value{
 A vector of estimated conditional average treatment effects
