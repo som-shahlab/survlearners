@@ -27,19 +27,22 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' slasso_surv_fit = slasso_surv(X, W, Y, D, times)
-#' slasso_surv_cate = predict(slasso_surv_fit, X, times)
+#' surv_sl_lasso_fit = surv_sl_lasso(X, W, Y, D, times)
+#' cate = predict(surv_sl_lasso_fit)
+#' cate.test = predict(surv_sl_lasso_fit, X.test)
 #' }
-#' @return a slasso_surv object
+#' @return a surv_sl_lasso object
 #' @export
-slasso_surv = function(X, W, Y, D, times,
-                       alpha = 1,
-                       k_folds = NULL,
-                       foldid = NULL,
-                       lambda = NULL,
-                       lambda_choice = "lambda.min",
-                       penalty_factor = NULL){
+surv_sl_lasso = function(X, W, Y, D, times,
+                         alpha = 1,
+                         k_folds = NULL,
+                         foldid = NULL,
+                         lambda = NULL,
+                         lambda_choice = "lambda.min",
+                         penalty_factor = NULL){
 
   input = sanitize_input(X, W, Y, D)
   X = input$X
@@ -110,19 +113,20 @@ slasso_surv = function(X, W, Y, D, times,
              D_org = D,
              beta_org = s_beta,
              s_beta = s_beta_adj,
-             S0_t = S0,
+             S0_t = S0_t,
+             times = times,
              tau_hat = tau_hat,
              lambda_choice = lambda_choice)
 
-  class(ret) <- "slasso_surv"
+  class(ret) <- "surv_sl_lasso"
   ret
 }
 
-#' predict for slasso_surv
+#' predict for surv_sl_lasso
 #'
-#' get estimated tau(X) using the trained slasso_surv model
+#' get estimated tau(X) using the trained surv_sl_lasso model
 #'
-#' @param object A slasso_surv object
+#' @param object A surv_sl_lasso object
 #' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param times The prediction time of interest
 #' @param ... Additional arguments (currently not used)
@@ -141,18 +145,20 @@ slasso_surv = function(X, W, Y, D, times,
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' slasso_surv_fit = slasso_surv(X, W, Y, D, times)
-#' slasso_surv_cate = predict(slasso_surv_fit, X, times)
+#' surv_sl_lasso_fit = surv_sl_lasso(X, W, Y, D, times)
+#' cate = predict(surv_sl_lasso_fit)
+#' cate.test = predict(surv_sl_lasso_fit, X.test)
 #' }
-#'
 #'
 #' @return vector of estimated conditional average treatment effects
 #' @export
-predict.slasso_surv <- function(object,
-                                newx = NULL,
-                                times,
-                                ...) {
+predict.surv_sl_lasso <- function(object,
+                                  newx = NULL,
+                                  times = NULL,
+                                  ...) {
   if (!is.null(newx)) {
     newx = sanitize_x(newx)
     newx_scl = scale(newx, center = TRUE, scale = TRUE)
@@ -163,8 +169,14 @@ predict.slasso_surv <- function(object,
     link1 <- exp(newx_scl_pred1 %*% object$s_beta)
     link0 <- exp(newx_scl_pred0 %*% object$s_beta)
 
-    surv1 <- object$S0_t^exp(link1)
-    surv0 <- object$S0_t^exp(link0)
+    if(is.null(times)){
+    times <- object$times
+    }
+    index <- findInterval(times, object$S0_t$time)
+    S0 <- object$S0_t[index,]$survival
+
+    surv1 <- S0^exp(link1)
+    surv0 <- S0^exp(link0)
 
     tau_hat <- as.numeric(surv1 - surv0)
   }

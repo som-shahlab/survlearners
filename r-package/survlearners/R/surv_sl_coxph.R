@@ -21,13 +21,16 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' scoxph_fit = scoxph(X, W, Y, D, times)
-#' scoxph_cate = predict(scoxph_fit, X, times)
+#' surv_sl_coxph_fit = surv_sl_coxph(X, W, Y, D, times)
+#' cate = predict(surv_sl_coxph_fit)
+#' cate.test = predict(surv_sl_coxph_fit, X.test)
 #' }
-#' @return a scoxph object
+#' @return a surv_sl_coxph object
 #' @export
-scoxph = function(X, W, Y, D, times){
+surv_sl_coxph = function(X, W, Y, D, times){
 
   input = sanitize_input(X,W,Y,D)
   X = input$X
@@ -59,17 +62,18 @@ scoxph = function(X, W, Y, D, times){
   ret = list(s_fit = s_fit,
              bh = bh,
              s_beta = s_fit$coefficients,
+             times = times,
              tau_hat = tau_hat)
 
-  class(ret) <- "scoxph"
+  class(ret) <- "surv_sl_coxph"
   ret
 }
 
-#' predict for scoxph
+#' predict for surv_sl_coxph
 #'
-#' get estimated tau(X) using the trained scoxph model
+#' get estimated tau(X) using the trained surv_sl_coxph model
 #'
-#' @param object A scoxph object
+#' @param object A surv_sl_coxph object
 #' @param newx Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param times The prediction time of interest
 #' @param ... Additional arguments (currently not used)
@@ -88,18 +92,25 @@ scoxph = function(X, W, Y, D, times){
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' scoxph_fit = scoxph(X, W, Y, D, times)
-#' scoxph_cate = predict(scoxph_fit, X, times)
+#' surv_sl_coxph_fit = surv_sl_coxph(X, W, Y, D, times)
+#' cate = predict(surv_sl_coxph_fit)
+#' cate.test = predict(surv_sl_coxph_fit, X.test)
 #' }
 #' @return vector of estimated conditional average treatment effects
 #' @export
-predict.scoxph <- function(object,
-                           newx = NULL,
-                           times,
-                           ...) {
+predict.surv_sl_coxph <- function(object,
+                                  newx = NULL,
+                                  times = NULL,
+                                  ...) {
   if (!is.null(newx)) {
     newx <- sanitize_x(newx)
+
+    if(is.null(times)){
+    times <- object$times
+    }
 
     bh_dat <- survival::basehaz(object$s_fit, centered = FALSE)
     index <- findInterval(times, bh_dat$time)

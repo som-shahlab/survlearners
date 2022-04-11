@@ -23,9 +23,12 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
 #' surv_fl_lasso_fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
 #' cate = predict(surv_fl_lasso_fit)
+#' cate.test = predict(surv_fl_lasso_fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
@@ -113,9 +116,12 @@ surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = 
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
 #' surv_fl_lasso_fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
 #' cate = predict(surv_fl_lasso_fit)
+#' cate.test = predict(surv_fl_lasso_fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects

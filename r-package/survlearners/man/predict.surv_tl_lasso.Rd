@@ -35,9 +35,12 @@ numeratorC <- -log(runif(n))
 censor.time <- (numeratorC/(4^2))^(1/2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
+n.test <- 500
+X.test <- matrix(rnorm(n.test * p), n.test, p)
 
 surv_tl_lasso_fit = surv_tl_lasso(X, W, Y, D, times)
 cate = predict(surv_tl_lasso_fit)
+cate.test = predict(surv_tl_lasso_fit, X.test)
 }
 
 }

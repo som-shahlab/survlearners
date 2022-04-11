@@ -1,6 +1,6 @@
-#' @title R-learner of grf and lasso
+#' @title R-learner of grf
 #'
-#' @description  R-learner, implemented via the grf package for nuisance parameter estimation and lasso for target parameter
+#' @description  R-learner, implemented via the grf package
 #'
 #' @param X The baseline covariates
 #' @param W The treatment variable (0 or 1)
@@ -31,9 +31,6 @@
 #' @param compute.oob.predictions See grf documentation
 #' @param num.threads See grf documentation
 #' @param seed See grf documentation
-#' @param lambda_tau User-supplied lambda sequence for cross validation in the cate model
-#' @param lambda_choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
-#' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in X
 #' @param cen_fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
@@ -49,42 +46,42 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' rlasgrf_fit = rlasgrf(X, W, Y, D, times, p_hat = 0.5)
-#' rlasgrf_cate = predict(rlasgrf_fit, X)
+#' surv_rl_grf_fit = surv_rl_grf(X, W, Y, D, times, p_hat = 0.5)
+#' cate = predict(surv_rl_grf_fit)
+#' cate.test = predict(surv_rl_grf_fit, X.test)
 #' }
-#' @return a rlasgrf object
+#' @return a surv_rl_grf_fit object
 #' @export
-rlasgrf = function(X, W, Y, D,
-                   times = NULL,
-                   k_folds = 10,
-                   p_hat = NULL,
-                   m_hat = NULL,
-                   c_hat = NULL,
-                   failure.times = NULL,
-                   num.trees = 2000,
-                   sample.weights = NULL,
-                   clusters = NULL,
-                   equalize.cluster.weights = FALSE,
-                   sample.fraction = 0.5,
-                   mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
-                   min.node.size = 5,
-                   honesty = TRUE,
-                   honesty.fraction = 0.5,
-                   honesty.prune.leaves = TRUE,
-                   alpha = 0.05,
-                   imbalance.penalty = 0,
-                   stabilize.splits = TRUE,
-                   ci.group.size = 2,
-                   tune.parameters = "none",
-                   compute.oob.predictions = TRUE,
-                   num.threads = NULL,
-                   seed = runif(1, 0, .Machine$integer.max),
-                   lambda_tau = NULL,
-                   lambda_choice = "lambda.min",
-                   penalty_factor = NULL,
-                   cen_fit = "KM",
-                   verbose = FALSE){
+surv_rl_grf = function(X, W, Y, D,
+                       times = NULL,
+                       k_folds = NULL,
+                       p_hat = NULL,
+                       m_hat = NULL,
+                       c_hat = NULL,
+                       failure.times = NULL,
+                       num.trees = 2000,
+                       sample.weights = NULL,
+                       clusters = NULL,
+                       equalize.cluster.weights = FALSE,
+                       sample.fraction = 0.5,
+                       mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
+                       min.node.size = 5,
+                       honesty = TRUE,
+                       honesty.fraction = 0.5,
+                       honesty.prune.leaves = TRUE,
+                       alpha = 0.05,
+                       imbalance.penalty = 0,
+                       stabilize.splits = TRUE,
+                       ci.group.size = 2,
+                       tune.parameters = "none",
+                       compute.oob.predictions = TRUE,
+                       num.threads = NULL,
+                       seed = runif(1, 0, .Machine$integer.max),
+                       cen_fit = "KM",
+                       verbose = FALSE){
 
   input = sanitize_input(X,W,Y,D)
   X = input$X
@@ -94,17 +91,8 @@ rlasgrf = function(X, W, Y, D,
   nobs = nrow(X)
   pobs = ncol(X)
 
-  x_scl = scale(X, center = TRUE, scale = TRUE)
-  x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
-
-  # penalty factor for tau estimator
-  if (is.null(penalty_factor) || (length(penalty_factor) != pobs)) {
-    if (!is.null(penalty_factor) && length(penalty_factor) != pobs) {
-      warning("penalty_factor supplied is not of the same length as the number of columns in X after removing NA columns. Using all ones instead.")
-    }
-    penalty_factor_tau = c(0, rep(1, pobs))
-  } else {
-    penalty_factor_tau = c(0, penalty_factor)
+  if (is.null(k_folds)) {
+    k_folds = floor(max(3, min(10,length(Y)/4)))
   }
 
   if (is.null(p_hat)){
@@ -178,47 +166,52 @@ rlasgrf = function(X, W, Y, D,
   }
 
   # create binary data
-  tempdat <- data.frame(Y, D, W, m_hat, p_hat, c_hat, x_scl)
-  binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]          # remove subjects who got censored before the time of interest t50
+  tempdata <- data.frame(Y, D, W, m_hat, p_hat, c_hat, X)
+  binary_data <- tempdata[tempdata$D==1|tempdata$Y > times,]       # remove subjects who got censored before the time of interest t50
   binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0     # recode the event status for subjects who had events after t50
   binary_data <- binary_data[complete.cases(binary_data),]
 
-  weights = 1/binary_data$c_hat     # the treatment weight is already accounted
-  y_tilde = (1 - binary_data$D) - binary_data$m_hat
-  x_scl = binary_data[, 7:dim(binary_data)[2]]
-  foldid2 = sample(rep(seq(k_folds), length = length(binary_data$W)))
+  y_tilde <- (1 - binary_data$D) - binary_data$m_hat
+  w_tilde <-  binary_data$W - binary_data$p_hat
+  pseudo_outcome <- y_tilde/w_tilde
+  weights <- w_tilde^2/binary_data$c_hat
 
-  x_scl_tilde = cbind(as.numeric(binary_data$W - binary_data$p_hat) * cbind(1, x_scl))
-  x_scl_pred = cbind(1, x_scl)
+  tau_fit <- grf::regression_forest(binary_data[,7:dim(binary_data)[2]],
+                                    pseudo_outcome,
+                                    sample.weights = weights,
+                                    num.trees = num.trees,
+                                    clusters = clusters,
+                                    sample.fraction = sample.fraction,
+                                    mtry = mtry,
+                                    min.node.size = min.node.size,
+                                    honesty = honesty,
+                                    honesty.fraction = honesty.fraction,
+                                    honesty.prune.leaves = honesty.prune.leaves,
+                                    imbalance.penalty = imbalance.penalty,
+                                    ci.group.size = ci.group.size,
+                                    compute.oob.predictions = compute.oob.predictions,
+                                    num.threads = num.threads,
+                                    seed = seed)
 
-  tau_fit = glmnet::cv.glmnet(as.matrix(x_scl_tilde),
-                              y_tilde,
-                              weights = weights,
-                              foldid = foldid2,
-                              alpha = 1,
-                              lambda = lambda_tau,
-                              penalty.factor = penalty_factor_tau, # no penalty on ATE
-                              standardize = FALSE)
-  tau_beta = as.vector(t(coef(tau_fit, s = lambda_choice)[-1]))
-  tau_hat = as.matrix(x_scl_pred) %*% tau_beta
-
-  ret = list(tau_fit = tau_fit,
-             tau_beta = tau_beta,
-             y_fit = y_fit,
-             c_fit = c_fit,
-             p_hat = p_hat,
-             m_hat = m_hat,
-             tau_hat = tau_hat)
-  class(ret) <- "rlasgrf"
+  ret <- list(tau_fit = tau_fit,
+              pseudo_outcome = pseudo_outcome,
+              weights = weights,
+              y_fit = y_fit,
+              c_fit = c_fit,
+              p_hat = p_hat,
+              m_hat = m_hat,
+              c_hat = c_hat)
+  class(ret) <- "surv_rl_grf"
   ret
 }
 
-#' predict for rlasgrf
+#' predict for surv_rl_grf
 #'
-#' get estimated tau(X) using the trained rlasgrf model
+#' get estimated tau(X) using the trained surv_rl_grf model
 #'
-#' @param object a rlasgrf object
+#' @param object a surv_rl_grf object
 #' @param newx covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param tau_only if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.
 #' @param ... additional arguments (currently not used)
 #'
 #' @examples
@@ -235,25 +228,31 @@ rlasgrf = function(X, W, Y, D,
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' rlasgrf_fit = rlasgrf(X, W, Y, D, times, p_hat = 0.5)
-#' rlasgrf_cate = predict(rlasgrf_fit, X)
+#' surv_rl_grf_fit = surv_rl_grf(X, W, Y, D, times, p_hat = 0.5)
+#' cate = predict(surv_rl_grf_fit)
+#' cate.test = predict(surv_rl_grf_fit, X.test)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects
 #' @export
-predict.rlasgrf <- function(object,
-                            newx = NULL,
-                            ...) {
-  if (!is.null(newx)) {
+predict.surv_rl_grf <- function(object,
+                                newx = NULL,
+                                tau_only = TRUE,
+                                ...) {
+  if (!is.null(newx)){
     newx = sanitize_x(newx)
-    newx_scl = scale(newx, center = TRUE, scale = TRUE)
-    newx_scl = newx_scl[,!is.na(colSums(newx_scl)), drop = FALSE]
-    newx_scl_pred = cbind(1, newx_scl)
-    tau_hat = newx_scl_pred %*% object$tau_beta
   }
-  else {
-    tau_hat = object$tau_hat
+  if (tau_only) {
+    return(predict(object$tau_fit, newx)$predictions)
+  } else {
+    tau <- predict(object$tau_fit, newx)$predictions
+    e = predict(object$w_fit, newx)$predictions
+    m = predict(object$y_fit, newx)$predictions
+    mu1 = m + (1-e) * tau
+    mu0 = m - e * tau
+    return(list(tau=tau, e=e, m=m, mu1 = mu1, mu0 = mu0))
   }
-  return(tau_hat)
 }

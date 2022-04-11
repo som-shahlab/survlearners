@@ -20,9 +20,12 @@
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
 #' surv_tl_coxph_fit = surv_tl_coxph(X, W, Y, D, times)
 #' cate = predict(surv_tl_coxph_fit)
+#' cate.test = predict(surv_tl_coxph_fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
@@ -83,9 +86,12 @@ surv_tl_coxph <- function(X, W, Y, D, times){
 #' censor.time <- (numeratorC/(4^2))^(1/2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
+#' n.test <- 500
+#' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
 #' surv_tl_coxph_fit = surv_tl_coxph(X, W, Y, D, times)
 #' cate = predict(surv_tl_coxph_fit)
+#' cate.test = predict(surv_tl_coxph_fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects
@@ -108,10 +114,10 @@ predict.surv_tl_coxph = function(object,
     bh1 <- object$bh1[index1, 1]
     bh0 <- object$bh0[index0, 1]
 
-    est_r1 <- predict(object$fit1, newdata = newX, type="risk")
+    est_r1 <- predict(object$fit1, newdata = data.frame(newx), type="risk")
     surf1 <- exp(-bh1)^est_r1
 
-    est_r0 <- predict(object$fit0, newdata = newX, type="risk")
+    est_r0 <- predict(object$fit0, newdata = data.frame(newx), type="risk")
     surf0 <- exp(-bh0)^est_r0
 
     return(surf1 - surf0)
