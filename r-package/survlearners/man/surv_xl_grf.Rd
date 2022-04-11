@@ -12,7 +12,7 @@ surv_xl_grf(
   times,
   alpha = 0.05,
   ps = NULL,
-  cen_fit = "KM",
+  cen.fit = "KM",
   newX = NULL
 )
 }
@@ -23,7 +23,7 @@ surv_xl_grf(
 
 \item{ps}{The propensity score}
 
-\item{cen_fit}{The choice of model fitting for censoring}
+\item{cen.fit}{The choice of model fitting for censoring}
 
 \item{newX}{The test data set (covariates only)}
 
@@ -54,8 +54,8 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_xl_grf_fit = surv_xl_grf(X, W, Y, D, times, ps = 0.5)
-cate = predict(surv_xl_grf_fit)
-cate.test = predict(surv_xl_grf_fit, X.test)
+surv.xl.grf.fit = surv_xl_grf(X, W, Y, D, times, ps = 0.5)
+cate = predict(surv.xl.grf.fit)
+cate.test = predict(surv.xl.grf.fit, X.test)
 }
 }

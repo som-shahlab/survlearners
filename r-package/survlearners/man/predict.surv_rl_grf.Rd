@@ -4,14 +4,14 @@
 \alias{predict.surv_rl_grf}
 \title{predict for surv_rl_grf}
 \usage{
-\method{predict}{surv_rl_grf}(object, newdata = NULL, tau_only = TRUE, ...)
+\method{predict}{surv_rl_grf}(object, newdata = NULL, tau.only = TRUE, ...)
 }
 \arguments{
 \item{object}{a surv_rl_grf object}
 
 \item{newdata}{covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
-\item{tau_only}{if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.}
+\item{tau.only}{if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.}
 
 \item{...}{additional arguments (currently not used)}
 }
@@ -38,9 +38,9 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_rl_grf_fit = surv_rl_grf(X, W, Y, D, times, p_hat = 0.5)
-cate = predict(surv_rl_grf_fit)
-cate.test = predict(surv_rl_grf_fit, X.test)
+surv.rl.grf.fit = surv_rl_grf(X, W, Y, D, times, p.hat = 0.5)
+cate = predict(surv.rl.grf.fit)
+cate.test = predict(surv.rl.grf.fit, X.test)
 }
 
 }

@@ -8,11 +8,11 @@
 #' @param D The event indicator
 #' @param times The prediction time of interest
 #' @param alpha Mix tuning parameter for the elastic net
-#' @param k_folds Number of folds for cross validation
-#' @param foldid User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k_folds option.
+#' @param k.folds Number of folds for cross validation
+#' @param foldid User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k.folds option.
 #' @param lambda User-supplied lambda sequence for cross validation
-#' @param lambda_choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
-#' @param penalty_factor User-supplied penalty factor, must be of length the same as number of features in X
+#' @param lambda.choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
+#' @param penalty.factor User-supplied penalty factor, must be of length the same as number of features in X
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25
@@ -30,19 +30,19 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_sl_lasso_fit = surv_sl_lasso(X, W, Y, D, times)
-#' cate = predict(surv_sl_lasso_fit)
-#' cate.test = predict(surv_sl_lasso_fit, X.test)
+#' surv.sl.lasso.fit = surv_sl_lasso(X, W, Y, D, times)
+#' cate = predict(surv.sl.lasso.fit)
+#' cate.test = predict(surv.sl.lasso.fit, X.test)
 #' }
 #' @return a surv_sl_lasso object
 #' @export
 surv_sl_lasso = function(X, W, Y, D, times,
                          alpha = 1,
-                         k_folds = NULL,
+                         k.folds = NULL,
                          foldid = NULL,
                          lambda = NULL,
-                         lambda_choice = "lambda.min",
-                         penalty_factor = NULL){
+                         lambda.choice = "lambda.min",
+                         penalty.factor = NULL){
 
   input = sanitize_input(X, W, Y, D)
   X = input$X
@@ -50,11 +50,11 @@ surv_sl_lasso = function(X, W, Y, D, times,
   Y = input$Y
   D = input$D
 
-  x_scl = scale(X, center = TRUE, scale = TRUE)
-  x_scl = x_scl[,!is.na(colSums(x_scl)), drop = FALSE]
+  x.scl = scale(X, center = TRUE, scale = TRUE)
+  x.scl = x.scl[,!is.na(colSums(x.scl)), drop = FALSE]
 
-  nobs = nrow(x_scl)
-  pobs = ncol(x_scl)
+  nobs = nrow(x.scl)
+  pobs = ncol(x.scl)
 
   if (is.null(foldid) || length(foldid) != length(W)) {
 
@@ -62,61 +62,61 @@ surv_sl_lasso = function(X, W, Y, D, times,
       warning("supplied foldid does not have the same length ")
     }
 
-    if (is.null(k_folds)) {
-      k_folds = floor(max(3, min(10,length(W)/4)))
+    if (is.null(k.folds)) {
+      k.folds = floor(max(3, min(10,length(W)/4)))
     }
 
     # fold ID for cross-validation; balance treatment assignments
-    foldid = sample(rep(seq(k_folds), length = length(W)))
+    foldid = sample(rep(seq(k.folds), length = length(W)))
   }
 
-  x_scl_tilde = cbind(as.numeric(2 * W - 1) * cbind(1, x_scl), x_scl)
-  x_scl_pred1 = cbind(1, x_scl, x_scl)
-  x_scl_pred0 = cbind(0, 0 * x_scl, x_scl)
+  x.scl.tilde = cbind(as.numeric(2 * W - 1) * cbind(1, x.scl), x.scl)
+  x.scl.pred1 = cbind(1, x.scl, x.scl)
+  x.scl.pred0 = cbind(0, 0 * x.scl, x.scl)
 
-  if (is.null(penalty_factor) || (length(penalty_factor) != pobs)) {
-    if (!is.null(penalty_factor) && length(penalty_factor) != 2 * pobs + 1) {
-      warning("penalty_factor supplied is not 1 plus 2 times the number of columns in X. Using all ones instead.")
+  if (is.null(penalty.factor) || (length(penalty.factor) != pobs)) {
+    if (!is.null(penalty.factor) && length(penalty.factor) != 2 * pobs + 1) {
+      warning("penalty.factor supplied is not 1 plus 2 times the number of columns in X. Using all ones instead.")
     }
-    penalty_factor = c(0, rep(1, 2 * pobs))
+    penalty.factor = c(0, rep(1, 2 * pobs))
   }
-  x_scl_tilde <- as.matrix(data.frame(x_scl_tilde))
-  s_fit <- glmnet::cv.glmnet(x_scl_tilde,
+  x.scl.tilde <- as.matrix(data.frame(x.scl.tilde))
+  s.fit <- glmnet::cv.glmnet(x.scl.tilde,
                              survival::Surv(Y, D),
                              family = "cox",
                              foldid = foldid,
                              lambda = lambda,
-                             penalty.factor = penalty_factor,
+                             penalty.factor = penalty.factor,
                              standardize = FALSE,
                              alpha = alpha)
 
-  s_beta <- t(as.vector(coef(s_fit, s = lambda_choice)))
-  s_beta_adj <- c(0.5 * s_beta[1:(1 + dim(X)[2])], s_beta[(2 + dim(X)[2]):dim(x_scl_tilde)[2]])
+  s.beta <- t(as.vector(coef(s.fit, s = lambda.choice)))
+  s.beta.adj <- c(0.5 * s.beta[1:(1 + dim(X)[2])], s.beta[(2 + dim(X)[2]):dim(x.scl.tilde)[2]])
 
-  link1 <- exp(x_scl_pred1 %*% s_beta_adj)
-  link0 <- exp(x_scl_pred0 %*% s_beta_adj)
-  S0_t <- base_surv(fit = s_fit,
+  link1 <- exp(x.scl.pred1 %*% s.beta.adj)
+  link0 <- exp(x.scl.pred0 %*% s.beta.adj)
+  S0.t <- base_surv(fit = s.fit,
                     Y = Y,
                     D = D,
-                    X = x_scl_tilde,
-                    lambda = s_fit$lambda.min)
-  index <- findInterval(times, S0_t$time)
-  S0 <- S0_t[index,]$survival
+                    X = x.scl.tilde,
+                    lambda = s.fit$lambda.min)
+  index <- findInterval(times, S0.t$time)
+  S0 <- S0.t[index,]$survival
   surv1 <- S0^exp(link1)
   surv0 <- S0^exp(link0)
 
-  tau_hat <- as.numeric(surv1 - surv0)
+  tau.hat <- as.numeric(surv1 - surv0)
 
-  ret = list(s_fit = s_fit,
-             x_org = x_scl_tilde,
-             y_org = Y,
-             D_org = D,
-             beta_org = s_beta,
-             s_beta = s_beta_adj,
-             S0_t = S0_t,
+  ret = list(s.fit = s.fit,
+             x.org = x.scl.tilde,
+             y.org = Y,
+             D.org = D,
+             beta.org = s.beta,
+             s.beta = s.beta.adj,
+             S0.t = S0.t,
              times = times,
-             tau_hat = tau_hat,
-             lambda_choice = lambda_choice)
+             tau.hat = tau.hat,
+             lambda.choice = lambda.choice)
 
   class(ret) <- "surv_sl_lasso"
   ret
@@ -148,9 +148,9 @@ surv_sl_lasso = function(X, W, Y, D, times,
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_sl_lasso_fit = surv_sl_lasso(X, W, Y, D, times)
-#' cate = predict(surv_sl_lasso_fit)
-#' cate.test = predict(surv_sl_lasso_fit, X.test)
+#' surv.sl.lasso.fit = surv_sl_lasso(X, W, Y, D, times)
+#' cate = predict(surv.sl.lasso.fit)
+#' cate.test = predict(surv.sl.lasso.fit, X.test)
 #' }
 #'
 #' @return vector of estimated conditional average treatment effects
@@ -161,27 +161,27 @@ predict.surv_sl_lasso <- function(object,
                                   ...) {
   if (!is.null(newdata)) {
     newdata = sanitize_x(newdata)
-    newdata_scl = scale(newdata, center = TRUE, scale = TRUE)
-    newdata_scl = newdata_scl[,!is.na(colSums(newdata_scl)), drop = FALSE]
-    newdata_scl_pred1 = cbind(1, newdata_scl, newdata_scl)
-    newdata_scl_pred0 = cbind(0, 0 * newdata_scl, newdata_scl)
+    newdata.scl = scale(newdata, center = TRUE, scale = TRUE)
+    newdata.scl = newdata.scl[,!is.na(colSums(newdata.scl)), drop = FALSE]
+    newdata.scl.pred1 = cbind(1, newdata.scl, newdata.scl)
+    newdata.scl.pred0 = cbind(0, 0 * newdata.scl, newdata.scl)
 
-    link1 <- exp(newdata_scl_pred1 %*% object$s_beta)
-    link0 <- exp(newdata_scl_pred0 %*% object$s_beta)
+    link1 <- exp(newdata.scl.pred1 %*% object$s.beta)
+    link0 <- exp(newdata.scl.pred0 %*% object$s.beta)
 
     if(is.null(times)){
     times <- object$times
     }
-    index <- findInterval(times, object$S0_t$time)
-    S0 <- object$S0_t[index,]$survival
+    index <- findInterval(times, object$S0.t$time)
+    S0 <- object$S0.t[index,]$survival
 
     surv1 <- S0^exp(link1)
     surv0 <- S0^exp(link0)
 
-    tau_hat <- as.numeric(surv1 - surv0)
+    tau.hat <- as.numeric(surv1 - surv0)
   }
   else {
-    tau_hat = object$tau_hat
+    tau.hat = object$tau.hat
   }
-  return(tau_hat)
+  return(tau.hat)
 }

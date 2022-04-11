@@ -1,14 +1,14 @@
 # For computing baseline hazard in coxph
 base_surv <- function(fit, Y, D, X, lambda){
-  data <- data.frame(t_event=Y, event=D, X)
-  tab <- data.frame(table(data[data$event == 1, "t_event"]))
+  data <- data.frame(t.event=Y, event=D, X)
+  tab <- data.frame(table(data[data$event == 1, "t.event"]))
   Y <- as.numeric(as.character(sort(unique(tab[,1]))))
   D <- tab[,2]  # number of events at each unique time
 
   betaHat <- as.vector((fit$glmnet.fit$beta)[,fit$lambda==lambda])
   h0 <- rep(NA, length(Y))
   for(l in 1:length(Y)){
-    h0[l] <- D[l] / sum(exp(X[data$t_event >= Y[l], rownames(fit$glmnet.fit$beta)] %*% betaHat))
+    h0[l] <- D[l] / sum(exp(X[data$t.event >= Y[l], rownames(fit$glmnet.fit$beta)] %*% betaHat))
   }
 
   S0 <- exp(-cumsum(h0))
@@ -20,15 +20,15 @@ pred_surv <- function(fit, S0, X, times, lambda){
   colnames(link) <- NULL
 
   if(length(times)>1){
-    S0_t <- rep(NA, length(times))
+    S0.t <- rep(NA, length(times))
     for (i in 1:length(times)){
-      S0_t[i] <- S0$survival[S0$time>=times[i]][1]
+      S0.t[i] <- S0$survival[S0$time>=times[i]][1]
     }
   }else{
-    S0_t <- S0$survival[S0$time>=times][1]
+    S0.t <- S0$survival[S0$time>=times][1]
   }
 
-  surv <- S0_t^exp(link)
+  surv <- S0.t^exp(link)
   surv
 }
 pred_surv_preval <- function(fit, S0, times, lambda){
@@ -36,15 +36,15 @@ pred_surv_preval <- function(fit, S0, times, lambda){
   colnames(link) <- NULL
 
   if(length(times)>1){
-    S0_t <- rep(NA, length(times))
+    S0.t <- rep(NA, length(times))
     for (i in 1:length(times)){
-      S0_t[i] <- S0$survival[S0$time>=times[i]][1]
+      S0.t[i] <- S0$survival[S0$time>=times[i]][1]
     }
   }else{
-    S0_t <- S0$survival[S0$time>=times][1]
+    S0.t <- S0$survival[S0$time>=times][1]
   }
 
-  surv <- S0_t^exp(link)
+  surv <- S0.t^exp(link)
   surv
 }
 

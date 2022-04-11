@@ -4,7 +4,7 @@
 \alias{surv_xl_lasso}
 \title{X-learner of lasso}
 \usage{
-surv_xl_lasso(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM")
+surv_xl_lasso(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM")
 }
 \arguments{
 \item{times}{The prediction time of interest}
@@ -13,7 +13,7 @@ surv_xl_lasso(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM")
 
 \item{ps}{The propensity score}
 
-\item{cen_fit}{The choice of model fitting for censoring}
+\item{cen.fit}{The choice of model fitting for censoring}
 
 \item{data}{The training data set}
 
@@ -44,8 +44,8 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_xl_lasso_fit = surv_xl_lasso(X, W, Y, D, times, ps = 0.5)
-cate = predict(surv_xl_lasso_fit)
-cate.test = predict(surv_xl_lasso_fit, X.test)
+surv.xl.lasso.fit = surv_xl_lasso(X, W, Y, D, times, ps = 0.5)
+cate = predict(surv.xl.lasso.fit)
+cate.test = predict(surv.xl.lasso.fit, X.test)
 }
 }

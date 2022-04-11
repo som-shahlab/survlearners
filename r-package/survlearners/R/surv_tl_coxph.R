@@ -23,9 +23,9 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_tl_coxph_fit = surv_tl_coxph(X, W, Y, D, times)
-#' cate = predict(surv_tl_coxph_fit)
-#' cate.test = predict(surv_tl_coxph_fit, X.test)
+#' surv.tl.coxph.fit = surv_tl_coxph(X, W, Y, D, times)
+#' cate = predict(surv.tl.coxph.fit)
+#' cate.test = predict(surv.tl.coxph.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
@@ -36,28 +36,28 @@ surv_tl_coxph <- function(X, W, Y, D, times){
   traindat0 <- traindat[traindat$W==0, !colnames(traindat) %in% c("W")]
 
   # Model for W = 1
-  coxph_fit1 <- survival::coxph(survival::Surv(Y, D) ~., data = traindat1)
-  bh_dat1 <- survival::basehaz(coxph_fit1, centered = FALSE)
-  index <- findInterval(times, bh_dat1$time)
-  bh <- bh_dat1[index, 1]
-  est_r1 <- predict(coxph_fit1, newdata = data.frame(X), type="risk")
-  surf1 <- exp(-bh)^est_r1
+  coxph.fit1 <- survival::coxph(survival::Surv(Y, D) ~., data = traindat1)
+  bh.dat1 <- survival::basehaz(coxph.fit1, centered = FALSE)
+  index <- findInterval(times, bh.dat1$time)
+  bh <- bh.dat1[index, 1]
+  est.r1 <- predict(coxph.fit1, newdata = data.frame(X), type="risk")
+  surf1 <- exp(-bh)^est.r1
 
   # Model for W = 0
-  coxph_fit0 <- survival::coxph(survival::Surv(Y, D) ~., data = traindat0)
-  bh_dat0 <- survival::basehaz(coxph_fit0, centered = FALSE)
-  index <- findInterval(times, bh_dat0$time)
-  bh <- bh_dat0[index, 1]
-  est_r0 <- predict(coxph_fit0, newdata = data.frame(X), type="risk")
-  surf0 <- exp(-bh)^est_r0
+  coxph.fit0 <- survival::coxph(survival::Surv(Y, D) ~., data = traindat0)
+  bh.dat0 <- survival::basehaz(coxph.fit0, centered = FALSE)
+  index <- findInterval(times, bh.dat0$time)
+  bh <- bh.dat0[index, 1]
+  est.r0 <- predict(coxph.fit0, newdata = data.frame(X), type="risk")
+  surf0 <- exp(-bh)^est.r0
 
-  pred_T_coxph <- surf1 - surf0
+  pred.T.coxph <- surf1 - surf0
 
-  ret <- list(fit1 = coxph_fit1,
-              fit0 = coxph_fit0,
-              bh1 = bh_dat1,
-              bh0 = bh_dat0,
-              tau = pred_T_coxph,
+  ret <- list(fit1 = coxph.fit1,
+              fit0 = coxph.fit0,
+              bh1 = bh.dat1,
+              bh0 = bh.dat0,
+              tau = pred.T.coxph,
               times = times)
   class(ret) <- 'surv_tl_coxph'
   ret
@@ -89,9 +89,9 @@ surv_tl_coxph <- function(X, W, Y, D, times){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_tl_coxph_fit = surv_tl_coxph(X, W, Y, D, times)
-#' cate = predict(surv_tl_coxph_fit)
-#' cate.test = predict(surv_tl_coxph_fit, X.test)
+#' surv.tl.coxph.fit = surv_tl_coxph(X, W, Y, D, times)
+#' cate = predict(surv.tl.coxph.fit)
+#' cate.test = predict(surv.tl.coxph.fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects
@@ -114,11 +114,11 @@ predict.surv_tl_coxph = function(object,
     bh1 <- object$bh1[index1, 1]
     bh0 <- object$bh0[index0, 1]
 
-    est_r1 <- predict(object$fit1, newdata = data.frame(newdata), type="risk")
-    surf1 <- exp(-bh1)^est_r1
+    est.r1 <- predict(object$fit1, newdata = data.frame(newdata), type="risk")
+    surf1 <- exp(-bh1)^est.r1
 
-    est_r0 <- predict(object$fit0, newdata = data.frame(newdata), type="risk")
-    surf0 <- exp(-bh0)^est_r0
+    est.r0 <- predict(object$fit0, newdata = data.frame(newdata), type="risk")
+    surf0 <- exp(-bh0)^est.r0
 
     return(surf1 - surf0)
   }

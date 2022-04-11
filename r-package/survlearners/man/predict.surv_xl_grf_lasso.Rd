@@ -38,9 +38,9 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_xl_grf_lasso_fit = surv_xl_grf_lasso(X, W, Y, D, times, ps = 0.5)
-cate = predict(surv_xl_grf_lasso_fit)
-cate.test = predict(surv_xl_grf_lasso_fit, X.test)
+surv.xl.grf.lasso.fit = surv_xl_grf_lasso(X, W, Y, D, times, ps = 0.5)
+cate = predict(surv.xl.grf.lasso.fit)
+cate.test = predict(surv.xl.grf.lasso.fit, X.test)
 }
 
 }
