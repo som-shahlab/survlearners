@@ -28,7 +28,7 @@
 #' cate = predict(surv.sl.coxph.fit)
 #' cate.test = predict(surv.sl.coxph.fit, X.test)
 #' }
-#' @return a surv_sl_coxph object
+#' @return A surv_sl_coxph object
 #' @export
 surv_sl_coxph = function(X, Y, W, D, times){
 
@@ -99,7 +99,7 @@ surv_sl_coxph = function(X, Y, W, D, times){
 #' cate = predict(surv.sl.coxph.fit)
 #' cate.test = predict(surv.sl.coxph.fit, X.test)
 #' }
-#' @return vector of estimated conditional average treatment effects
+#' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_sl_coxph <- function(object,
                                   newdata = NULL,

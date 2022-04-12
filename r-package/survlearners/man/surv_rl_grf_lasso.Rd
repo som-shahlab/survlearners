@@ -51,7 +51,7 @@ surv_rl_grf_lasso(
 \item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
-a surv_rl_grf_lasso object
+A surv_rl_grf_lasso object
 }
 \description{
 R-learner, implemented via the grf package for nuisance parameter estimation and lasso for target parameter

@@ -45,7 +45,7 @@ surv_rl_grf(
 \item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
-a surv_rl_grf_fit object
+A surv_rl_grf_fit object
 }
 \description{
 R-learner, implemented via the grf package

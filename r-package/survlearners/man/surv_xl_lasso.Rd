@@ -33,7 +33,7 @@ surv_xl_lasso(
 \item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
-A vector of estimated conditional average treatment effects
+A surv_xl_lasso object
 }
 \description{
 X-learner, implemented via glmnet (lasso) with 'coxph' distribution

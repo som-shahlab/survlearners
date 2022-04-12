@@ -35,7 +35,7 @@
 #' cate = predict(surv.rl.grf.fit)
 #' cate.test = predict(surv.rl.grf.fit, X.test)
 #' }
-#' @return a surv_rl_grf_fit object
+#' @return A surv_rl_grf_fit object
 #' @export
 surv_rl_grf = function(X, Y, W, D,
                        times = NULL,

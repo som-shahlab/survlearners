@@ -20,7 +20,7 @@ surv_tl_grf(X, Y, W, D, times, alpha = 0.05)
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
 }
 \value{
-A vector of estimated conditional average treatment effects
+A surv_tl_grf object
 }
 \description{
 T-learner, implemented via survival_forest (grf package)

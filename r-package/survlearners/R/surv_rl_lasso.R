@@ -39,7 +39,7 @@
 #' cate = predict(surv.rl.lasso.fit)
 #' cate.test = predict(surv.rl.lasso.fit, X.test)
 #' }
-#' @return a surv_rl_lasso object
+#' @return A surv_rl_lasso object
 #' @export
 surv_rl_lasso = function(X, Y, W, D,
                          times = NULL,

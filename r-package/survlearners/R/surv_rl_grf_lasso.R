@@ -37,7 +37,7 @@
 #' cate = predict(surv.rl.grf.lasso.fit)
 #' cate.test = predict(surv.rl.grf.lasso.fit, X.test)
 #' }
-#' @return a surv_rl_grf_lasso object
+#' @return A surv_rl_grf_lasso object
 #' @export
 surv_rl_grf_lasso = function(X, Y, W, D,
                              times = NULL,

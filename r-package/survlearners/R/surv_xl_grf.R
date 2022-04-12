@@ -31,7 +31,7 @@
 #' cate = predict(surv.xl.grf.fit)
 #' cate.test = predict(surv.xl.grf.fit, X.test)
 #' }
-#' @return A vector of estimated conditional average treatment effects
+#' @return A surv_xl_grf object
 #' @export
 surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier"){
   # fit model on W==1
