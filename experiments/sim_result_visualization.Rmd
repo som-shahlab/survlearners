@@ -1,0 +1,218 @@
+---
+title: "Visualization of simulation results"
+date: "3/28/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggh4x)
+library(cowplot)
+library(ghibli)
+library(patchwork)
+```
+
+
+```{r}
+method_tbl <- bind_rows( 
+                data.frame(estimator = "csf", metalearner="CSF", baselearner="GRF", trtlearner="GRF", learner="CSF"),
+                data.frame(estimator = "fl_grf", metalearner = "F", baselearner="GRF", trtlearner="GRF", learner="F-G"),
+                data.frame(estimator = "fl_lasso", metalearner = "F", baselearner="Lasso", trtlearner="Lasso", learner="F-L"),
+                data.frame(estimator = "rl_grf", metalearner = "R", baselearner="GRF", trtlearner="GRF", learner="R-GG"),
+                data.frame(estimator = "rl_lasso", metalearner = "R", baselearner="Lasso", trtlearner="Lasso", learner="R-LL"),
+                data.frame(estimator = "xl_grf", metalearner = "X", baselearner="GRF", trtlearner="GRF", learner="X-GG"),
+                data.frame(estimator = "xl_lasso", metalearner = "X", baselearner="Lasso", trtlearner="Lasso", learner="X-LL"),
+                data.frame(estimator = "tl_grf", metalearner = "T", baselearner="GRF", trtlearner="GRF", learner="T-G"),
+                data.frame(estimator = "tl_lasso", metalearner = "T", baselearner="Lasso", trtlearner="Lasso", learner="T-L"),
+                data.frame(estimator = "sl_grf", metalearner = "S", baselearner="GRF", trtlearner="GRF", learner="S-G"),
+                data.frame(estimator = "sl_lasso", metalearner = "S", baselearner="Lasso", trtlearner="Lasso", learner="S-L"),
+                data.frame(estimator = "sl_coxph", metalearner = "CPH", baselearner="CPH", trtlearner="CPH", learner="CPH"),
+                data.frame(estimator = "tl_coxph", metalearner = "T", baselearner="CoxPH", trtlearner="CoxPH", learner="cox"),
+                data.frame(estimator = "xl_las_grf", metalearner = "X", baselearner = "GRF", trtlearner = "Lasso", learner="X-GL"),
+                data.frame(estimator = "rl_las_grf", metalearner = "R", baselearner = "GRF", trtlearner = "Lasso", learner="R-GL")
+) %>% mutate(metalearner = factor(metalearner, levels=c("CPH", "CSF","R", "T", "X", "F", "S")))
+```
+
+```{r}
+tbl <- read_csv("full_results.csv")
+```
+
+```{r}
+tbl_summary <- tbl %>% 
+                group_by(p_b, f_b, p_i, f_i, rho, cen_scale, gamma, horizon, pi, n, dgp, estimator, cenmodel, cenM) %>%
+                summarize(median_test_error = median(mse),
+                          MSE = mean(mse),
+                          kendall_tau = mean(concordance), 
+                          correlation = mean(rcorr),
+                          n_montecarlo=n()) %>%
+                mutate(f_b_explicit = ifelse(f_b == "L", "Lin.", "Nonlin."),
+                       f_i_explicit = ifelse(f_i == "L", "Lin.", "Nonlin.")) %>%
+                left_join(method_tbl) %>% 
+                filter(estimator != "tl_coxph") %>%
+                ungroup()
+```
+
+# Main simulation
+
+
+```{r}
+tbl_main_sim <- tbl_summary %>% 
+                filter(gamma == 1, 
+                       rho == 2,
+                       cen_scale == 4,
+                       horizon == 0.2,
+                       pi == 0.5,
+                       cenM == "indX",
+                       cenmodel == "KM")
+```
+
+```{r}
+main_sim_plot <- ggplot(tbl_main_sim, aes(x=interaction(learner, metalearner), y=median_test_error, fill=metalearner, label=learner)) + 
+    geom_col(position="dodge") + 
+    geom_text(angle = 90, nudge_y=0.12) + 
+    facet_grid( p_b + p_i ~ f_b_explicit + f_i_explicit,
+               labeller = label_bquote(
+                 cols = f[b] * ":" * .(f_b_explicit) * ", " * f[i] *":"* .(f_i_explicit),
+                 rows = p[b] * ":" * .(p_b) * ", " * p[i] *":"* .(p_i))) +
+    scale_fill_ghibli_d("PonyoMedium") +
+    ylab("MSE") +
+    ylim(0, 1.05) + 
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank()) 
+  
+```
+
+```{r}
+save_plot("main_simulation_plots.pdf", main_sim_plot, base_width=9, base_height=7)
+
+```
+
+
+# Ablations
+
+## Treatment Imbalance
+
+```{r}
+tbl_imbalance <- tbl_summary %>% 
+                 filter(pi == 0.01)
+```
+
+
+
+```{r}
+imbalance_plot <- ggplot(tbl_imbalance, aes(x=interaction(learner, metalearner), y=median_test_error, fill=metalearner, label=learner)) + 
+    geom_col(position="dodge") + 
+    geom_text(angle = 90, nudge_y=0.28) + 
+    facet_grid( . ~ f_b_explicit + f_i_explicit,
+               labeller = label_bquote(
+                 cols = f[b] * ":" * .(f_b_explicit) * ", " * f[i] *":"* .(f_i_explicit))) + 
+    scale_fill_ghibli_d("PonyoMedium") +
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank()) +
+    labs(title = "C. Imbalanced treatment assignment")+ 
+    ylim(0, 2.45)+
+    ylab("MSE")
+imbalance_plot
+```
+
+## HTE strength
+
+```{r}
+tbl_hte_strength <- tbl_summary %>% 
+                 filter(gamma < 1)
+```
+
+```{r}
+hte_strength_plot <- ggplot(tbl_hte_strength, aes(x=interaction(learner, metalearner), y=median_test_error, fill=metalearner, label=learner)) + 
+    geom_col(position="dodge") + 
+    geom_text(angle = 90, nudge_y=0.05) + 
+    facet_grid(gamma ~ f_b_explicit + f_i_explicit,
+               labeller = label_bquote(
+                 rows = gamma * " = " * .(gamma),
+                 cols = f[b] * ":" * .(f_b_explicit) * ", " * f[i] *":"* .(f_i_explicit))) + 
+    scale_fill_ghibli_d("PonyoMedium") +
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank())  + 
+  labs(title="A. Varying HTE strength") + 
+  ylim(0,0.35) + 
+  ylab("MSE")
+
+hte_strength_plot
+```
+
+
+## Time-of-interest
+
+
+
+
+```{r}
+tbl_horizon <- tbl_summary %>% 
+                 filter(horizon %in% c(0.001,  0.02))
+```
+
+```{r}
+horizon_plot <- ggplot(tbl_horizon, aes(x=interaction(learner, metalearner), y=median_test_error, fill=metalearner, label=learner)) + 
+    geom_col(position="dodge") + 
+    geom_text(angle = 90, nudge_y=0.045) + 
+    facet_grid(horizon ~ f_b_explicit + f_i_explicit,
+               labeller = label_bquote(
+                 rows = t[0] * " = " * .(horizon),
+                 cols = f[b] * ":" * .(f_b_explicit) * ", " * f[i] *":"* .(f_i_explicit))) + 
+    scale_fill_ghibli_d("PonyoMedium") +
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank()) +
+    labs(title="B. Varying time of interest") + 
+    ylab("MSE")
+horizon_plot
+```
+## Combine ablation plots
+
+```{r}
+ablation_plots <- hte_strength_plot + 
+          horizon_plot +
+          imbalance_plot + 
+          plot_layout(ncol=1, heights=c(2,2,1.15))
+ablation_plots
+```
+
+```{r}
+save_plot("ablation_plots.pdf", ablation_plots, base_width=9, base_height=12)
+```
+
+# Censoring ablations
+
+## Censoring strength
+
+## Heterogeneous censoring
+
+##  Temporary computations
+
+```{r}
+tbl_summary %>% dplyr::filter(cen_scale == 8) %>% 
+           count(p_b, f_b, p_i, f_i, rho, gamma, cen_scale, horizon, cenM)
+```
+```{r}
+tbl_summary %>% dplyr::filter(rho == 1) %>% 
+           count(p_b, f_b, p_i, f_i, rho, gamma, cen_scale, horizon, cenM)
+```
