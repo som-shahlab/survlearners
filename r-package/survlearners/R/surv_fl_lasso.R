@@ -8,7 +8,7 @@
 #' @param D The event indicator
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
-#' @param ps The propensity score
+#' @param W.hat The propensity score
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
@@ -27,20 +27,20 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.fl.lasso.fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
+#' surv.fl.lasso.fit = surv_fl_lasso(X, Y, W, D, times, W.hat = 0.5)
 #' cate = predict(surv.fl.lasso.fit)
 #' cate.test = predict(surv.fl.lasso.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM"){
+surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier"){
 
   # IPCW weights
-  if(cen.fit == "KM"){
+  if(cen.fit == "Kaplan-Meier"){
     shuffle <- sample(length(Y))
     kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
-    c.hat <- rep(NA, nrow(kmdat))
+    C.hat <- rep(NA, nrow(kmdat))
     for(z in 1:10){
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
@@ -48,10 +48,10 @@ surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = 
       c.fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
       cent <- testData$Y
       cent[testData$D==0] <- times
-      c.hat[testIndexes] <- summary(c.fit, times = cent)$surv
+      C.hat[testIndexes] <- summary(c.fit, times = cent)$surv
     }
-    shudat <- data.frame(shuffle, c.hat)
-    c.hat <- shudat[order(shuffle), ]$c.hat
+    shudat <- data.frame(shuffle, C.hat)
+    C.hat <- shudat[order(shuffle), ]$C.hat
   }else if (cen.fit == "survival.forest"){
     c.fit <- grf::survival_forest(cbind(W, X),
                                   Y,
@@ -61,32 +61,32 @@ surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = 
     C.hat <- predict(c.fit)$predictions
     cent <- Y; cent[D==0] <- times
     cen.times.index <- findInterval(cent, c.fit$failure.times)
-    c.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
+    C.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
   }
-  ipcw <- 1 / c.hat
+  sample.weights <- 1 / C.hat
 
   # Propensity score
-  if (is.null(ps)){
+  if (is.null(W.hat)){
     stop("propensity score needs to be supplied")
   }else{
-    ps.score <- rep(ps, length(Y))
+    W.hat <- rep(W.hat, length(Y))
   }
 
   # Subset of uncensored subjects
-  tempdat <- data.frame(Y = Y, D = D, W = W, ps.score, ipcw, X)
+  tempdat <- data.frame(Y = Y, D = D, W = W, W.hat, sample.weights, X)
   binary.data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary.data$D[binary.data$D==1 & binary.data$Y > times] <- 0
   binary.data <- binary.data[complete.cases(binary.data), ]
   b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
                  X = as.matrix(binary.data[,6:ncol(binary.data)]),
-                 wt = binary.data$ipcw, ps = binary.data$ps.score)
+                 sample.weights = binary.data$sample.weights, W.hat = binary.data$W.hat)
 
-  Z <- b.data$W * b.data$D / b.data$ps - (1 - b.data$W) * b.data$D / (1 - b.data$ps)
-  flasso.fit <- glmnet::cv.glmnet(b.data$X, Z, family = "gaussian", weights = b.data$wt, nfolds = 10, alpha = 1)
-  flasso.tau <- -predict(flasso.fit, X)
+  Z <- b.data$W * b.data$D / b.data$W.hat - (1 - b.data$W) * b.data$D / (1 - b.data$W.hat)
+  tau.fit <- glmnet::cv.glmnet(b.data$X, Z, family = "gaussian", weights = b.data$sample.weights, nfolds = 10, alpha = 1)
+  tau.hat <- -predict(tau.fit, X)
 
-  ret <- list(fit = flasso.fit,
-              tau = flasso.tau)
+  ret <- list(tau.fit = tau.fit,
+              tau.hat = tau.hat)
   class(ret) <- 'surv_fl_lasso'
   ret
 }
@@ -116,7 +116,7 @@ surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = 
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.fl.lasso.fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
+#' surv.fl.lasso.fit = surv_fl_lasso(X, Y, W, D, times, W.hat = 0.5)
 #' cate = predict(surv.fl.lasso.fit)
 #' cate.test = predict(surv.fl.lasso.fit, X.test)
 #' }
@@ -127,8 +127,8 @@ predict.surv_fl_lasso = function(object,
                                  newdata = NULL,
                                  ...) {
   if(is.null(newdata)){
-    return(object$tau)
+    return(object$tau.hat)
   }else{
-    return(-predict(object$fit, newdata))
+    return(-predict(object$tau.fit, newdata))
   }
 }

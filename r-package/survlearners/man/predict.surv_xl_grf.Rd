@@ -4,14 +4,14 @@
 \alias{predict.surv_xl_grf}
 \title{predict for surv_xl_grf}
 \usage{
-\method{predict}{surv_xl_grf}(object, newdata = NULL, ps = NULL, ...)
+\method{predict}{surv_xl_grf}(object, newdata = NULL, W.hat = NULL, ...)
 }
 \arguments{
 \item{object}{An surv_xl_grf object}
 
 \item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
-\item{ps}{The propensity score}
+\item{W.hat}{The propensity score}
 
 \item{...}{Additional arguments (currently not used)}
 }
@@ -38,7 +38,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.xl.grf.fit = surv_xl_grf(X, W, Y, D, times, ps = 0.5)
+surv.xl.grf.fit = surv_xl_grf(X, Y, W, D, times, W.hat = 0.5)
 cate = predict(surv.xl.grf.fit)
 cate.test = predict(surv.xl.grf.fit, X.test)
 }

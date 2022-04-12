@@ -4,14 +4,23 @@
 \alias{surv_xl_lasso}
 \title{X-learner of lasso}
 \usage{
-surv_xl_lasso(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM")
+surv_xl_lasso(
+  X,
+  Y,
+  W,
+  D,
+  times,
+  alpha = 0.05,
+  W.hat = NULL,
+  cen.fit = "Kaplan-Meier"
+)
 }
 \arguments{
 \item{X}{The baseline covariates}
 
-\item{W}{The treatment variable (0 or 1)}
-
 \item{Y}{The follow-up time}
+
+\item{W}{The treatment variable (0 or 1)}
 
 \item{D}{The event indicator}
 
@@ -19,7 +28,7 @@ surv_xl_lasso(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM")
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
 
-\item{ps}{The propensity score}
+\item{W.hat}{The propensity score}
 
 \item{cen.fit}{The choice of model fitting for censoring}
 }
@@ -46,7 +55,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.xl.lasso.fit = surv_xl_lasso(X, W, Y, D, times, ps = 0.5)
+surv.xl.lasso.fit = surv_xl_lasso(X, Y, W, D, times, W.hat = 0.5)
 cate = predict(surv.xl.lasso.fit)
 cate.test = predict(surv.xl.lasso.fit, X.test)
 }

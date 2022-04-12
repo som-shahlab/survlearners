@@ -4,14 +4,14 @@
 \alias{surv_tl_lasso}
 \title{T-learner of lasso}
 \usage{
-surv_tl_lasso(X, W, Y, D, times, newX = NULL)
+surv_tl_lasso(X, Y, W, D, times)
 }
 \arguments{
 \item{X}{The baseline covariates}
 
-\item{W}{The treatment variable (0 or 1)}
-
 \item{Y}{The follow-up time}
+
+\item{W}{The treatment variable (0 or 1)}
 
 \item{D}{The event indicator}
 
@@ -40,7 +40,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.tl.lasso.fit = surv_tl_lasso(X, W, Y, D, times)
+surv.tl.lasso.fit = surv_tl_lasso(X, Y, W, D, times)
 cate = predict(surv.tl.lasso.fit)
 cate.test = predict(surv.tl.lasso.fit, X.test)
 }

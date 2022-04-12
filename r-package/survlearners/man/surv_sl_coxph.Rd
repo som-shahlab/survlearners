@@ -4,14 +4,14 @@
 \alias{surv_sl_coxph}
 \title{S-learner of Cox PH}
 \usage{
-surv_sl_coxph(X, W, Y, D, times)
+surv_sl_coxph(X, Y, W, D, times)
 }
 \arguments{
 \item{X}{The baseline covariates}
 
-\item{W}{The treatment variable (0 or 1)}
-
 \item{Y}{The follow-up time}
+
+\item{W}{The treatment variable (0 or 1)}
 
 \item{D}{The event indicator}
 
@@ -40,7 +40,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.sl.coxph.fit = surv_sl_coxph(X, W, Y, D, times)
+surv.sl.coxph.fit = surv_sl_coxph(X, Y, W, D, times)
 cate = predict(surv.sl.coxph.fit)
 cate.test = predict(surv.sl.coxph.fit, X.test)
 }

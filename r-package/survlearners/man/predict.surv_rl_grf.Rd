@@ -38,7 +38,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.rl.grf.fit = surv_rl_grf(X, W, Y, D, times, p.hat = 0.5)
+surv.rl.grf.fit = surv_rl_grf(X, Y, W, D, times, W.hat = 0.5)
 cate = predict(surv.rl.grf.fit)
 cate.test = predict(surv.rl.grf.fit, X.test)
 }

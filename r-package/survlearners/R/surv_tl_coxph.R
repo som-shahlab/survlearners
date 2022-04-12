@@ -24,13 +24,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.tl.coxph.fit = surv_tl_coxph(X, W, Y, D, times)
+#' surv.tl.coxph.fit = surv_tl_coxph(X, Y, W, D, times)
 #' cate = predict(surv.tl.coxph.fit)
 #' cate.test = predict(surv.tl.coxph.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_tl_coxph <- function(X, W, Y, D, times){
+surv_tl_coxph <- function(X, Y, W, D, times){
 
   traindat <- data.frame(Y = Y, D = D, W = W, X)
   traindat1 <- traindat[traindat$W==1, !colnames(traindat) %in% c("W")]
@@ -52,13 +52,13 @@ surv_tl_coxph <- function(X, W, Y, D, times){
   est.r0 <- predict(coxph.fit0, newdata = data.frame(X), type="risk")
   surf0 <- exp(-bh)^est.r0
 
-  pred.T.coxph <- surf1 - surf0
+  tau.hat <- surf1 - surf0
 
   ret <- list(fit1 = coxph.fit1,
               fit0 = coxph.fit0,
               bh1 = bh.dat1,
               bh0 = bh.dat0,
-              tau = pred.T.coxph,
+              tau.hat = tau.hat,
               times = times)
   class(ret) <- 'surv_tl_coxph'
   ret
@@ -90,7 +90,7 @@ surv_tl_coxph <- function(X, W, Y, D, times){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.tl.coxph.fit = surv_tl_coxph(X, W, Y, D, times)
+#' surv.tl.coxph.fit = surv_tl_coxph(X, Y, W, D, times)
 #' cate = predict(surv.tl.coxph.fit)
 #' cate.test = predict(surv.tl.coxph.fit, X.test)
 #' }
@@ -102,7 +102,7 @@ predict.surv_tl_coxph = function(object,
                                  times = NULL,
                                  ...) {
   if(is.null(newdata)){
-    return(object$tau)
+    return(object$tau.hat)
   }else{
     if(is.null(times)){
       index1 <- findInterval(object$times, object$bh1$time)

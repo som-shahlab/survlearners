@@ -24,15 +24,15 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.coxph.fit = surv_sl_coxph(X, W, Y, D, times)
+#' surv.sl.coxph.fit = surv_sl_coxph(X, Y, W, D, times)
 #' cate = predict(surv.sl.coxph.fit)
 #' cate.test = predict(surv.sl.coxph.fit, X.test)
 #' }
 #' @return a surv_sl_coxph object
 #' @export
-surv_sl_coxph = function(X, W, Y, D, times){
+surv_sl_coxph = function(X, Y, W, D, times){
 
-  input = sanitize_input(X,W,Y,D)
+  input = sanitize_input(X, Y, W, D)
   X = input$X
   W = input$W
   Y = input$Y
@@ -46,22 +46,22 @@ surv_sl_coxph = function(X, W, Y, D, times){
   formula <- as.formula(paste0("survival::Surv(Y, D) ~ ", paste(colnames(x.tilde), sep=" ", collapse = "+")))
   tmpdat <- data.frame(Y, D, x.tilde)
 
-  s.fit <- survival::coxph(formula, data = tmpdat)
-  bh.dat <- survival::basehaz(s.fit, centered = FALSE)
+  tau.fit <- survival::coxph(formula, data = tmpdat)
+  bh.dat <- survival::basehaz(tau.fit, centered = FALSE)
   index <- findInterval(times, bh.dat$time)
   bh <- bh.dat[index, 1]
 
-  link1 <- exp(as.matrix(x.pred1) %*% s.fit$coefficients)
-  link0 <- exp(as.matrix(x.pred0) %*% s.fit$coefficients)
+  link1 <- exp(as.matrix(x.pred1) %*% tau.fit$coefficients)
+  link0 <- exp(as.matrix(x.pred0) %*% tau.fit$coefficients)
 
   est.S1.cvd <- exp(-bh)^link1
   est.S0.cvd <- exp(-bh)^link0
 
   tau.hat <- est.S1.cvd - est.S0.cvd
 
-  ret = list(s.fit = s.fit,
+  ret = list(tau.fit = tau.fit,
              bh = bh,
-             s.beta = s.fit$coefficients,
+             s.beta = tau.fit$coefficients,
              times = times,
              tau.hat = tau.hat)
 
@@ -95,7 +95,7 @@ surv_sl_coxph = function(X, W, Y, D, times){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.coxph.fit = surv_sl_coxph(X, W, Y, D, times)
+#' surv.sl.coxph.fit = surv_sl_coxph(X, Y, W, D, times)
 #' cate = predict(surv.sl.coxph.fit)
 #' cate.test = predict(surv.sl.coxph.fit, X.test)
 #' }
@@ -112,7 +112,7 @@ predict.surv_sl_coxph <- function(object,
     times <- object$times
     }
 
-    bh.dat <- survival::basehaz(object$s.fit, centered = FALSE)
+    bh.dat <- survival::basehaz(object$tau.fit, centered = FALSE)
     index <- findInterval(times, bh.dat$time)
     bh <- bh.dat[index, 1]
 

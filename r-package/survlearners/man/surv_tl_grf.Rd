@@ -4,14 +4,14 @@
 \alias{surv_tl_grf}
 \title{T-learner of grf}
 \usage{
-surv_tl_grf(X, W, Y, D, times, alpha = 0.05)
+surv_tl_grf(X, Y, W, D, times, alpha = 0.05)
 }
 \arguments{
 \item{X}{The baseline covariates}
 
-\item{W}{The treatment variable (0 or 1)}
-
 \item{Y}{The follow-up time}
+
+\item{W}{The treatment variable (0 or 1)}
 
 \item{D}{The event indicator}
 
@@ -42,7 +42,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.tl.grf.fit = surv_tl_grf(X, W, Y, D, times)
+surv.tl.grf.fit = surv_tl_grf(X, Y, W, D, times)
 cate = predict(surv.tl.grf.fit)
 cate.test = predict(surv.tl.grf.fit, X.test)
 }

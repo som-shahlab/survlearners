@@ -4,14 +4,23 @@
 \alias{surv_fl_grf}
 \title{F-learner of grf}
 \usage{
-surv_fl_grf(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM")
+surv_fl_grf(
+  X,
+  Y,
+  W,
+  D,
+  times,
+  alpha = 0.05,
+  W.hat = NULL,
+  cen.fit = "Kaplan-Meier"
+)
 }
 \arguments{
 \item{X}{The baseline covariates}
 
-\item{W}{The treatment variable (0 or 1)}
-
 \item{Y}{The follow-up time}
+
+\item{W}{The treatment variable (0 or 1)}
 
 \item{D}{The event indicator}
 
@@ -19,7 +28,7 @@ surv_fl_grf(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM")
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
 
-\item{ps}{The propensity score}
+\item{W.hat}{The propensity score}
 
 \item{cen.fit}{The choice of model fitting for censoring}
 }
@@ -46,7 +55,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.fl.grf.fit = surv_fl_grf(X, W, Y, D, times, ps = 0.5)
+surv.fl.grf.fit = surv_fl_grf(X, Y, W, D, times, W.hat = 0.5)
 cate = predict(surv.fl.grf.fit)
 cate.test = predict(surv.fl.grf.fit, X.test)
 }
