@@ -28,7 +28,7 @@
 #' cate = predict(surv.tl.coxph.fit)
 #' cate.test = predict(surv.tl.coxph.fit, X.test)
 #' }
-#' @return A vector of estimated conditional average treatment effects
+#' @return A surv_tl_coxph object
 #' @export
 surv_tl_coxph <- function(X, Y, W, D, times){
 

@@ -33,7 +33,7 @@ surv_xl_grf(
 \item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
-A vector of estimated conditional average treatment effects
+A surv_xl_grf object
 }
 \description{
 X-learner, implemented via survival_forest in the grf package

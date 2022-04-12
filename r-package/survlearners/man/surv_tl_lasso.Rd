@@ -18,7 +18,7 @@ surv_tl_lasso(X, Y, W, D, times)
 \item{times}{The prediction time of interest}
 }
 \value{
-A vector of estimated conditional average treatment effects
+A surv_tl_lasso object
 }
 \description{
 T-learner, implemented via glmnet (lasso)

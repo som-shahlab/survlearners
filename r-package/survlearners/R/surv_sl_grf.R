@@ -29,7 +29,7 @@
 #' cate = predict(surv.sl.grf.fit)
 #' cate.test = predict(surv.sl.grf.fit, X.test)
 #' }
-#' @return A vector of estimated conditional average treatment effects
+#' @return A surv_sl_grf object
 #' @export
 surv_sl_grf <- function(X, Y, W, D, times, alpha = 0.05){
 

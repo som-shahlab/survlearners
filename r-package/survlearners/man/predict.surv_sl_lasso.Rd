@@ -16,7 +16,7 @@
 \item{...}{Additional arguments (currently not used)}
 }
 \value{
-vector of estimated conditional average treatment effects
+A vector of estimated conditional average treatment effects
 }
 \description{
 get estimated tau(X) using the trained surv_sl_lasso model

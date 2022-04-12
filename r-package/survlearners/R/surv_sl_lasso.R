@@ -153,7 +153,7 @@ surv_sl_lasso = function(X, Y, W, D, times,
 #' cate.test = predict(surv.sl.lasso.fit, X.test)
 #' }
 #'
-#' @return vector of estimated conditional average treatment effects
+#' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_sl_lasso <- function(object,
                                   newdata = NULL,

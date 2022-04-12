@@ -32,7 +32,7 @@
 #' cate = predict(surv.xl.grf.lasso.fit)
 #' cate.test = predict(surv.xl.grf.lasso.fit, X.test)
 #' }
-#' @return A vector of estimated conditional average treatment effects
+#' @return A surv_xl_grf_lasso object
 #' @export
 surv_xl_grf_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier"){
 

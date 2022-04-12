@@ -33,7 +33,7 @@ surv_fl_lasso(
 \item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
-A vector of estimated conditional average treatment effects
+A surv_fl_lasso object
 }
 \description{
 F-learner, implemented via glmnet (lasso) with 'coxph' distribution

@@ -28,7 +28,7 @@
 #' cate = predict(surv.tl.lasso.fit)
 #' cate.test = predict(surv.tl.lasso.fit, X.test)
 #' }
-#' @return A vector of estimated conditional average treatment effects
+#' @return A surv_tl_lasso object
 #' @export
 surv_tl_lasso <- function(X, Y, W, D, times){
 

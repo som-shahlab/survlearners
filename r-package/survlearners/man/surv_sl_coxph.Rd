@@ -18,7 +18,7 @@ surv_sl_coxph(X, Y, W, D, times)
 \item{times}{The prediction time of interest}
 }
 \value{
-a surv_sl_coxph object
+A surv_sl_coxph object
 }
 \description{
 S-learner, implemented via Cox proportional hazard models
