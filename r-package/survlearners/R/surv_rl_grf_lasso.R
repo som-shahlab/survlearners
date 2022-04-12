@@ -86,8 +86,7 @@ surv_rl_grf_lasso = function(X, W, Y, D,
                              lambda.tau = NULL,
                              lambda.choice = "lambda.min",
                              penalty.factor = NULL,
-                             cen.fit = "KM",
-                             verbose = FALSE){
+                             cen.fit = "KM"){
 
   input = sanitize_input(X,W,Y,D)
   X = input$X

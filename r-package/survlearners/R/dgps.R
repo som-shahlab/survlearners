@@ -11,7 +11,7 @@
 #' @param p.i The number of variables in the interaction term
 #' @param f.b The function form of the main effects (linear/nonlinear)
 #' @param f.i The function form of the treatment-covariate interactions (linear/nonlinear)
-#' @param p.i The propensity score
+#' @param pi The propensity score
 #' @param beta The coefficients of variables in the main effect
 #' @param gamma The coefficients of variables in the interaction
 #' @param rho The shape parameter in Weibull distribution for censoring time
