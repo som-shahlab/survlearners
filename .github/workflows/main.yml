@@ -38,7 +38,13 @@ jobs:
 
       - name: Test
         working-directory: r-package/survlearners
-        run: ./run.sh run_tests
+        run: |
+          ./run.sh run_tests
+          # Treat WARNING and NOTE as error
+          if ./run.sh dump_logs_by_extension "00check.log" | grep 'WARNING\|NOTE'; then
+            echo "Found warnings/notes, treating as errors."
+            exit 1
+          fi
 
       - name: Print logs
         if: failure()
