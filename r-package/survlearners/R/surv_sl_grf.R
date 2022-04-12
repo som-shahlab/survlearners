@@ -25,27 +25,27 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.grf.fit = surv_sl_grf(X, W, Y, D, times)
+#' surv.sl.grf.fit = surv_sl_grf(X, Y, W, D, times)
 #' cate = predict(surv.sl.grf.fit)
 #' cate.test = predict(surv.sl.grf.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_sl_grf <- function(X, W, Y, D, times, alpha = 0.05){
+surv_sl_grf <- function(X, Y, W, D, times, alpha = 0.05){
 
-  grffit <- grf::survival_forest(cbind(W, X),
+  tau.fit <- grf::survival_forest(cbind(W, X),
                                  Y,
                                  D,
                                  alpha = alpha,
                                  prediction.type = "Nelson-Aalen")
 
-  index <- findInterval(times, grffit$failure.times)
-  surf1 <- predict(grffit, cbind(rep(1, nrow(X)), X))$predictions[, index]
-  surf0 <- predict(grffit, cbind(rep(0, nrow(X)), X))$predictions[, index]
-  pred.S.grf <- surf1 - surf0
+  index <- findInterval(times, tau.fit$failure.times)
+  surf1 <- predict(tau.fit, cbind(rep(1, nrow(X)), X))$predictions[, index]
+  surf0 <- predict(tau.fit, cbind(rep(0, nrow(X)), X))$predictions[, index]
+  tau.hat <- surf1 - surf0
 
-  ret <- list(fit = grffit,
-              tau = pred.S.grf,
+  ret <- list(tau.fit = tau.fit,
+              tau.hat = tau.hat,
               times = times)
   class(ret) <- 'surv_sl_grf'
   ret
@@ -77,7 +77,7 @@ surv_sl_grf <- function(X, W, Y, D, times, alpha = 0.05){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.grf.fit = surv_sl_grf(X, W, Y, D, times)
+#' surv.sl.grf.fit = surv_sl_grf(X, Y, W, D, times)
 #' cate = predict(surv.sl.grf.fit)
 #' cate.test = predict(surv.sl.grf.fit, X.test)
 #' }
@@ -89,15 +89,15 @@ predict.surv_sl_grf = function(object,
                                times = NULL,
                                ...) {
   if(is.null(newdata)){
-    return(object$tau)
+    return(object$tau.hat)
   }else{
     if(is.null(times)){
       index <- findInterval(object$times, object$fit$failure.times)
     }else{
       index <- findInterval(times, object$fit$failure.times)
     }
-    surf1 <- predict(object$fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[, index]
-    surf0 <- predict(object$fit, cbind(rep(0, nrow(newdata)), newdata))$predictions[, index]
+    surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[, index]
+    surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata))$predictions[, index]
     return(surf1 - surf0)
   }
 }

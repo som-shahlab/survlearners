@@ -24,13 +24,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.tl.lasso.fit = surv_tl_lasso(X, W, Y, D, times)
+#' surv.tl.lasso.fit = surv_tl_lasso(X, Y, W, D, times)
 #' cate = predict(surv.tl.lasso.fit)
 #' cate.test = predict(surv.tl.lasso.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_tl_lasso <- function(X, W, Y, D, times, newX = NULL){
+surv_tl_lasso <- function(X, Y, W, D, times){
 
   # Model for W = 1
   foldid <- sample(rep(seq(10), length = length(Y[W==1])))
@@ -75,13 +75,13 @@ surv_tl_lasso <- function(X, W, Y, D, times, newX = NULL){
                        times = times,
                        lambda = lasso.fit0$lambda.min)
 
-  pred.T.lasso <- surf1 - surf0
+  tau.hat <- surf1 - surf0
 
   ret <- list(fit1 = lasso.fit1,
               fit0 = lasso.fit0,
               bsurv1 = bsurv1,
               bsurv0 = bsurv0,
-              tau = pred.T.lasso,
+              tau.hat = tau.hat,
               times = times)
   class(ret) <- 'surv_tl_lasso'
   ret
@@ -113,7 +113,7 @@ surv_tl_lasso <- function(X, W, Y, D, times, newX = NULL){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.tl.lasso.fit = surv_tl_lasso(X, W, Y, D, times)
+#' surv.tl.lasso.fit = surv_tl_lasso(X, Y, W, D, times)
 #' cate = predict(surv.tl.lasso.fit)
 #' cate.test = predict(surv.tl.lasso.fit, X.test)
 #' }
@@ -125,7 +125,7 @@ predict.surv_tl_lasso = function(object,
                                  times = NULL,
                                  ...) {
   if(is.null(newdata)){
-    return(object$tau)
+    return(object$tau.hat)
   }else{
     if(is.null(times)){
       surf1 <- pred_surv(fit = object$fit1,

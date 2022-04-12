@@ -6,22 +6,21 @@
 \usage{
 surv_xl_grf(
   X,
-  W,
   Y,
+  W,
   D,
   times,
   alpha = 0.05,
-  ps = NULL,
-  cen.fit = "KM",
-  newX = NULL
+  W.hat = NULL,
+  cen.fit = "Kaplan-Meier"
 )
 }
 \arguments{
 \item{X}{The baseline covariates}
 
-\item{W}{The treatment variable (0 or 1)}
-
 \item{Y}{The follow-up time}
+
+\item{W}{The treatment variable (0 or 1)}
 
 \item{D}{The event indicator}
 
@@ -29,7 +28,7 @@ surv_xl_grf(
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
 
-\item{ps}{The propensity score}
+\item{W.hat}{The propensity score}
 
 \item{cen.fit}{The choice of model fitting for censoring}
 }
@@ -56,7 +55,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.xl.grf.fit = surv_xl_grf(X, W, Y, D, times, ps = 0.5)
+surv.xl.grf.fit = surv_xl_grf(X, Y, W, D, times, W.hat = 0.5)
 cate = predict(surv.xl.grf.fit)
 cate.test = predict(surv.xl.grf.fit, X.test)
 }

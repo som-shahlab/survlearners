@@ -6,45 +6,27 @@
 \usage{
 surv_rl_grf_lasso(
   X,
-  W,
   Y,
+  W,
   D,
   times = NULL,
   k.folds = 10,
-  p.hat = NULL,
-  m.hat = NULL,
-  c.hat = NULL,
-  failure.times = NULL,
-  num.trees = 2000,
-  sample.weights = NULL,
-  clusters = NULL,
-  equalize.cluster.weights = FALSE,
-  sample.fraction = 0.5,
-  mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
-  min.node.size = 5,
-  honesty = TRUE,
-  honesty.fraction = 0.5,
-  honesty.prune.leaves = TRUE,
-  alpha = 0.05,
-  imbalance.penalty = 0,
-  stabilize.splits = TRUE,
-  ci.group.size = 2,
-  tune.parameters = "none",
-  compute.oob.predictions = TRUE,
-  num.threads = NULL,
-  seed = runif(1, 0, .Machine$integer.max),
-  lambda.tau = NULL,
-  lambda.choice = "lambda.min",
+  W.hat = NULL,
+  Y.hat = NULL,
+  C.hat = NULL,
   penalty.factor = NULL,
-  cen.fit = "KM"
+  lambda.choice = "lambda.min",
+  args.grf.nuisance = list(),
+  args.lasso.tau = list(),
+  cen.fit = "Kaplan-Meier"
 )
 }
 \arguments{
 \item{X}{The baseline covariates}
 
-\item{W}{The treatment variable (0 or 1)}
-
 \item{Y}{The follow-up time}
+
+\item{W}{The treatment variable (0 or 1)}
 
 \item{D}{The event indicator}
 
@@ -52,55 +34,19 @@ surv_rl_grf_lasso(
 
 \item{k.folds}{Number of folds for cross validation}
 
-\item{p.hat}{Propensity score}
+\item{W.hat}{Propensity score}
 
-\item{m.hat}{Conditional mean outcome E(Y|X)}
+\item{Y.hat}{Conditional mean outcome E(Y|X)}
 
-\item{c.hat}{Censoring weights}
+\item{C.hat}{Censoring weights}
 
-\item{failure.times}{A vector of event times to fit the survival curve at.}
-
-\item{num.trees}{Number of trees grown in the forest}
-
-\item{sample.weights}{See grf documentation}
-
-\item{clusters}{See grf documentation}
-
-\item{equalize.cluster.weights}{See grf documentation}
-
-\item{sample.fraction}{See grf documentation}
-
-\item{mtry}{See grf documentation}
-
-\item{min.node.size}{See grf documentation}
-
-\item{honesty}{See grf documentation}
-
-\item{honesty.fraction}{See grf documentation}
-
-\item{honesty.prune.leaves}{See grf documentation}
-
-\item{alpha}{See grf documentation}
-
-\item{imbalance.penalty}{See grf documentation}
-
-\item{stabilize.splits}{See grf documentation}
-
-\item{ci.group.size}{See grf documentation}
-
-\item{tune.parameters}{See grf documentation}
-
-\item{compute.oob.predictions}{See grf documentation}
-
-\item{num.threads}{See grf documentation}
-
-\item{seed}{See grf documentation}
-
-\item{lambda.tau}{User-supplied lambda sequence for cross validation in the cate model}
+\item{penalty.factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 
 \item{lambda.choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
 
-\item{penalty.factor}{User-supplied penalty factor, must be of length the same as number of features in X}
+\item{args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
+
+\item{args.lasso.tau}{Input arguments for a lasso model that estimates CATE}
 
 \item{cen.fit}{The choice of model fitting for censoring}
 }
@@ -127,7 +73,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.rl.grf.lasso.fit = surv_rl_grf_lasso(X, W, Y, D, times, p.hat = 0.5)
+surv.rl.grf.lasso.fit = surv_rl_grf_lasso(X, Y, W, D, times, W.hat = 0.5)
 cate = predict(surv.rl.grf.lasso.fit)
 cate.test = predict(surv.rl.grf.lasso.fit, X.test)
 }

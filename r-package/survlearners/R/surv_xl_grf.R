@@ -8,7 +8,7 @@
 #' @param D The event indicator
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
-#' @param ps The propensity score
+#' @param W.hat The propensity score
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
@@ -27,13 +27,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.xl.grf.fit = surv_xl_grf(X, W, Y, D, times, ps = 0.5)
+#' surv.xl.grf.fit = surv_xl_grf(X, Y, W, D, times, W.hat = 0.5)
 #' cate = predict(surv.xl.grf.fit)
 #' cate.test = predict(surv.xl.grf.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM", newX = NULL){
+surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier"){
   # fit model on W==1
   grffit1 <- grf::survival_forest(X[W==1,],
                                   Y[W==1],
@@ -60,21 +60,21 @@ surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "K
   Tgrf0 <- 1-surf0
 
   # IPCW weights
-  if(cen.fit == "KM"){
+  if(cen.fit == "Kaplan-Meier"){
     shuffle <- sample(length(Y))
     kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
-    C.Y.hat <- rep(NA, nrow(kmdat))
+    C.hat <- rep(NA, nrow(kmdat))
     for(z in 1:10){
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
       trainData <- kmdat[-testIndexes, ]
       c.fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
       cent <- testData$Y; cent[testData$D==0] <- times
-      C.Y.hat[testIndexes] <- summary(c.fit, times = cent)$surv
+      C.hat[testIndexes] <- summary(c.fit, times = cent)$surv
     }
-    shudat <- data.frame(shuffle, C.Y.hat)
-    C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
+    shudat <- data.frame(shuffle, C.hat)
+    C.hat <- shudat[order(shuffle), ]$C.hat
   }else if (cen.fit == "survival.forest"){
     c.fit <- grf::survival_forest(cbind(W, X),
                                   Y,
@@ -84,45 +84,45 @@ surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "K
     C.hat <- predict(c.fit)$predictions
     cent <- Y; cent[D==0] <- times
     cen.times.index <- findInterval(cent, c.fit$failure.times)
-    C.Y.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
+    C.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
   }
-  ipcw <- 1 / C.Y.hat
+  ipcw <- 1 / C.hat
 
   # Propensity score
-  if (is.null(ps)){
+  if (is.null(W.hat)){
     stop("propensity score needs to be supplied")
   }else{
-    ps.train <- rep(ps, length(W))
+    W.hat <- rep(W.hat, length(W))
   }
 
-  weight <- ipcw/ps.train  # censoring weight * treatment weight
+  sample.weights <- ipcw/W.hat  # censoring weight * treatment weight
 
   # X-learner
-  tempdat <- data.frame(Y = Y, D = D, W = W, weight, X, Tgrf0, Tgrf1)
+  tempdat <- data.frame(Y = Y, D = D, W = W, sample.weights, X, Tgrf0, Tgrf1)
   binary.data <- tempdat[tempdat$D==1|tempdat$Y > times,]
   binary.data$D[binary.data$D==1 & binary.data$Y > times] <- 0
   binary.data <- binary.data[complete.cases(binary.data), ]
   b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
                  X = as.matrix(binary.data[,5:(ncol(binary.data)-2)]),
-                 wt = binary.data$weight, mu0 = binary.data$Tgrf0, mu1 = binary.data$Tgrf1)
+                 sample.weights = binary.data$sample.weights, mu0 = binary.data$Tgrf0, mu1 = binary.data$Tgrf1)
 
-  XLfit1 <- grf::regression_forest(b.data$X[b.data$W==1, ],
+  tau.fit1 <- grf::regression_forest(b.data$X[b.data$W==1, ],
                                    b.data$D[b.data$W==1] - b.data$mu0[b.data$W==1],
-                                   sample.weights = b.data$wt[b.data$W==1])
-  XLtau1 <- -predict(XLfit1, data.frame(X))
+                                   sample.weights = b.data$sample.weights[b.data$W==1])
+  XLtau1 <- -predict(tau.fit1, data.frame(X))
 
-  XLfit0 <- grf::regression_forest(b.data$X[b.data$W==0, ],
+  tau.fit0 <- grf::regression_forest(b.data$X[b.data$W==0, ],
                                    b.data$mu1[b.data$W==0] - b.data$D[b.data$W==0],
-                                   sample.weights = b.data$wt[b.data$W==0])
-  XLtau0 <- -predict(XLfit0, data.frame(X))
+                                   sample.weights = b.data$sample.weights[b.data$W==0])
+  XLtau0 <- -predict(tau.fit0, data.frame(X))
 
   # weighted CATE
-  pred.X.grf <- as.vector(XLtau1 * (1 - ps.train) + XLtau0 * ps.train)
+  tau.hat <- as.vector(XLtau1 * (1 - W.hat) + XLtau0 * W.hat)
 
-  ret <- list(fit1 = XLfit1,
-              fit0 = XLfit0,
-              ps = ps.train,
-              tau = pred.X.grf)
+  ret <- list(tau.fit1 = tau.fit1,
+              tau.fit0 = tau.fit0,
+              W.hat = W.hat,
+              tau.hat = tau.hat)
   class(ret) <- 'surv_xl_grf'
   ret
 }
@@ -133,7 +133,7 @@ surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "K
 #'
 #' @param object An surv_xl_grf object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
-#' @param ps The propensity score
+#' @param W.hat The propensity score
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
@@ -153,7 +153,7 @@ surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "K
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.xl.grf.fit = surv_xl_grf(X, W, Y, D, times, ps = 0.5)
+#' surv.xl.grf.fit = surv_xl_grf(X, Y, W, D, times, W.hat = 0.5)
 #' cate = predict(surv.xl.grf.fit)
 #' cate.test = predict(surv.xl.grf.fit, X.test)
 #' }
@@ -162,20 +162,20 @@ surv_xl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "K
 #' @export
 predict.surv_xl_grf = function(object,
                                newdata = NULL,
-                               ps = NULL,
+                               W.hat = NULL,
                                ...) {
   if(is.null(newdata)){
-    return(object$tau)
+    return(object$tau.hat)
   }else{
-    XLtau1 <- -predict(object$fit1, data.frame(newdata))
-    XLtau0 <- -predict(object$fit0, data.frame(newdata))
-    if(is.null(ps)){
-      ps <- rep(object$ps[1], nrow(newdata))
+    XLtau1 <- -predict(object$tau.fit1, data.frame(newdata))
+    XLtau0 <- -predict(object$tau.fit0, data.frame(newdata))
+    if(is.null(W.hat)){
+      W.hat <- rep(object$W.hat[1], nrow(newdata))
     }else{
-      if(length(ps)==1){
-      ps <- rep(ps, nrow(newdata))
+      if(length(W.hat)==1){
+      W.hat <- rep(W.hat, nrow(newdata))
       }
     }
-    return(as.vector(XLtau1 * (1 - ps) + XLtau0 * ps))
+    return(as.vector(XLtau1 * (1 - W.hat) + XLtau0 * W.hat))
   }
 }

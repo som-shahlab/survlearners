@@ -4,14 +4,14 @@
 \alias{predict.surv_xl_lasso}
 \title{predict for surv_xl_lasso}
 \usage{
-\method{predict}{surv_xl_lasso}(object, newdata = NULL, ps = NULL, ...)
+\method{predict}{surv_xl_lasso}(object, newdata = NULL, W.hat = NULL, ...)
 }
 \arguments{
 \item{object}{An surv_xl_lasso object}
 
 \item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
-\item{ps}{The propensity score}
+\item{W.hat}{The propensity score}
 
 \item{...}{Additional arguments (currently not used)}
 }
@@ -38,7 +38,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.xl.lasso.fit = surv_xl_lasso(X, W, Y, D, times, ps = 0.5)
+surv.xl.lasso.fit = surv_xl_lasso(X, Y, W, D, times, W.hat = 0.5)
 cate = predict(surv.xl.lasso.fit)
 cate.test = predict(surv.xl.lasso.fit, X.test)
 }

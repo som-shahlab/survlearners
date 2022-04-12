@@ -6,31 +6,13 @@
 #' @param W The treatment variable (0 or 1)
 #' @param Y The follow-up time
 #' @param D The event indicator
-#' @param k.folds Number of folds for cross validation
-#' @param p.hat Propensity score
-#' @param m.hat Conditional mean outcome E(Y|X)
-#' @param c.hat Censoring weights
 #' @param times The prediction time of interest
-#' @param failure.times A vector of event times to fit the survival curve at.
-#' @param num.trees Number of trees grown in the forest
-#' @param alpha Imbalance tuning parameter for a split in a tree
-#' @param sample.weights See grf documentation
-#' @param clusters See grf documentation
-#' @param equalize.cluster.weights See grf documentation
-#' @param sample.fraction See grf documentation
-#' @param mtry See grf documentation
-#' @param min.node.size See grf documentation
-#' @param honesty See grf documentation
-#' @param honesty.fraction See grf documentation
-#' @param honesty.prune.leaves See grf documentation
-#' @param alpha See grf documentation
-#' @param imbalance.penalty See grf documentation
-#' @param stabilize.splits See grf documentation
-#' @param ci.group.size See grf documentation
-#' @param tune.parameters See grf documentation
-#' @param compute.oob.predictions See grf documentation
-#' @param num.threads See grf documentation
-#' @param seed See grf documentation
+#' @param k.folds Number of folds for cross validation
+#' @param W.hat Propensity score
+#' @param Y.hat Conditional mean outcome E(Y|X)
+#' @param C.hat Censoring weights
+#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
+#' @param args.grf.tau Input arguments for a grf model that estimates CATE
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
@@ -49,40 +31,23 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.grf.fit = surv_rl_grf(X, W, Y, D, times, p.hat = 0.5)
+#' surv.rl.grf.fit = surv_rl_grf(X, Y, W, D, times, W.hat = 0.5)
 #' cate = predict(surv.rl.grf.fit)
 #' cate.test = predict(surv.rl.grf.fit, X.test)
 #' }
 #' @return a surv_rl_grf_fit object
 #' @export
-surv_rl_grf = function(X, W, Y, D,
+surv_rl_grf = function(X, Y, W, D,
                        times = NULL,
                        k.folds = NULL,
-                       p.hat = NULL,
-                       m.hat = NULL,
-                       c.hat = NULL,
-                       failure.times = NULL,
-                       num.trees = 2000,
-                       sample.weights = NULL,
-                       clusters = NULL,
-                       equalize.cluster.weights = FALSE,
-                       sample.fraction = 0.5,
-                       mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
-                       min.node.size = 5,
-                       honesty = TRUE,
-                       honesty.fraction = 0.5,
-                       honesty.prune.leaves = TRUE,
-                       alpha = 0.05,
-                       imbalance.penalty = 0,
-                       stabilize.splits = TRUE,
-                       ci.group.size = 2,
-                       tune.parameters = "none",
-                       compute.oob.predictions = TRUE,
-                       num.threads = NULL,
-                       seed = runif(1, 0, .Machine$integer.max),
-                       cen.fit = "KM"){
+                       W.hat = NULL,
+                       Y.hat = NULL,
+                       C.hat = NULL,
+                       args.grf.nuisance = list(),
+                       args.grf.tau = list(),
+                       cen.fit = "Kaplan-Meier"){
 
-  input = sanitize_input(X,W,Y,D)
+  input = sanitize_input(X, Y, W, D)
   X = input$X
   W = as.numeric(input$W)
   Y = input$Y
@@ -94,33 +59,33 @@ surv_rl_grf = function(X, W, Y, D,
     k.folds = floor(max(3, min(10,length(Y)/4)))
   }
 
-  if (is.null(p.hat)){
+  if (is.null(W.hat)){
     stop("propensity score needs to be supplied")
-  }else if (length(p.hat) == 1) {
-    p.hat <- rep(p.hat, nrow(X))
-  }else if (length(p.hat) != nrow(X)){
-    stop("p.hat has incorrect length.")
+  }else if (length(W.hat) == 1) {
+    W.hat <- rep(W.hat, nrow(X))
+  }else if (length(W.hat) != nrow(X)){
+    stop("W.hat has incorrect length.")
   }
 
-  args.nuisance <- list(failure.times = failure.times,
-                        num.trees = max(50, num.trees / 4),
-                        sample.weights = sample.weights,
-                        clusters = clusters,
-                        equalize.cluster.weights = equalize.cluster.weights,
-                        sample.fraction = sample.fraction,
-                        mtry = mtry,
-                        min.node.size = 15,
-                        honesty = TRUE,
-                        honesty.fraction = 0.5,
-                        honesty.prune.leaves = TRUE,
-                        alpha = alpha,
-                        prediction.type = "Nelson-Aalen",
-                        compute.oob.predictions = FALSE,
-                        num.threads = num.threads,
-                        seed = seed)
+  args.grf.nuisance <- list(failure.times = NULL,
+                            num.trees = max(50, 2000 / 4),
+                            sample.weights = NULL,
+                            clusters = NULL,
+                            equalize.cluster.weights = FALSE,
+                            sample.fraction = 0.5,
+                            mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
+                            min.node.size = 15,
+                            honesty = TRUE,
+                            honesty.fraction = 0.5,
+                            honesty.prune.leaves = TRUE,
+                            alpha = 0.05,
+                            prediction.type = "Nelson-Aalen",
+                            compute.oob.predictions = TRUE,
+                            num.threads = NULL,
+                            seed = runif(1, 0, .Machine$integer.max))
 
-  if (is.null(m.hat)){
-    y.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = D), args.nuisance))
+  if (is.null(Y.hat)){
+    y.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = D), args.grf.nuisance))
     y.fit[["X.orig"]][, ncol(X) + 1] <- rep(1, nrow(X))
     S1.hat <- predict(y.fit)$predictions
     y.fit[["X.orig"]][, ncol(X) + 1] <- rep(0, nrow(X))
@@ -130,76 +95,75 @@ surv_rl_grf = function(X, W, Y, D,
     times.index <- findInterval(times, y.fit$failure.times)
     surf1 <- S1.hat[, times.index]
     surf0 <- S0.hat[, times.index]
-    m.hat  <- p.hat * surf1 + (1 - p.hat) * surf0
+    Y.hat  <- W.hat * surf1 + (1 - W.hat) * surf0
   }else {
     y.fit = NULL
   }
 
-  args.nuisance$compute.oob.predictions <- TRUE
-  if (is.null(c.hat)){
-    if(cen.fit == "KM"){
+  if (is.null(C.hat)){
+    if(cen.fit == "Kaplan-Meier"){
       traindat <- data.frame(Y = Y, D = D)
       shuffle <- sample(nrow(traindat))
       kmdat <- traindat[shuffle,]
       folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
-      c.hat <- rep(NA, nrow(kmdat))
+      C.hat <- rep(NA, nrow(kmdat))
       for(z in 1:10){
         testIndexes <- which(folds==z, arr.ind=TRUE)
         testData <- kmdat[testIndexes, ]
         trainData <- kmdat[-testIndexes, ]
         c.fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
         cent <- testData$Y; cent[testData$D==0] <- times
-        c.hat[testIndexes] <- summary(c.fit, times = cent)$surv
+        C.hat[testIndexes] <- summary(c.fit, times = cent)$surv
       }
-      shudat <- data.frame(shuffle, c.hat)
-      c.hat <- shudat[order(shuffle), ]$c.hat
+      shudat <- data.frame(shuffle, C.hat)
+      C.hat <- shudat[order(shuffle), ]$C.hat
     }else if (cen.fit == "survival.forest"){
-      c.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = 1 - D), args.nuisance))
+      c.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = 1 - D), args.grf.nuisance))
       C.hat <- predict(c.fit, failure.times = c.fit$failure.times)$predictions
       cent <- Y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c.fit$failure.times)
-      c.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
+      C.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
     }
   }else{
     c.fit <- NULL
   }
 
   # create binary data
-  tempdata <- data.frame(Y, D, W, m.hat, p.hat, c.hat, X)
+  tempdata <- data.frame(Y, D, W, Y.hat, W.hat, C.hat, X)
   binary.data <- tempdata[tempdata$D==1|tempdata$Y > times,]       # remove subjects who got censored before the time of interest t50
   binary.data$D[binary.data$D==1 & binary.data$Y > times] <- 0     # recode the event status for subjects who had events after t50
   binary.data <- binary.data[complete.cases(binary.data),]
 
-  y.tilde <- (1 - binary.data$D) - binary.data$m.hat
-  w.tilde <-  binary.data$W - binary.data$p.hat
+  y.tilde <- (1 - binary.data$D) - binary.data$Y.hat
+  w.tilde <-  binary.data$W - binary.data$W.hat
   pseudo.outcome <- y.tilde/w.tilde
-  weights <- w.tilde^2/binary.data$c.hat
+  sample.weights <- w.tilde^2/binary.data$C.hat
 
-  tau.fit <- grf::regression_forest(binary.data[,7:dim(binary.data)[2]],
-                                    pseudo.outcome,
-                                    sample.weights = weights,
-                                    num.trees = num.trees,
-                                    clusters = clusters,
-                                    sample.fraction = sample.fraction,
-                                    mtry = mtry,
-                                    min.node.size = min.node.size,
-                                    honesty = honesty,
-                                    honesty.fraction = honesty.fraction,
-                                    honesty.prune.leaves = honesty.prune.leaves,
-                                    imbalance.penalty = imbalance.penalty,
-                                    ci.group.size = ci.group.size,
-                                    compute.oob.predictions = compute.oob.predictions,
-                                    num.threads = num.threads,
-                                    seed = seed)
+  args.grf.tau <- list(sample.weights = sample.weights,
+                            num.trees = 2000,
+                            clusters = NULL,
+                            sample.fraction = 0.5,
+                            mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
+                            min.node.size = 5,
+                            honesty = TRUE,
+                            honesty.fraction = 0.5,
+                            honesty.prune.leaves = TRUE,
+                            imbalance.penalty = 0,
+                            ci.group.size = 2,
+                            compute.oob.predictions = TRUE,
+                            num.threads = NULL,
+                            seed = runif(1, 0, .Machine$integer.max))
+
+  tau.fit <- do.call(grf::regression_forest, c(list(X = binary.data[,7:dim(binary.data)[2]], Y = pseudo.outcome), args.grf.tau))
 
   ret <- list(tau.fit = tau.fit,
               pseudo.outcome = pseudo.outcome,
-              weights = weights,
+              sample.weights = sample.weights,
               y.fit = y.fit,
               c.fit = c.fit,
-              p.hat = p.hat,
-              m.hat = m.hat,
-              c.hat = c.hat)
+              W.hat = W.hat,
+              Y.hat = Y.hat,
+              C.hat = C.hat)
   class(ret) <- "surv_rl_grf"
   ret
 }
@@ -230,7 +194,7 @@ surv_rl_grf = function(X, W, Y, D,
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.grf.fit = surv_rl_grf(X, W, Y, D, times, p.hat = 0.5)
+#' surv.rl.grf.fit = surv_rl_grf(X, Y, W, D, times, W.hat = 0.5)
 #' cate = predict(surv.rl.grf.fit)
 #' cate.test = predict(surv.rl.grf.fit, X.test)
 #' }

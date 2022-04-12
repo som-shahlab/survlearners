@@ -58,7 +58,7 @@ sanitize_x = function(X){
 	return(X)
 }
 
-sanitize_input = function(X,W,Y,D) {
+sanitize_input = function(X, Y, W, D) {
   X = sanitize_x(X)
 
   if (!is.numeric(W)) {
@@ -86,7 +86,7 @@ sanitize_input = function(X,W,Y,D) {
 	}
 
 	return(list(X=X,
-	            W=W,
 	            Y=Y,
+	            W=W,
 	            D=D))
 }

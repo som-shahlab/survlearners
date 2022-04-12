@@ -30,13 +30,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.lasso.fit = surv_sl_lasso(X, W, Y, D, times)
+#' surv.sl.lasso.fit = surv_sl_lasso(X, Y, W, D, times)
 #' cate = predict(surv.sl.lasso.fit)
 #' cate.test = predict(surv.sl.lasso.fit, X.test)
 #' }
 #' @return a surv_sl_lasso object
 #' @export
-surv_sl_lasso = function(X, W, Y, D, times,
+surv_sl_lasso = function(X, Y, W, D, times,
                          alpha = 1,
                          k.folds = NULL,
                          foldid = NULL,
@@ -44,7 +44,7 @@ surv_sl_lasso = function(X, W, Y, D, times,
                          lambda.choice = "lambda.min",
                          penalty.factor = NULL){
 
-  input = sanitize_input(X, W, Y, D)
+  input = sanitize_input(X, Y, W, D)
   X = input$X
   W = input$W
   Y = input$Y
@@ -81,7 +81,7 @@ surv_sl_lasso = function(X, W, Y, D, times,
     penalty.factor = c(0, rep(1, 2 * pobs))
   }
   x.scl.tilde <- as.matrix(data.frame(x.scl.tilde))
-  s.fit <- glmnet::cv.glmnet(x.scl.tilde,
+  tau.fit <- glmnet::cv.glmnet(x.scl.tilde,
                              survival::Surv(Y, D),
                              family = "cox",
                              foldid = foldid,
@@ -90,16 +90,16 @@ surv_sl_lasso = function(X, W, Y, D, times,
                              standardize = FALSE,
                              alpha = alpha)
 
-  s.beta <- t(as.vector(coef(s.fit, s = lambda.choice)))
+  s.beta <- t(as.vector(coef(tau.fit, s = lambda.choice)))
   s.beta.adj <- c(0.5 * s.beta[1:(1 + dim(X)[2])], s.beta[(2 + dim(X)[2]):dim(x.scl.tilde)[2]])
 
   link1 <- exp(x.scl.pred1 %*% s.beta.adj)
   link0 <- exp(x.scl.pred0 %*% s.beta.adj)
-  S0.t <- base_surv(fit = s.fit,
+  S0.t <- base_surv(fit = tau.fit,
                     Y = Y,
                     D = D,
                     X = x.scl.tilde,
-                    lambda = s.fit$lambda.min)
+                    lambda = tau.fit$lambda.min)
   index <- findInterval(times, S0.t$time)
   S0 <- S0.t[index,]$survival
   surv1 <- S0^exp(link1)
@@ -107,7 +107,7 @@ surv_sl_lasso = function(X, W, Y, D, times,
 
   tau.hat <- as.numeric(surv1 - surv0)
 
-  ret = list(s.fit = s.fit,
+  ret = list(tau.fit = tau.fit,
              x.org = x.scl.tilde,
              y.org = Y,
              D.org = D,
@@ -148,7 +148,7 @@ surv_sl_lasso = function(X, W, Y, D, times,
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.lasso.fit = surv_sl_lasso(X, W, Y, D, times)
+#' surv.sl.lasso.fit = surv_sl_lasso(X, Y, W, D, times)
 #' cate = predict(surv.sl.lasso.fit)
 #' cate.test = predict(surv.sl.lasso.fit, X.test)
 #' }
