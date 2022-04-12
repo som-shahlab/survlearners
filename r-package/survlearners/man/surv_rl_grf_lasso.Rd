@@ -6,52 +6,75 @@
 \usage{
 surv_rl_grf_lasso(
   X,
-  W,
   Y,
+  W,
   D,
-  times,
-  ps = NULL,
-  alpha = 0.05,
-  cen_fit = "KM",
-  newX = NULL
+  times = NULL,
+  k.folds = 10,
+  W.hat = NULL,
+  Y.hat = NULL,
+  C.hat = NULL,
+  penalty.factor = NULL,
+  lambda.choice = "lambda.min",
+  args.grf.nuisance = list(),
+  args.lasso.tau = list(),
+  cen.fit = "Kaplan-Meier"
 )
 }
 \arguments{
+\item{X}{The baseline covariates}
+
+\item{Y}{The follow-up time}
+
+\item{W}{The treatment variable (0 or 1)}
+
+\item{D}{The event indicator}
+
 \item{times}{The prediction time of interest}
 
-\item{ps}{The propensity score}
+\item{k.folds}{Number of folds for cross validation}
 
-\item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
+\item{W.hat}{Propensity score}
 
-\item{cen_fit}{The choice of model fitting for censoring}
+\item{Y.hat}{Conditional mean outcome E(Y|X)}
 
-\item{newX}{The test data set (covariates only)}
+\item{C.hat}{Censoring weights}
 
-\item{data}{The training data set}
+\item{penalty.factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 
-\item{data.test}{The testing data set}
+\item{lambda.choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
+
+\item{args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
+
+\item{args.lasso.tau}{Input arguments for a lasso model that estimates CATE}
+
+\item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
-A vector of estimated conditional average treatment effects
+A surv_rl_grf_lasso object
 }
 \description{
 R-learner, implemented via the grf package for nuisance parameter estimation and lasso for target parameter
 }
 \examples{
 \donttest{
-n = 1000; p = 25
-times = 0.2
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
 numeratorT <- -log(runif(n))
-T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 failure.time <- pmin(T, Y.max)
 numeratorC <- -log(runif(n))
-censor.time <- (numeratorC/(4^2))^(1/2)
+censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
+n.test <- 500
+X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-cate = surv_rl_grf_lasso(X, W, Y, D, times, ps = 0.5, newX = X)
+surv.rl.grf.lasso.fit <- surv_rl_grf_lasso(X, Y, W, D, times, W.hat = 0.5)
+cate <- predict(surv.rl.grf.lasso.fit)
+cate.test <- predict(surv.rl.grf.lasso.fit, X.test)
 }
 }

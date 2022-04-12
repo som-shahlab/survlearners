@@ -4,17 +4,17 @@ library(grf)
 n = 5000
 p = 25
 n.test = 5000
-p_b = 1
-p_i = 1
-f_b = "NL"
-f_i = "NL"
+p.b = 1
+p.i = 1
+f.b = "NL"
+f.i = "NL"
 dgp = "fcomplex"
 
 t0 <- 0.2
-data <- survlearners:::generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
+data <- survlearners:::generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i,
                                        dgp = dgp, n.mc = 10, times = t0)
 
-data.test <- survlearners:::generate_tutorial_survival_data(n = n.test, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i,
+data.test <- survlearners:::generate_tutorial_survival_data(n = n.test, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i,
                                             dgp = dgp, n.mc = 10000, times = t0)
 
 

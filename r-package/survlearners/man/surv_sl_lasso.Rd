@@ -4,38 +4,68 @@
 \alias{surv_sl_lasso}
 \title{S-learner of lasso}
 \usage{
-surv_sl_lasso(X, W, Y, D, times, newX = NULL)
+surv_sl_lasso(
+  X,
+  Y,
+  W,
+  D,
+  times,
+  alpha = 1,
+  k.folds = NULL,
+  foldid = NULL,
+  lambda = NULL,
+  lambda.choice = "lambda.min",
+  penalty.factor = NULL
+)
 }
 \arguments{
+\item{X}{The baseline covariates}
+
+\item{Y}{The follow-up time}
+
+\item{W}{The treatment variable (0 or 1)}
+
+\item{D}{The event indicator}
+
 \item{times}{The prediction time of interest}
 
-\item{newX}{The test data set (covariates only)}
+\item{alpha}{Mix tuning parameter for the elastic net}
 
-\item{data}{The training data set}
+\item{k.folds}{Number of folds for cross validation}
 
-\item{data.test}{The testing data set}
+\item{foldid}{User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k.folds option.}
+
+\item{lambda}{User-supplied lambda sequence for cross validation}
+
+\item{lambda.choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
+
+\item{penalty.factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 }
 \value{
-A vector of estimated conditional average treatment effects
+a surv_sl_lasso object
 }
 \description{
 S-learner, implemented via glmnet (lasso)
 }
 \examples{
 \donttest{
-n = 1000; p = 25
-times = 0.2
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
 numeratorT <- -log(runif(n))
-T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 failure.time <- pmin(T, Y.max)
 numeratorC <- -log(runif(n))
-censor.time <- (numeratorC/(4^2))^(1/2)
+censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
+n.test <- 500
+X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-cate = surv_sl_lasso(X, W, Y, D, times, newX = X)
+surv.sl.lasso.fit <- surv_sl_lasso(X, Y, W, D, times)
+cate <- predict(surv.sl.lasso.fit)
+cate.test <- predict(surv.sl.lasso.fit, X.test)
 }
 }
