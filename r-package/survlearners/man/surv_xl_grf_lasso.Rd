@@ -41,8 +41,8 @@ and glmnet (lasso) with "coxph" distribution (for target function CATE estimatio
 }
 \examples{
 \donttest{
-n = 1000; p = 25
-times = 0.2
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -56,8 +56,8 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.xl.grf.lasso.fit = surv_xl_grf_lasso(X, Y, W, D, times, W.hat = 0.5)
-cate = predict(surv.xl.grf.lasso.fit)
-cate.test = predict(surv.xl.grf.lasso.fit, X.test)
+surv.xl.grf.lasso.fit <- surv_xl_grf_lasso(X, Y, W, D, times, W.hat = 0.5)
+cate <- predict(surv.xl.grf.lasso.fit)
+cate.test <- predict(surv.xl.grf.lasso.fit, X.test)
 }
 }

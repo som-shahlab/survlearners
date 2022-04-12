@@ -27,8 +27,8 @@ S-learner, implemented via survival_forest (grf package)
 }
 \examples{
 \donttest{
-n = 1000; p = 25
-times = 0.2
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -42,8 +42,8 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.sl.grf.fit = surv_sl_grf(X, Y, W, D, times)
-cate = predict(surv.sl.grf.fit)
-cate.test = predict(surv.sl.grf.fit, X.test)
+surv.sl.grf.fit <- surv_sl_grf(X, Y, W, D, times)
+cate <- predict(surv.sl.grf.fit)
+cate.test <- predict(surv.sl.grf.fit, X.test)
 }
 }

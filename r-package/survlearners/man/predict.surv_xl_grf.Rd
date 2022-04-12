@@ -23,8 +23,8 @@ get estimated tau(X) using the trained surv_xl_grf model
 }
 \examples{
 \donttest{
-n = 1000; p = 25
-times = 0.2
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -38,9 +38,9 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.xl.grf.fit = surv_xl_grf(X, Y, W, D, times, W.hat = 0.5)
-cate = predict(surv.xl.grf.fit)
-cate.test = predict(surv.xl.grf.fit, X.test)
+surv.xl.grf.fit <- surv_xl_grf(X, Y, W, D, times, W.hat = 0.5)
+cate <- predict(surv.xl.grf.fit)
+cate.test <- predict(surv.xl.grf.fit, X.test)
 }
 
 }

@@ -9,8 +9,8 @@
 #' @param times The prediction time of interest
 #' @examples
 #' \donttest{
-#' n = 1000; p = 25
-#' times = 0.2
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -24,9 +24,9 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.tl.lasso.fit = surv_tl_lasso(X, Y, W, D, times)
-#' cate = predict(surv.tl.lasso.fit)
-#' cate.test = predict(surv.tl.lasso.fit, X.test)
+#' surv.tl.lasso.fit <- surv_tl_lasso(X, Y, W, D, times)
+#' cate <- predict(surv.tl.lasso.fit)
+#' cate.test <- predict(surv.tl.lasso.fit, X.test)
 #' }
 #' @return A surv_tl_lasso object
 #' @export
@@ -98,8 +98,8 @@ surv_tl_lasso <- function(X, Y, W, D, times){
 #'
 #' @examples
 #' \donttest{
-#' n = 1000; p = 25
-#' times = 0.2
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -113,14 +113,14 @@ surv_tl_lasso <- function(X, Y, W, D, times){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.tl.lasso.fit = surv_tl_lasso(X, Y, W, D, times)
-#' cate = predict(surv.tl.lasso.fit)
-#' cate.test = predict(surv.tl.lasso.fit, X.test)
+#' surv.tl.lasso.fit <- surv_tl_lasso(X, Y, W, D, times)
+#' cate <- predict(surv.tl.lasso.fit)
+#' cate.test <- predict(surv.tl.lasso.fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-predict.surv_tl_lasso = function(object,
+predict.surv_tl_lasso <- function(object,
                                  newdata = NULL,
                                  times = NULL,
                                  ...) {

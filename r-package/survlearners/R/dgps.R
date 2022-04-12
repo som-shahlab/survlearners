@@ -23,9 +23,9 @@
 #' @param dgp The type of DGP
 #' @examples
 #' \donttest{
-#' n = 1000; p = 25
-#' data = generate_tutorial_survival_data(n, p, p.b = 1, p.i = 1, f.b = "L", f.i = "L", times = 0.2)
-#' cate.true = generate_tutorial_survival_data(n, p, p.b = 1, p.i = 1, f.b = "L", f.i = "L", times = 0.2)$catesp
+#' n <- 1000; p <- 25
+#' data <- generate_tutorial_survival_data(n, p, p.b = 1, p.i = 1, f.b = "L", f.i = "L", times = 0.2)
+#' cate.true <- generate_tutorial_survival_data(n, p, p.b = 1, p.i = 1, f.b = "L", f.i = "L", times = 0.2)$catesp
 #' }
 #' @return A simulation data set
 #' @export

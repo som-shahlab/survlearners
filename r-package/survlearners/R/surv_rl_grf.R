@@ -16,8 +16,8 @@
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
-#' n = 1000; p = 25
-#' times = 0.2
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -31,13 +31,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.grf.fit = surv_rl_grf(X, Y, W, D, times, W.hat = 0.5)
-#' cate = predict(surv.rl.grf.fit)
-#' cate.test = predict(surv.rl.grf.fit, X.test)
+#' surv.rl.grf.fit <- surv_rl_grf(X, Y, W, D, times, W.hat = 0.5)
+#' cate <- predict(surv.rl.grf.fit)
+#' cate.test <- predict(surv.rl.grf.fit, X.test)
 #' }
 #' @return A surv_rl_grf_fit object
 #' @export
-surv_rl_grf = function(X, Y, W, D,
+surv_rl_grf <- function(X, Y, W, D,
                        times = NULL,
                        k.folds = NULL,
                        W.hat = NULL,
@@ -47,16 +47,16 @@ surv_rl_grf = function(X, Y, W, D,
                        args.grf.tau = list(),
                        cen.fit = "Kaplan-Meier"){
 
-  input = sanitize_input(X, Y, W, D)
-  X = input$X
-  W = as.numeric(input$W)
-  Y = input$Y
-  D = input$D
-  nobs = nrow(X)
-  pobs = ncol(X)
+  input <- sanitize_input(X, Y, W, D)
+  X <- input$X
+  W <- as.numeric(input$W)
+  Y <- input$Y
+  D <- input$D
+  nobs <- nrow(X)
+  pobs <- ncol(X)
 
   if (is.null(k.folds)) {
-    k.folds = floor(max(3, min(10,length(Y)/4)))
+    k.folds <- floor(max(3, min(10,length(Y)/4)))
   }
 
   if (is.null(W.hat)){
@@ -97,7 +97,7 @@ surv_rl_grf = function(X, Y, W, D,
     surf0 <- S0.hat[, times.index]
     Y.hat  <- W.hat * surf1 + (1 - W.hat) * surf0
   } else {
-    y.fit = NULL
+    y.fit <- NULL
   }
 
   if (is.null(C.hat)){
@@ -179,8 +179,8 @@ surv_rl_grf = function(X, Y, W, D,
 #'
 #' @examples
 #' \donttest{
-#' n = 1000; p = 25
-#' times = 0.2
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -194,9 +194,9 @@ surv_rl_grf = function(X, Y, W, D,
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.grf.fit = surv_rl_grf(X, Y, W, D, times, W.hat = 0.5)
-#' cate = predict(surv.rl.grf.fit)
-#' cate.test = predict(surv.rl.grf.fit, X.test)
+#' surv.rl.grf.fit <- surv_rl_grf(X, Y, W, D, times, W.hat = 0.5)
+#' cate <- predict(surv.rl.grf.fit)
+#' cate.test <- predict(surv.rl.grf.fit, X.test)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects
@@ -206,16 +206,16 @@ predict.surv_rl_grf <- function(object,
                                 tau.only = TRUE,
                                 ...) {
   if (!is.null(newdata)){
-    newdata = sanitize_x(newdata)
+    newdata <- sanitize_x(newdata)
   }
   if (tau.only) {
     return(predict(object$tau.fit, newdata)$predictions)
   } else {
     tau <- predict(object$tau.fit, newdata)$predictions
-    e = predict(object$w.fit, newdata)$predictions
-    m = predict(object$y.fit, newdata)$predictions
-    mu1 = m + (1-e) * tau
-    mu0 = m - e * tau
+    e <- predict(object$w.fit, newdata)$predictions
+    m <- predict(object$y.fit, newdata)$predictions
+    mu1 <- m + (1-e) * tau
+    mu0 <- m - e * tau
     return(list(tau=tau, e=e, m=m, mu1 = mu1, mu0 = mu0))
   }
 }

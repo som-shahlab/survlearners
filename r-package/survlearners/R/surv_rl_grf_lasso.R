@@ -18,8 +18,8 @@
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
-#' n = 1000; p = 25
-#' times = 0.2
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -33,13 +33,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.grf.lasso.fit = surv_rl_grf_lasso(X, Y, W, D, times, W.hat = 0.5)
-#' cate = predict(surv.rl.grf.lasso.fit)
-#' cate.test = predict(surv.rl.grf.lasso.fit, X.test)
+#' surv.rl.grf.lasso.fit <- surv_rl_grf_lasso(X, Y, W, D, times, W.hat = 0.5)
+#' cate <- predict(surv.rl.grf.lasso.fit)
+#' cate.test <- predict(surv.rl.grf.lasso.fit, X.test)
 #' }
 #' @return A surv_rl_grf_lasso object
 #' @export
-surv_rl_grf_lasso = function(X, Y, W, D,
+surv_rl_grf_lasso <- function(X, Y, W, D,
                              times = NULL,
                              k.folds = 10,
                              W.hat = NULL,
@@ -51,25 +51,25 @@ surv_rl_grf_lasso = function(X, Y, W, D,
                              args.lasso.tau = list(),
                              cen.fit = "Kaplan-Meier"){
 
-  input = sanitize_input(X, Y, W, D)
-  X = input$X
-  W = as.numeric(input$W)
-  Y = input$Y
-  D = input$D
-  nobs = nrow(X)
-  pobs = ncol(X)
+  input <- sanitize_input(X, Y, W, D)
+  X <- input$X
+  W <- as.numeric(input$W)
+  Y <- input$Y
+  D <- input$D
+  nobs <- nrow(X)
+  pobs <- ncol(X)
 
-  x.scl = scale(X, center = TRUE, scale = TRUE)
-  x.scl = x.scl[,!is.na(colSums(x.scl)), drop = FALSE]
+  x.scl <- scale(X, center = TRUE, scale = TRUE)
+  x.scl <- x.scl[,!is.na(colSums(x.scl)), drop = FALSE]
 
   # penalty factor for tau estimator
   if (is.null(penalty.factor) || (length(penalty.factor) != pobs)) {
     if (!is.null(penalty.factor) && length(penalty.factor) != pobs) {
       warning("penalty.factor supplied is not of the same length as the number of columns in X after removing NA columns. Using all ones instead.")
     }
-    penalty.factor.tau = c(0, rep(1, pobs))
+    penalty.factor.tau <- c(0, rep(1, pobs))
   } else {
-    penalty.factor.tau = c(0, penalty.factor)
+    penalty.factor.tau <- c(0, penalty.factor)
   }
 
   if (is.null(W.hat)){
@@ -110,7 +110,7 @@ surv_rl_grf_lasso = function(X, Y, W, D,
     surf0 <- S0.hat[, times.index]
     Y.hat  <- W.hat * surf1 + (1 - W.hat) * surf0
   } else {
-    y.fit = NULL
+    y.fit <- NULL
   }
 
 
@@ -148,13 +148,13 @@ surv_rl_grf_lasso = function(X, Y, W, D,
   binary.data$D[binary.data$D==1 & binary.data$Y > times] <- 0     # recode the event status for subjects who had events after t50
   binary.data <- binary.data[complete.cases(binary.data),]
 
-  sample.weights = 1/binary.data$C.hat     # the treatment weight is already accounted
-  y.tilde = (1 - binary.data$D) - binary.data$Y.hat
-  x.scl = binary.data[, 7:dim(binary.data)[2]]
-  foldid2 = sample(rep(seq(k.folds), length = length(binary.data$W)))
+  sample.weights <- 1/binary.data$C.hat     # the treatment weight is already accounted
+  y.tilde <- (1 - binary.data$D) - binary.data$Y.hat
+  x.scl <- binary.data[, 7:dim(binary.data)[2]]
+  foldid2 <- sample(rep(seq(k.folds), length = length(binary.data$W)))
 
-  x.scl.tilde = cbind(as.numeric(binary.data$W - binary.data$W.hat) * cbind(1, x.scl))
-  x.scl.pred = cbind(1, x.scl)
+  x.scl.tilde <- cbind(as.numeric(binary.data$W - binary.data$W.hat) * cbind(1, x.scl))
+  x.scl.pred <- cbind(1, x.scl)
 
   args.lasso.tau <- list(weights = sample.weights,
                               foldid = foldid2,
@@ -162,11 +162,11 @@ surv_rl_grf_lasso = function(X, Y, W, D,
                               lambda = NULL,
                               penalty.factor = penalty.factor.tau,
                               standardize = FALSE)
-  tau.fit = do.call(glmnet::cv.glmnet, c(list(x = as.matrix(x.scl.tilde), y = y.tilde), args.lasso.tau))
-  tau.beta = as.vector(t(coef(tau.fit, s = lambda.choice)[-1]))
-  tau.hat = as.matrix(x.scl.pred) %*% tau.beta
+  tau.fit <- do.call(glmnet::cv.glmnet, c(list(x = as.matrix(x.scl.tilde), y = y.tilde), args.lasso.tau))
+  tau.beta <- as.vector(t(coef(tau.fit, s = lambda.choice)[-1]))
+  tau.hat <- as.matrix(x.scl.pred) %*% tau.beta
 
-  ret = list(tau.fit = tau.fit,
+  ret <- list(tau.fit = tau.fit,
              tau.beta = tau.beta,
              y.fit = y.fit,
              c.fit = c.fit,
@@ -187,8 +187,8 @@ surv_rl_grf_lasso = function(X, Y, W, D,
 #'
 #' @examples
 #' \donttest{
-#' n = 1000; p = 25
-#' times = 0.2
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -202,9 +202,9 @@ surv_rl_grf_lasso = function(X, Y, W, D,
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.grf.lasso.fit = surv_rl_grf_lasso(X, Y, W, D, times, W.hat = 0.5)
-#' cate = predict(surv.rl.grf.lasso.fit)
-#' cate.test = predict(surv.rl.grf.lasso.fit, X.test)
+#' surv.rl.grf.lasso.fit <- surv_rl_grf_lasso(X, Y, W, D, times, W.hat = 0.5)
+#' cate <- predict(surv.rl.grf.lasso.fit)
+#' cate.test <- predict(surv.rl.grf.lasso.fit, X.test)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects
@@ -213,14 +213,14 @@ predict.surv_rl_grf_lasso <- function(object,
                                       newdata = NULL,
                                       ...) {
   if (!is.null(newdata)) {
-    newdata = sanitize_x(newdata)
-    newdata.scl = scale(newdata, center = TRUE, scale = TRUE)
-    newdata.scl = newdata.scl[,!is.na(colSums(newdata.scl)), drop = FALSE]
-    newdata.scl.pred = cbind(1, newdata.scl)
-    tau.hat = newdata.scl.pred %*% object$tau.beta
+    newdata <- sanitize_x(newdata)
+    newdata.scl <- scale(newdata, center = TRUE, scale = TRUE)
+    newdata.scl <- newdata.scl[,!is.na(colSums(newdata.scl)), drop = FALSE]
+    newdata.scl.pred <- cbind(1, newdata.scl)
+    tau.hat <- newdata.scl.pred %*% object$tau.beta
   }
   else {
-    tau.hat = object$tau.hat
+    tau.hat <- object$tau.hat
   }
   return(tau.hat)
 }

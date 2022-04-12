@@ -12,8 +12,8 @@
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
-#' n = 1000; p = 25
-#' times = 0.2
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -27,9 +27,9 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.fl.grf.fit = surv_fl_grf(X, Y, W, D, times, W.hat = 0.5)
-#' cate = predict(surv.fl.grf.fit)
-#' cate.test = predict(surv.fl.grf.fit, X.test)
+#' surv.fl.grf.fit <- surv_fl_grf(X, Y, W, D, times, W.hat = 0.5)
+#' cate <- predict(surv.fl.grf.fit)
+#' cate.test <- predict(surv.fl.grf.fit, X.test)
 #' }
 #' @return A surv_fl_grf object
 #' @export
@@ -100,8 +100,8 @@ surv_fl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
 #'
 #' @examples
 #' \donttest{
-#' n = 1000; p = 25
-#' times = 0.2
+#' n <- 1000; p <- 25
+#' times <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -115,16 +115,16 @@ surv_fl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.fl.grf.fit = surv_fl_grf(X, Y, W, D, times, W.hat = 0.5)
-#' cate = predict(surv.fl.grf.fit)
-#' cate.test = predict(surv.fl.grf.fit, X.test)
+#' surv.fl.grf.fit <- surv_fl_grf(X, Y, W, D, times, W.hat = 0.5)
+#' cate <- predict(surv.fl.grf.fit)
+#' cate.test <- predict(surv.fl.grf.fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-predict.surv_fl_grf = function(object,
-                               newdata = NULL,
-                               ...) {
+predict.surv_fl_grf <- function(object,
+                                newdata = NULL,
+                                ...) {
   if (is.null(newdata)){
     return(object$tau.hat)
   } else {

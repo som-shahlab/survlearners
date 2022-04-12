@@ -49,23 +49,23 @@ pred_surv_preval <- function(fit, S0, times, lambda){
 }
 
 
-sanitize_x = function(X){
+sanitize_x <- function(X){
 	# make sure X is a numeric matrix with named columns (for caret)
 	if (!is.matrix(X) | !is.numeric(X) | any(is.na(X))) {
 		stop("X must be a numeric matrix with no missing values")
 	}
-	colnames(X) = paste0("covariate_", 1:ncol(X))
+	colnames(X) <- paste0("covariate_", 1:ncol(X))
 	return(X)
 }
 
-sanitize_input = function(X, Y, W, D) {
-  X = sanitize_x(X)
+sanitize_input <- function(X, Y, W, D) {
+  X <- sanitize_x(X)
 
   if (!is.numeric(W)) {
 		stop("the input W should be a numeric vector")
   }
 	if (is.numeric(W) & all(W %in% c(0,1))) {
-		W = W==1
+		W <- W==1
 	}
 
 	# make sure Y is a numeric vector
@@ -77,7 +77,7 @@ sanitize_input = function(X, Y, W, D) {
     stop("the input D should be a numeric vector")
   }
   if (is.numeric(D) & all(D %in% c(0,1))) {
-    D = D==1
+    D <- D==1
   }
 
 	# make sure the dimensions align
