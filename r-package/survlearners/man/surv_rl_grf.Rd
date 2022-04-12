@@ -33,8 +33,7 @@ surv_rl_grf(
   compute.oob.predictions = TRUE,
   num.threads = NULL,
   seed = runif(1, 0, .Machine$integer.max),
-  cen.fit = "KM",
-  verbose = FALSE
+  cen.fit = "KM"
 )
 }
 \arguments{

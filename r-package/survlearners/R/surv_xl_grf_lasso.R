@@ -3,13 +3,14 @@
 #' @description  X-learner, implemented via grf (for nuisance parameter estimation)
 #' and glmnet (lasso) with 'coxph' distribution (for target function CATE estimation)
 #'
-#' @param data The training data set
-#' @param data.test The testing data set
+#' @param X The baseline covariates
+#' @param W The treatment variable (0 or 1)
+#' @param Y The follow-up time
+#' @param D The event indicator
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param ps The propensity score
 #' @param cen.fit The choice of model fitting for censoring
-#' @param newX The test data set (covariates only)
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25

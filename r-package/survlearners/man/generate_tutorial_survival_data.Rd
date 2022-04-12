@@ -36,6 +36,8 @@ generate_tutorial_survival_data(
 
 \item{f.i}{The function form of the treatment-covariate interactions (linear/nonlinear)}
 
+\item{pi}{The propensity score}
+
 \item{beta}{The coefficients of variables in the main effect}
 
 \item{gamma}{The coefficients of variables in the interaction}

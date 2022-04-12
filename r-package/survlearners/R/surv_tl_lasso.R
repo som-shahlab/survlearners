@@ -2,10 +2,11 @@
 #'
 #' @description  T-learner, implemented via glmnet (lasso)
 #'
-#' @param data The training data set
-#' @param data.test The testing data set
+#' @param X The baseline covariates
+#' @param W The treatment variable (0 or 1)
+#' @param Y The follow-up time
+#' @param D The event indicator
 #' @param times The prediction time of interest
-#' @param newX The test data set (covariates only)
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25

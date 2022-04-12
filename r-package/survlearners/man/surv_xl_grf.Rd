@@ -17,6 +17,14 @@ surv_xl_grf(
 )
 }
 \arguments{
+\item{X}{The baseline covariates}
+
+\item{W}{The treatment variable (0 or 1)}
+
+\item{Y}{The follow-up time}
+
+\item{D}{The event indicator}
+
 \item{times}{The prediction time of interest}
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
@@ -24,12 +32,6 @@ surv_xl_grf(
 \item{ps}{The propensity score}
 
 \item{cen.fit}{The choice of model fitting for censoring}
-
-\item{newX}{The test data set (covariates only)}
-
-\item{data}{The training data set}
-
-\item{data.test}{The testing data set}
 }
 \value{
 A vector of estimated conditional average treatment effects

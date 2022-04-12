@@ -33,11 +33,10 @@ surv_rl_grf_lasso(
   compute.oob.predictions = TRUE,
   num.threads = NULL,
   seed = runif(1, 0, .Machine$integer.max),
-  lambda.tau = NULL,
-  lambda.choice = "lambda.min",
-  penalty.factor = NULL,
-  cen.fit = "KM",
-  verbose = FALSE
+  lambda_tau = NULL,
+  lambda_choice = "lambda.min",
+  penalty_factor = NULL,
+  cen.fit = "KM"
 )
 }
 \arguments{
