@@ -1,6 +1,3 @@
-# dgps.R - convenience script for generating simulation data for grf.
-
-
 #' @title Metalearners-Benchmark dgps
 #'
 #' @description  Simulation data sets for comparing metalearners on estimating CATE in survival outcomes

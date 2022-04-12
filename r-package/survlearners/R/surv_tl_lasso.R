@@ -3,8 +3,8 @@
 #' @description  T-learner, implemented via glmnet (lasso)
 #'
 #' @param X The baseline covariates
-#' @param W The treatment variable (0 or 1)
 #' @param Y The follow-up time
+#' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param times The prediction time of interest
 #' @examples

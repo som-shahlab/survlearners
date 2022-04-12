@@ -3,8 +3,8 @@
 #' @description  R-learner, implemented via the grf package
 #'
 #' @param X The baseline covariates
-#' @param W The treatment variable (0 or 1)
 #' @param Y The follow-up time
+#' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param times The prediction time of interest
 #' @param k.folds Number of folds for cross validation
@@ -172,10 +172,10 @@ surv_rl_grf <- function(X, Y, W, D,
 #'
 #' get estimated tau(X) using the trained surv_rl_grf model
 #'
-#' @param object a surv_rl_grf object
-#' @param newdata covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
-#' @param tau.only if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.
-#' @param ... additional arguments (currently not used)
+#' @param object A surv_rl_grf object
+#' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
+#' @param tau.only If set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.
+#' @param ... Additional arguments (currently not used)
 #'
 #' @examples
 #' \donttest{

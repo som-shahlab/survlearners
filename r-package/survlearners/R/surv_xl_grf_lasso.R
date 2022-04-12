@@ -4,8 +4,8 @@
 #' and glmnet (lasso) with "coxph" distribution (for target function CATE estimation)
 #'
 #' @param X The baseline covariates
-#' @param W The treatment variable (0 or 1)
 #' @param Y The follow-up time
+#' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)

@@ -7,11 +7,11 @@
 \method{predict}{surv_rl_grf_lasso}(object, newdata = NULL, ...)
 }
 \arguments{
-\item{object}{a surv_rl_grf_lasso object}
+\item{object}{A surv_rl_grf_lasso object}
 
-\item{newdata}{covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
+\item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
-\item{...}{additional arguments (currently not used)}
+\item{...}{Additional arguments (currently not used)}
 }
 \value{
 A vector of predicted conditional average treatment effects

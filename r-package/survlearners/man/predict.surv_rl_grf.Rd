@@ -7,13 +7,13 @@
 \method{predict}{surv_rl_grf}(object, newdata = NULL, tau.only = TRUE, ...)
 }
 \arguments{
-\item{object}{a surv_rl_grf object}
+\item{object}{A surv_rl_grf object}
 
-\item{newdata}{covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
+\item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
-\item{tau.only}{if set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.}
+\item{tau.only}{If set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.}
 
-\item{...}{additional arguments (currently not used)}
+\item{...}{Additional arguments (currently not used)}
 }
 \value{
 A vector of predicted conditional average treatment effects
