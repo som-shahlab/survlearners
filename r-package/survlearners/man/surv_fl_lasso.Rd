@@ -4,7 +4,7 @@
 \alias{surv_fl_lasso}
 \title{F-learner of lasso}
 \usage{
-surv_fl_lasso(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM")
+surv_fl_lasso(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM")
 }
 \arguments{
 \item{X}{The baseline covariates}
@@ -21,7 +21,7 @@ surv_fl_lasso(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM")
 
 \item{ps}{The propensity score}
 
-\item{cen_fit}{The choice of model fitting for censoring}
+\item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
 A vector of estimated conditional average treatment effects
@@ -46,8 +46,8 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_fl_lasso_fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
-cate = predict(surv_fl_lasso_fit)
-cate.test = predict(surv_fl_lasso_fit, X.test)
+surv.fl.lasso.fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
+cate = predict(surv.fl.lasso.fit)
+cate.test = predict(surv.fl.lasso.fit, X.test)
 }
 }

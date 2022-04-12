@@ -25,9 +25,9 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_sl_grf_fit = surv_sl_grf(X, W, Y, D, times)
-#' cate = predict(surv_sl_grf_fit)
-#' cate.test = predict(surv_sl_grf_fit, X.test)
+#' surv.sl.grf.fit = surv_sl_grf(X, W, Y, D, times)
+#' cate = predict(surv.sl.grf.fit)
+#' cate.test = predict(surv.sl.grf.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
@@ -42,10 +42,10 @@ surv_sl_grf <- function(X, W, Y, D, times, alpha = 0.05){
   index <- findInterval(times, grffit$failure.times)
   surf1 <- predict(grffit, cbind(rep(1, nrow(X)), X))$predictions[, index]
   surf0 <- predict(grffit, cbind(rep(0, nrow(X)), X))$predictions[, index]
-  pred_S_grf <- surf1 - surf0
+  pred.S.grf <- surf1 - surf0
 
   ret <- list(fit = grffit,
-              tau = pred_S_grf,
+              tau = pred.S.grf,
               times = times)
   class(ret) <- 'surv_sl_grf'
   ret
@@ -77,9 +77,9 @@ surv_sl_grf <- function(X, W, Y, D, times, alpha = 0.05){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_sl_grf_fit = surv_sl_grf(X, W, Y, D, times)
-#' cate = predict(surv_sl_grf_fit)
-#' cate.test = predict(surv_sl_grf_fit, X.test)
+#' surv.sl.grf.fit = surv_sl_grf(X, W, Y, D, times)
+#' cate = predict(surv.sl.grf.fit)
+#' cate.test = predict(surv.sl.grf.fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects

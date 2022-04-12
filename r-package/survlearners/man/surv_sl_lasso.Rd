@@ -11,11 +11,11 @@ surv_sl_lasso(
   D,
   times,
   alpha = 1,
-  k_folds = NULL,
+  k.folds = NULL,
   foldid = NULL,
   lambda = NULL,
-  lambda_choice = "lambda.min",
-  penalty_factor = NULL
+  lambda.choice = "lambda.min",
+  penalty.factor = NULL
 )
 }
 \arguments{
@@ -31,15 +31,15 @@ surv_sl_lasso(
 
 \item{alpha}{Mix tuning parameter for the elastic net}
 
-\item{k_folds}{Number of folds for cross validation}
+\item{k.folds}{Number of folds for cross validation}
 
-\item{foldid}{User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k_folds option.}
+\item{foldid}{User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k.folds option.}
 
 \item{lambda}{User-supplied lambda sequence for cross validation}
 
-\item{lambda_choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
+\item{lambda.choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
 
-\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in X}
+\item{penalty.factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 }
 \value{
 a surv_sl_lasso object
@@ -64,8 +64,8 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_sl_lasso_fit = surv_sl_lasso(X, W, Y, D, times)
-cate = predict(surv_sl_lasso_fit)
-cate.test = predict(surv_sl_lasso_fit, X.test)
+surv.sl.lasso.fit = surv_sl_lasso(X, W, Y, D, times)
+cate = predict(surv.sl.lasso.fit)
+cate.test = predict(surv.sl.lasso.fit, X.test)
 }
 }

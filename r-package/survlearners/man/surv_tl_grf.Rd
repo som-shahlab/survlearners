@@ -18,8 +18,6 @@ surv_tl_grf(X, W, Y, D, times, alpha = 0.05)
 \item{times}{The prediction time of interest}
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
-
-\item{data.test}{The testing data set}
 }
 \value{
 A vector of estimated conditional average treatment effects
@@ -44,8 +42,8 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_tl_grf_fit = surv_tl_grf(X, W, Y, D, times)
-cate = predict(surv_tl_grf_fit)
-cate.test = predict(surv_tl_grf_fit, X.test)
+surv.tl.grf.fit = surv_tl_grf(X, W, Y, D, times)
+cate = predict(surv.tl.grf.fit)
+cate.test = predict(surv.tl.grf.fit, X.test)
 }
 }

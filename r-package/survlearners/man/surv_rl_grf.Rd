@@ -10,10 +10,10 @@ surv_rl_grf(
   Y,
   D,
   times = NULL,
-  k_folds = NULL,
-  p_hat = NULL,
-  m_hat = NULL,
-  c_hat = NULL,
+  k.folds = NULL,
+  p.hat = NULL,
+  m.hat = NULL,
+  c.hat = NULL,
   failure.times = NULL,
   num.trees = 2000,
   sample.weights = NULL,
@@ -33,7 +33,7 @@ surv_rl_grf(
   compute.oob.predictions = TRUE,
   num.threads = NULL,
   seed = runif(1, 0, .Machine$integer.max),
-  cen_fit = "KM"
+  cen.fit = "KM"
 )
 }
 \arguments{
@@ -47,13 +47,13 @@ surv_rl_grf(
 
 \item{times}{The prediction time of interest}
 
-\item{k_folds}{Number of folds for cross validation}
+\item{k.folds}{Number of folds for cross validation}
 
-\item{p_hat}{Propensity score}
+\item{p.hat}{Propensity score}
 
-\item{m_hat}{Conditional mean outcome E(Y|X)}
+\item{m.hat}{Conditional mean outcome E(Y|X)}
 
-\item{c_hat}{Censoring weights}
+\item{c.hat}{Censoring weights}
 
 \item{failure.times}{A vector of event times to fit the survival curve at.}
 
@@ -93,7 +93,7 @@ surv_rl_grf(
 
 \item{seed}{See grf documentation}
 
-\item{cen_fit}{The choice of model fitting for censoring}
+\item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
 a surv_rl_grf_fit object
@@ -118,8 +118,8 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_rl_grf_fit = surv_rl_grf(X, W, Y, D, times, p_hat = 0.5)
-cate = predict(surv_rl_grf_fit)
-cate.test = predict(surv_rl_grf_fit, X.test)
+surv.rl.grf.fit = surv_rl_grf(X, W, Y, D, times, p.hat = 0.5)
+cate = predict(surv.rl.grf.fit)
+cate.test = predict(surv.rl.grf.fit, X.test)
 }
 }

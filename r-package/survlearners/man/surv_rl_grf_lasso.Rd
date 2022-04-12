@@ -10,10 +10,10 @@ surv_rl_grf_lasso(
   Y,
   D,
   times = NULL,
-  k_folds = 10,
-  p_hat = NULL,
-  m_hat = NULL,
-  c_hat = NULL,
+  k.folds = 10,
+  p.hat = NULL,
+  m.hat = NULL,
+  c.hat = NULL,
   failure.times = NULL,
   num.trees = 2000,
   sample.weights = NULL,
@@ -33,10 +33,10 @@ surv_rl_grf_lasso(
   compute.oob.predictions = TRUE,
   num.threads = NULL,
   seed = runif(1, 0, .Machine$integer.max),
-  lambda_tau = NULL,
-  lambda_choice = "lambda.min",
-  penalty_factor = NULL,
-  cen_fit = "KM"
+  lambda.tau = NULL,
+  lambda.choice = "lambda.min",
+  penalty.factor = NULL,
+  cen.fit = "KM"
 )
 }
 \arguments{
@@ -50,13 +50,13 @@ surv_rl_grf_lasso(
 
 \item{times}{The prediction time of interest}
 
-\item{k_folds}{Number of folds for cross validation}
+\item{k.folds}{Number of folds for cross validation}
 
-\item{p_hat}{Propensity score}
+\item{p.hat}{Propensity score}
 
-\item{m_hat}{Conditional mean outcome E(Y|X)}
+\item{m.hat}{Conditional mean outcome E(Y|X)}
 
-\item{c_hat}{Censoring weights}
+\item{c.hat}{Censoring weights}
 
 \item{failure.times}{A vector of event times to fit the survival curve at.}
 
@@ -96,13 +96,13 @@ surv_rl_grf_lasso(
 
 \item{seed}{See grf documentation}
 
-\item{lambda_tau}{User-supplied lambda sequence for cross validation in the cate model}
+\item{lambda.tau}{User-supplied lambda sequence for cross validation in the cate model}
 
-\item{lambda_choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
+\item{lambda.choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
 
-\item{penalty_factor}{User-supplied penalty factor, must be of length the same as number of features in X}
+\item{penalty.factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 
-\item{cen_fit}{The choice of model fitting for censoring}
+\item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
 a surv_rl_grf_lasso object
@@ -127,8 +127,8 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_rl_grf_lasso_fit = surv_rl_grf_lasso(X, W, Y, D, times, p_hat = 0.5)
-cate = predict(surv_rl_grf_lasso_fit)
-cate.test = predict(surv_rl_grf_lasso_fit, X.test)
+surv.rl.grf.lasso.fit = surv_rl_grf_lasso(X, W, Y, D, times, p.hat = 0.5)
+cate = predict(surv.rl.grf.lasso.fit)
+cate.test = predict(surv.rl.grf.lasso.fit, X.test)
 }
 }

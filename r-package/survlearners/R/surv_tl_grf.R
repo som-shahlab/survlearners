@@ -6,7 +6,6 @@
 #' @param W The treatment variable (0 or 1)
 #' @param Y The follow-up time
 #' @param D The event indicator
-#' @param data.test The testing data set
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @examples
@@ -26,9 +25,9 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_tl_grf_fit = surv_tl_grf(X, W, Y, D, times)
-#' cate = predict(surv_tl_grf_fit)
-#' cate.test = predict(surv_tl_grf_fit, X.test)
+#' surv.tl.grf.fit = surv_tl_grf(X, W, Y, D, times)
+#' cate = predict(surv.tl.grf.fit)
+#' cate.test = predict(surv.tl.grf.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
@@ -51,11 +50,11 @@ surv_tl_grf <- function(X, W, Y, D, times, alpha = 0.05){
   index <- findInterval(times, grffit0$failure.times)
   surf0 <- predict(grffit0, X)$predictions[, index]
 
-  pred_T_grf <- surf1 - surf0
+  pred.T.grf <- surf1 - surf0
 
   ret <- list(fit1 = grffit1,
               fit0 = grffit0,
-              tau = pred_T_grf,
+              tau = pred.T.grf,
               times = times)
   class(ret) <- 'surv_tl_grf'
   ret
@@ -88,9 +87,9 @@ surv_tl_grf <- function(X, W, Y, D, times, alpha = 0.05){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_tl_grf_fit = surv_tl_grf(X, W, Y, D, times)
-#' cate = predict(surv_tl_grf_fit)
-#' cate.test = predict(surv_tl_grf_fit, X.test)
+#' surv.tl.grf.fit = surv_tl_grf(X, W, Y, D, times)
+#' cate = predict(surv.tl.grf.fit)
+#' cate.test = predict(surv.tl.grf.fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects

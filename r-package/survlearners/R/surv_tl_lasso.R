@@ -24,9 +24,9 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_tl_lasso_fit = surv_tl_lasso(X, W, Y, D, times)
-#' cate = predict(surv_tl_lasso_fit)
-#' cate.test = predict(surv_tl_lasso_fit, X.test)
+#' surv.tl.lasso.fit = surv_tl_lasso(X, W, Y, D, times)
+#' cate = predict(surv.tl.lasso.fit)
+#' cate.test = predict(surv.tl.lasso.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
@@ -35,53 +35,53 @@ surv_tl_lasso <- function(X, W, Y, D, times, newX = NULL){
   # Model for W = 1
   foldid <- sample(rep(seq(10), length = length(Y[W==1])))
   x1 <- as.matrix(data.frame(X[W==1, ]))
-  lasso_fit1 <- glmnet::cv.glmnet(x1,
+  lasso.fit1 <- glmnet::cv.glmnet(x1,
                                   survival::Surv(Y[W==1], D[W==1]),
                                   family = "cox",
                                   alpha = 1,
                                   foldid = foldid)
 
-  bsurv1 <- base_surv(fit = lasso_fit1,
+  bsurv1 <- base_surv(fit = lasso.fit1,
                     Y = Y[W==1],
                     D = D[W==1],
                     X = x1,
-                    lambda = lasso_fit1$lambda.min)
+                    lambda = lasso.fit1$lambda.min)
 
-  surf1 <- pred_surv(fit = lasso_fit1,
+  surf1 <- pred_surv(fit = lasso.fit1,
                       S0 = bsurv1,
                        X = X,
                        times = times,
-                       lambda = lasso_fit1$lambda.min)
+                       lambda = lasso.fit1$lambda.min)
 
 
   # Model for W = 0
   foldid <- sample(rep(seq(10), length = length(Y[W==0])))
   x0 <- as.matrix(data.frame(X[W==0, ]))
-  lasso_fit0 <- glmnet::cv.glmnet(x0,
+  lasso.fit0 <- glmnet::cv.glmnet(x0,
                                   survival::Surv(Y[W==0], D[W==0]),
                                   family = "cox",
                                   alpha = 1,
                                   foldid = foldid)
 
-  bsurv0 <- base_surv(fit = lasso_fit0,
+  bsurv0 <- base_surv(fit = lasso.fit0,
                     Y = Y[W==0],
                     D = D[W==0],
                     X = x0,
-                    lambda = lasso_fit0$lambda.min)
+                    lambda = lasso.fit0$lambda.min)
 
-  surf0 <- pred_surv(fit = lasso_fit0,
+  surf0 <- pred_surv(fit = lasso.fit0,
                        S0 = bsurv0,
                        X = X,
                        times = times,
-                       lambda = lasso_fit0$lambda.min)
+                       lambda = lasso.fit0$lambda.min)
 
-  pred_T_lasso <- surf1 - surf0
+  pred.T.lasso <- surf1 - surf0
 
-  ret <- list(fit1 = lasso_fit1,
-              fit0 = lasso_fit0,
+  ret <- list(fit1 = lasso.fit1,
+              fit0 = lasso.fit0,
               bsurv1 = bsurv1,
               bsurv0 = bsurv0,
-              tau = pred_T_lasso,
+              tau = pred.T.lasso,
               times = times)
   class(ret) <- 'surv_tl_lasso'
   ret
@@ -113,9 +113,9 @@ surv_tl_lasso <- function(X, W, Y, D, times, newX = NULL){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_tl_lasso_fit = surv_tl_lasso(X, W, Y, D, times)
-#' cate = predict(surv_tl_lasso_fit)
-#' cate.test = predict(surv_tl_lasso_fit, X.test)
+#' surv.tl.lasso.fit = surv_tl_lasso(X, W, Y, D, times)
+#' cate = predict(surv.tl.lasso.fit)
+#' cate.test = predict(surv.tl.lasso.fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects

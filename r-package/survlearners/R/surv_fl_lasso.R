@@ -9,7 +9,7 @@
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param ps The propensity score
-#' @param cen_fit The choice of model fitting for censoring
+#' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25
@@ -27,66 +27,66 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_fl_lasso_fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
-#' cate = predict(surv_fl_lasso_fit)
-#' cate.test = predict(surv_fl_lasso_fit, X.test)
+#' surv.fl.lasso.fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
+#' cate = predict(surv.fl.lasso.fit)
+#' cate.test = predict(surv.fl.lasso.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
+surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM"){
 
   # IPCW weights
-  if(cen_fit == "KM"){
+  if(cen.fit == "KM"){
     shuffle <- sample(length(Y))
     kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
-    c_hat <- rep(NA, nrow(kmdat))
+    c.hat <- rep(NA, nrow(kmdat))
     for(z in 1:10){
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
       trainData <- kmdat[-testIndexes, ]
-      c_fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
+      c.fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
       cent <- testData$Y
       cent[testData$D==0] <- times
-      c_hat[testIndexes] <- summary(c_fit, times = cent)$surv
+      c.hat[testIndexes] <- summary(c.fit, times = cent)$surv
     }
-    shudat <- data.frame(shuffle, c_hat)
-    c_hat <- shudat[order(shuffle), ]$c_hat
-  }else if (cen_fit == "survival.forest"){
-    c_fit <- grf::survival_forest(cbind(W, X),
+    shudat <- data.frame(shuffle, c.hat)
+    c.hat <- shudat[order(shuffle), ]$c.hat
+  }else if (cen.fit == "survival.forest"){
+    c.fit <- grf::survival_forest(cbind(W, X),
                                   Y,
                                   1 - D,
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
-    C.hat <- predict(c_fit)$predictions
+    C.hat <- predict(c.fit)$predictions
     cent <- Y; cent[D==0] <- times
-    cen.times.index <- findInterval(cent, c_fit$failure.times)
-    c_hat <- C.hat[cbind(1:length(Y), cen.times.index)]
+    cen.times.index <- findInterval(cent, c.fit$failure.times)
+    c.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
   }
-  ipcw <- 1 / c_hat
+  ipcw <- 1 / c.hat
 
   # Propensity score
   if (is.null(ps)){
     stop("propensity score needs to be supplied")
   }else{
-    ps_score <- rep(ps, length(Y))
+    ps.score <- rep(ps, length(Y))
   }
 
   # Subset of uncensored subjects
-  tempdat <- data.frame(Y = Y, D = D, W = W, ps_score, ipcw, X)
-  binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
-  binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
-  binary_data <- binary_data[complete.cases(binary_data), ]
-  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W,
-                 X = as.matrix(binary_data[,6:ncol(binary_data)]),
-                 wt = binary_data$ipcw, ps = binary_data$ps_score)
+  tempdat <- data.frame(Y = Y, D = D, W = W, ps.score, ipcw, X)
+  binary.data <- tempdat[tempdat$D==1|tempdat$Y > times,]
+  binary.data$D[binary.data$D==1 & binary.data$Y > times] <- 0
+  binary.data <- binary.data[complete.cases(binary.data), ]
+  b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
+                 X = as.matrix(binary.data[,6:ncol(binary.data)]),
+                 wt = binary.data$ipcw, ps = binary.data$ps.score)
 
-  Z <- b_data$W * b_data$D / b_data$ps - (1 - b_data$W) * b_data$D / (1 - b_data$ps)
-  flasso_fit <- glmnet::cv.glmnet(b_data$X, Z, family = "gaussian", weights = b_data$wt, nfolds = 10, alpha = 1)
-  flasso_tau <- -predict(flasso_fit, X)
+  Z <- b.data$W * b.data$D / b.data$ps - (1 - b.data$W) * b.data$D / (1 - b.data$ps)
+  flasso.fit <- glmnet::cv.glmnet(b.data$X, Z, family = "gaussian", weights = b.data$wt, nfolds = 10, alpha = 1)
+  flasso.tau <- -predict(flasso.fit, X)
 
-  ret <- list(fit = flasso_fit,
-              tau = flasso_tau)
+  ret <- list(fit = flasso.fit,
+              tau = flasso.tau)
   class(ret) <- 'surv_fl_lasso'
   ret
 }
@@ -116,9 +116,9 @@ surv_fl_lasso <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = 
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_fl_lasso_fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
-#' cate = predict(surv_fl_lasso_fit)
-#' cate.test = predict(surv_fl_lasso_fit, X.test)
+#' surv.fl.lasso.fit = surv_fl_lasso(X, W, Y, D, times, ps = 0.5)
+#' cate = predict(surv.fl.lasso.fit)
+#' cate.test = predict(surv.fl.lasso.fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects

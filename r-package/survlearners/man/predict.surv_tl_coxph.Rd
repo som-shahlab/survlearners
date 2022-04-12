@@ -38,9 +38,9 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv_tl_coxph_fit = surv_tl_coxph(X, W, Y, D, times)
-cate = predict(surv_tl_coxph_fit)
-cate.test = predict(surv_tl_coxph_fit, X.test)
+surv.tl.coxph.fit = surv_tl_coxph(X, W, Y, D, times)
+cate = predict(surv.tl.coxph.fit)
+cate.test = predict(surv.tl.coxph.fit, X.test)
 }
 
 }

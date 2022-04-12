@@ -9,7 +9,7 @@
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param ps The propensity score
-#' @param cen_fit The choice of model fitting for censoring
+#' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
 #' n = 1000; p = 25
@@ -27,16 +27,16 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_fl_grf_fit = surv_fl_grf(X, W, Y, D, times, ps = 0.5)
-#' cate = predict(surv_fl_grf_fit)
-#' cate.test = predict(surv_fl_grf_fit, X.test)
+#' surv.fl.grf.fit = surv_fl_grf(X, W, Y, D, times, ps = 0.5)
+#' cate = predict(surv.fl.grf.fit)
+#' cate.test = predict(surv.fl.grf.fit, X.test)
 #' }
 #' @return A vector of estimated conditional average treatment effects
 #' @export
-surv_fl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "KM"){
+surv_fl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM"){
 
   # IPCW weights
-  if(cen_fit == "KM"){
+  if(cen.fit == "KM"){
     shuffle <- sample(length(Y))
     kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
@@ -45,21 +45,21 @@ surv_fl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "K
       testIndexes <- which(folds==z, arr.ind=TRUE)
       testData <- kmdat[testIndexes, ]
       trainData <- kmdat[-testIndexes, ]
-      c_fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
+      c.fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
       cent <- testData$Y; cent[testData$D==0] <- times
-      C.Y.hat[testIndexes] <- summary(c_fit, times = cent)$surv
+      C.Y.hat[testIndexes] <- summary(c.fit, times = cent)$surv
     }
     shudat <- data.frame(shuffle, C.Y.hat)
     C.Y.hat <- shudat[order(shuffle), ]$C.Y.hat
-  }else if (cen_fit == "survival.forest"){
-    c_fit <- grf::survival_forest(cbind(W, X),
+  }else if (cen.fit == "survival.forest"){
+    c.fit <- grf::survival_forest(cbind(W, X),
                                   Y,
                                   1 - D,
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
-    C.hat <- predict(c_fit)$predictions
+    C.hat <- predict(c.fit)$predictions
     cent <- Y; cent[D==0] <- times
-    cen.times.index <- findInterval(cent, c_fit$failure.times)
+    cen.times.index <- findInterval(cent, c.fit$failure.times)
     C.Y.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
   }
   ipcw <- 1 / C.Y.hat
@@ -73,19 +73,19 @@ surv_fl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "K
 
   # Subset of uncensored subjects
   tempdat <- data.frame(Y = Y, D = D, W = W, pscore, ipcw, X)
-  binary_data <- tempdat[tempdat$D==1|tempdat$Y > times,]
-  binary_data$D[binary_data$D==1 & binary_data$Y > times] <- 0
-  binary_data <- binary_data[complete.cases(binary_data), ]
-  b_data <- list(Y = binary_data$Y, D = binary_data$D, W = binary_data$W,
-                 X = as.matrix(binary_data[,6:ncol(binary_data)]),
-                 wt = binary_data$ipcw, ps = binary_data$pscore)
+  binary.data <- tempdat[tempdat$D==1|tempdat$Y > times,]
+  binary.data$D[binary.data$D==1 & binary.data$Y > times] <- 0
+  binary.data <- binary.data[complete.cases(binary.data), ]
+  b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
+                 X = as.matrix(binary.data[,6:ncol(binary.data)]),
+                 wt = binary.data$ipcw, ps = binary.data$pscore)
 
-  Z <- b_data$W * b_data$D / b_data$ps - (1 - b_data$W) * b_data$D / (1 - b_data$ps)
-  fgrf_fit <- grf::regression_forest(b_data$X, Z, sample.weights = b_data$wt)
-  fgrf_tau <- -predict(fgrf_fit, X)
+  Z <- b.data$W * b.data$D / b.data$ps - (1 - b.data$W) * b.data$D / (1 - b.data$ps)
+  fgrf.fit <- grf::regression_forest(b.data$X, Z, sample.weights = b.data$wt)
+  fgrf.tau <- -predict(fgrf.fit, X)
 
-  ret <- list(fit = fgrf_fit,
-              tau = fgrf_tau)
+  ret <- list(fit = fgrf.fit,
+              tau = fgrf.tau)
   class(ret) <- 'surv_fl_grf'
   ret
 }
@@ -115,9 +115,9 @@ surv_fl_grf <- function(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen_fit = "K
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_fl_grf_fit = surv_fl_grf(X, W, Y, D, times, ps = 0.5)
-#' cate = predict(surv_fl_grf_fit)
-#' cate.test = predict(surv_fl_grf_fit, X.test)
+#' surv.fl.grf.fit = surv_fl_grf(X, W, Y, D, times, ps = 0.5)
+#' cate = predict(surv.fl.grf.fit)
+#' cate.test = predict(surv.fl.grf.fit, X.test)
 #' }
 #'
 #' @return A vector of estimated conditional average treatment effects

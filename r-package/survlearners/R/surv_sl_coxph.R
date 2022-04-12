@@ -24,9 +24,9 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_sl_coxph_fit = surv_sl_coxph(X, W, Y, D, times)
-#' cate = predict(surv_sl_coxph_fit)
-#' cate.test = predict(surv_sl_coxph_fit, X.test)
+#' surv.sl.coxph.fit = surv_sl_coxph(X, W, Y, D, times)
+#' cate = predict(surv.sl.coxph.fit)
+#' cate.test = predict(surv.sl.coxph.fit, X.test)
 #' }
 #' @return a surv_sl_coxph object
 #' @export
@@ -38,32 +38,32 @@ surv_sl_coxph = function(X, W, Y, D, times){
   Y = input$Y
   D = input$D
 
-  x_tilde = data.frame(as.numeric(W - 0.5) * cbind(1, X), X)
-  x_pred1 = data.frame(0.5 * cbind(1, X), X)
-  x_pred0 = data.frame(-0.5 * cbind(1, X), X)
+  x.tilde = data.frame(as.numeric(W - 0.5) * cbind(1, X), X)
+  x.pred1 = data.frame(0.5 * cbind(1, X), X)
+  x.pred0 = data.frame(-0.5 * cbind(1, X), X)
 
-  colnames(x_tilde) <- colnames(x_pred1) <- colnames(x_pred0) <- paste0("v", 1:dim(x_tilde)[2])
-  formula <- as.formula(paste0("survival::Surv(Y, D) ~ ", paste(colnames(x_tilde), sep=" ", collapse = "+")))
-  tmpdat <- data.frame(Y, D, x_tilde)
+  colnames(x.tilde) <- colnames(x.pred1) <- colnames(x.pred0) <- paste0("v", 1:dim(x.tilde)[2])
+  formula <- as.formula(paste0("survival::Surv(Y, D) ~ ", paste(colnames(x.tilde), sep=" ", collapse = "+")))
+  tmpdat <- data.frame(Y, D, x.tilde)
 
-  s_fit <- survival::coxph(formula, data = tmpdat)
-  bh_dat <- survival::basehaz(s_fit, centered = FALSE)
-  index <- findInterval(times, bh_dat$time)
-  bh <- bh_dat[index, 1]
+  s.fit <- survival::coxph(formula, data = tmpdat)
+  bh.dat <- survival::basehaz(s.fit, centered = FALSE)
+  index <- findInterval(times, bh.dat$time)
+  bh <- bh.dat[index, 1]
 
-  link1 <- exp(as.matrix(x_pred1) %*% s_fit$coefficients)
-  link0 <- exp(as.matrix(x_pred0) %*% s_fit$coefficients)
+  link1 <- exp(as.matrix(x.pred1) %*% s.fit$coefficients)
+  link0 <- exp(as.matrix(x.pred0) %*% s.fit$coefficients)
 
-  est_S1_cvd <- exp(-bh)^link1
-  est_S0_cvd <- exp(-bh)^link0
+  est.S1.cvd <- exp(-bh)^link1
+  est.S0.cvd <- exp(-bh)^link0
 
-  tau_hat <- est_S1_cvd - est_S0_cvd
+  tau.hat <- est.S1.cvd - est.S0.cvd
 
-  ret = list(s_fit = s_fit,
+  ret = list(s.fit = s.fit,
              bh = bh,
-             s_beta = s_fit$coefficients,
+             s.beta = s.fit$coefficients,
              times = times,
-             tau_hat = tau_hat)
+             tau.hat = tau.hat)
 
   class(ret) <- "surv_sl_coxph"
   ret
@@ -95,9 +95,9 @@ surv_sl_coxph = function(X, W, Y, D, times){
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv_sl_coxph_fit = surv_sl_coxph(X, W, Y, D, times)
-#' cate = predict(surv_sl_coxph_fit)
-#' cate.test = predict(surv_sl_coxph_fit, X.test)
+#' surv.sl.coxph.fit = surv_sl_coxph(X, W, Y, D, times)
+#' cate = predict(surv.sl.coxph.fit)
+#' cate.test = predict(surv.sl.coxph.fit, X.test)
 #' }
 #' @return vector of estimated conditional average treatment effects
 #' @export
@@ -112,23 +112,23 @@ predict.surv_sl_coxph <- function(object,
     times <- object$times
     }
 
-    bh_dat <- survival::basehaz(object$s_fit, centered = FALSE)
-    index <- findInterval(times, bh_dat$time)
-    bh <- bh_dat[index, 1]
+    bh.dat <- survival::basehaz(object$s.fit, centered = FALSE)
+    index <- findInterval(times, bh.dat$time)
+    bh <- bh.dat[index, 1]
 
-    x_pred1 <- data.frame(0.5, 0.5 * newdata, newdata)
-    x_pred0 <- data.frame(-0.5, -0.5 * newdata, newdata)
+    x.pred1 <- data.frame(0.5, 0.5 * newdata, newdata)
+    x.pred0 <- data.frame(-0.5, -0.5 * newdata, newdata)
 
-    link1 <- exp(as.matrix(x_pred1) %*% object$s_beta)
-    link0 <- exp(as.matrix(x_pred0) %*% object$s_beta)
+    link1 <- exp(as.matrix(x.pred1) %*% object$s.beta)
+    link0 <- exp(as.matrix(x.pred0) %*% object$s.beta)
 
-    est_S1_cvd <- exp(-bh)^link1
-    est_S0_cvd <- exp(-bh)^link0
+    est.S1.cvd <- exp(-bh)^link1
+    est.S0.cvd <- exp(-bh)^link0
 
-    tau_hat <- est_S1_cvd - est_S0_cvd
+    tau.hat <- est.S1.cvd - est.S0.cvd
   }
   else {
-    tau_hat <- object$tau_hat
+    tau.hat <- object$tau.hat
   }
-  return(tau_hat)
+  return(tau.hat)
 }
