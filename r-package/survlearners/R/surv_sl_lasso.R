@@ -21,10 +21,10 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -37,12 +37,12 @@
 #' @return a surv_sl_lasso object
 #' @export
 surv_sl_lasso <- function(X, Y, W, D, times,
-                         alpha = 1,
-                         k.folds = NULL,
-                         foldid = NULL,
-                         lambda = NULL,
-                         lambda.choice = "lambda.min",
-                         penalty.factor = NULL){
+                          alpha = 1,
+                          k.folds = NULL,
+                          foldid = NULL,
+                          lambda = NULL,
+                          lambda.choice = "lambda.min",
+                          penalty.factor = NULL) {
 
   input <- sanitize_input(X, Y, W, D)
   X <- input$X
@@ -51,7 +51,7 @@ surv_sl_lasso <- function(X, Y, W, D, times,
   D <- input$D
 
   x.scl <- scale(X, center = TRUE, scale = TRUE)
-  x.scl <- x.scl[,!is.na(colSums(x.scl)), drop = FALSE]
+  x.scl <- x.scl[ ,!is.na(colSums(x.scl)), drop = FALSE]
 
   nobs <- nrow(x.scl)
   pobs <- ncol(x.scl)
@@ -63,7 +63,7 @@ surv_sl_lasso <- function(X, Y, W, D, times,
     }
 
     if (is.null(k.folds)) {
-      k.folds <- floor(max(3, min(10,length(W)/4)))
+      k.folds <- floor(max(3, min(10, length(W) / 4)))
     }
 
     # fold ID for cross-validation; balance treatment assignments
@@ -82,13 +82,13 @@ surv_sl_lasso <- function(X, Y, W, D, times,
   }
   x.scl.tilde <- as.matrix(data.frame(x.scl.tilde))
   tau.fit <- glmnet::cv.glmnet(x.scl.tilde,
-                             survival::Surv(Y, D),
-                             family = "cox",
-                             foldid = foldid,
-                             lambda = lambda,
-                             penalty.factor = penalty.factor,
-                             standardize = FALSE,
-                             alpha = alpha)
+                               survival::Surv(Y, D),
+                               family = "cox",
+                               foldid = foldid,
+                               lambda = lambda,
+                               penalty.factor = penalty.factor,
+                               standardize = FALSE,
+                               alpha = alpha)
 
   s.beta <- t(as.vector(coef(tau.fit, s = lambda.choice)))
   s.beta.adj <- c(0.5 * s.beta[1:(1 + dim(X)[2])], s.beta[(2 + dim(X)[2]):dim(x.scl.tilde)[2]])
@@ -101,22 +101,22 @@ surv_sl_lasso <- function(X, Y, W, D, times,
                     X = x.scl.tilde,
                     lambda = tau.fit$lambda.min)
   index <- findInterval(times, S0.t$time)
-  S0 <- S0.t[index,]$survival
-  surv1 <- S0^exp(link1)
-  surv0 <- S0^exp(link0)
+  S0 <- S0.t[index, ]$survival
+  surv1 <- S0 ^ exp(link1)
+  surv0 <- S0 ^ exp(link0)
 
   tau.hat <- as.numeric(surv1 - surv0)
 
   ret <- list(tau.fit = tau.fit,
-             x.org = x.scl.tilde,
-             y.org = Y,
-             D.org = D,
-             beta.org = s.beta,
-             s.beta = s.beta.adj,
-             S0.t = S0.t,
-             times = times,
-             tau.hat = tau.hat,
-             lambda.choice = lambda.choice)
+              x.org = x.scl.tilde,
+              y.org = Y,
+              D.org = D,
+              beta.org = s.beta,
+              s.beta = s.beta.adj,
+              S0.t = S0.t,
+              times = times,
+              tau.hat = tau.hat,
+              lambda.choice = lambda.choice)
 
   class(ret) <- "surv_sl_lasso"
   ret
@@ -139,10 +139,10 @@ surv_sl_lasso <- function(X, Y, W, D, times,
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -162,18 +162,18 @@ predict.surv_sl_lasso <- function(object,
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
     newdata.scl <- scale(newdata, center = TRUE, scale = TRUE)
-    newdata.scl <- newdata.scl[,!is.na(colSums(newdata.scl)), drop = FALSE]
+    newdata.scl <- newdata.scl[ ,!is.na(colSums(newdata.scl)), drop = FALSE]
     newdata.scl.pred1 <- cbind(1, newdata.scl, newdata.scl)
     newdata.scl.pred0 <- cbind(0, 0 * newdata.scl, newdata.scl)
 
     link1 <- exp(newdata.scl.pred1 %*% object$s.beta)
     link0 <- exp(newdata.scl.pred0 %*% object$s.beta)
 
-    if (is.null(times)){
+    if (is.null(times)) {
     times <- object$times
     }
     index <- findInterval(times, object$S0.t$time)
-    S0 <- object$S0.t[index,]$survival
+    S0 <- object$S0.t[index, ]$survival
 
     surv1 <- S0^exp(link1)
     surv0 <- S0^exp(link0)

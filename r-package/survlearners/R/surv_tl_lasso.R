@@ -15,10 +15,10 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -30,50 +30,50 @@
 #' }
 #' @return A surv_tl_lasso object
 #' @export
-surv_tl_lasso <- function(X, Y, W, D, times){
+surv_tl_lasso <- function(X, Y, W, D, times) {
 
   # Model for W = 1
-  foldid <- sample(rep(seq(10), length = length(Y[W==1])))
-  x1 <- as.matrix(data.frame(X[W==1, ]))
+  foldid <- sample(rep(seq(10), length = length(Y[W == 1])))
+  x1 <- as.matrix(data.frame(X[W == 1, ]))
   lasso.fit1 <- glmnet::cv.glmnet(x1,
-                                  survival::Surv(Y[W==1], D[W==1]),
+                                  survival::Surv(Y[W == 1], D[W == 1]),
                                   family = "cox",
                                   alpha = 1,
                                   foldid = foldid)
 
   bsurv1 <- base_surv(fit = lasso.fit1,
-                    Y = Y[W==1],
-                    D = D[W==1],
-                    X = x1,
-                    lambda = lasso.fit1$lambda.min)
+                      Y = Y[W == 1],
+                      D = D[W == 1],
+                      X = x1,
+                      lambda = lasso.fit1$lambda.min)
 
   surf1 <- pred_surv(fit = lasso.fit1,
-                      S0 = bsurv1,
-                       X = X,
-                       times = times,
-                       lambda = lasso.fit1$lambda.min)
+                     S0 = bsurv1,
+                     X = X,
+                     times = times,
+                     lambda = lasso.fit1$lambda.min)
 
 
   # Model for W = 0
-  foldid <- sample(rep(seq(10), length = length(Y[W==0])))
-  x0 <- as.matrix(data.frame(X[W==0, ]))
+  foldid <- sample(rep(seq(10), length = length(Y[W == 0])))
+  x0 <- as.matrix(data.frame(X[W == 0, ]))
   lasso.fit0 <- glmnet::cv.glmnet(x0,
-                                  survival::Surv(Y[W==0], D[W==0]),
+                                  survival::Surv(Y[W == 0], D[W == 0]),
                                   family = "cox",
                                   alpha = 1,
                                   foldid = foldid)
 
   bsurv0 <- base_surv(fit = lasso.fit0,
-                    Y = Y[W==0],
-                    D = D[W==0],
-                    X = x0,
-                    lambda = lasso.fit0$lambda.min)
+                      Y = Y[W == 0],
+                      D = D[W == 0],
+                      X = x0,
+                      lambda = lasso.fit0$lambda.min)
 
   surf0 <- pred_surv(fit = lasso.fit0,
-                       S0 = bsurv0,
-                       X = X,
-                       times = times,
-                       lambda = lasso.fit0$lambda.min)
+                     S0 = bsurv0,
+                     X = X,
+                     times = times,
+                     lambda = lasso.fit0$lambda.min)
 
   tau.hat <- surf1 - surf0
 
@@ -104,10 +104,10 @@ surv_tl_lasso <- function(X, Y, W, D, times){
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -121,13 +121,13 @@ surv_tl_lasso <- function(X, Y, W, D, times){
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_tl_lasso <- function(object,
-                                 newdata = NULL,
-                                 times = NULL,
-                                 ...) {
-  if (is.null(newdata)){
+                                  newdata = NULL,
+                                  times = NULL,
+                                  ...) {
+  if (is.null(newdata)) {
     return(object$tau.hat)
   } else {
-    if (is.null(times)){
+    if (is.null(times)) {
       surf1 <- pred_surv(fit = object$fit1,
                          S0 = object$bsurv1,
                          X = newdata,

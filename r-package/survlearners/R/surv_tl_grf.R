@@ -16,10 +16,10 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -31,24 +31,24 @@
 #' }
 #' @return A surv_tl_grf object
 #' @export
-surv_tl_grf <- function(X, Y, W, D, times, alpha = 0.05){
+surv_tl_grf <- function(X, Y, W, D, times, alpha = 0.05) {
   # Model for W = 1
-  grffit1 <- grf::survival_forest(X[W==1,],
-                                  Y[W==1],
-                                  D[W==1],
+  grffit1 <- grf::survival_forest(X[W == 1, ],
+                                  Y[W == 1],
+                                  D[W == 1],
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
   index <- findInterval(times, grffit1$failure.times)
-  surf1 <- predict(grffit1, X)$predictions[, index]
+  surf1 <- predict(grffit1, X)$predictions[ ,index]
 
   # Model for W = 0
-  grffit0 <- grf::survival_forest(X[W==0,],
-                                  Y[W==0],
-                                  D[W==0],
+  grffit0 <- grf::survival_forest(X[W == 0, ],
+                                  Y[W == 0],
+                                  D[W == 0],
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
   index <- findInterval(times, grffit0$failure.times)
-  surf0 <- predict(grffit0, X)$predictions[, index]
+  surf0 <- predict(grffit0, X)$predictions[ ,index]
 
   tau.hat <- surf1 - surf0
 
@@ -78,10 +78,10 @@ surv_tl_grf <- function(X, Y, W, D, times, alpha = 0.05){
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -95,21 +95,21 @@ surv_tl_grf <- function(X, Y, W, D, times, alpha = 0.05){
 #' @return A vector of estimated conditional average treatment effects
 #' @export
 predict.surv_tl_grf <- function(object,
-                               newdata = NULL,
-                               times = NULL,
-                               ...) {
-  if (is.null(newdata)){
+                                newdata = NULL,
+                                times = NULL,
+                                ...) {
+  if (is.null(newdata)) {
     return(object$tau.hat)
   } else {
-    if (is.null(times)){
+    if (is.null(times)) {
       index1 <- findInterval(object$times, object$fit1$failure.times)
       index0 <- findInterval(object$times, object$fit0$failure.times)
     } else {
       index1 <- findInterval(times, object$fit1$failure.times)
       index0 <- findInterval(times, object$fit0$failure.times)
     }
-    surf1 <- predict(object$fit1, newdata)$predictions[, index1]
-    surf0 <- predict(object$fit0, newdata)$predictions[, index0]
+    surf1 <- predict(object$fit1, newdata)$predictions[ ,index1]
+    surf0 <- predict(object$fit0, newdata)$predictions[ ,index0]
     return(surf1 - surf0)
   }
 }

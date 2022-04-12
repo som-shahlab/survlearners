@@ -15,10 +15,10 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -30,7 +30,7 @@
 #' }
 #' @return A surv_sl_coxph object
 #' @export
-surv_sl_coxph <- function(X, Y, W, D, times){
+surv_sl_coxph <- function(X, Y, W, D, times) {
 
   input <- sanitize_input(X, Y, W, D)
   X <- input$X
@@ -54,16 +54,16 @@ surv_sl_coxph <- function(X, Y, W, D, times){
   link1 <- exp(as.matrix(x.pred1) %*% tau.fit$coefficients)
   link0 <- exp(as.matrix(x.pred0) %*% tau.fit$coefficients)
 
-  est.S1.cvd <- exp(-bh)^link1
-  est.S0.cvd <- exp(-bh)^link0
+  est.S1.cvd <- exp(-bh) ^ link1
+  est.S0.cvd <- exp(-bh) ^ link0
 
   tau.hat <- est.S1.cvd - est.S0.cvd
 
   ret <- list(tau.fit = tau.fit,
-             bh = bh,
-             s.beta = tau.fit$coefficients,
-             times = times,
-             tau.hat = tau.hat)
+              bh = bh,
+              s.beta = tau.fit$coefficients,
+              times = times,
+              tau.hat = tau.hat)
 
   class(ret) <- "surv_sl_coxph"
   ret
@@ -86,10 +86,10 @@ surv_sl_coxph <- function(X, Y, W, D, times){
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -108,7 +108,7 @@ predict.surv_sl_coxph <- function(object,
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
 
-    if (is.null(times)){
+    if (is.null(times)) {
     times <- object$times
     }
 
@@ -122,8 +122,8 @@ predict.surv_sl_coxph <- function(object,
     link1 <- exp(as.matrix(x.pred1) %*% object$s.beta)
     link0 <- exp(as.matrix(x.pred0) %*% object$s.beta)
 
-    est.S1.cvd <- exp(-bh)^link1
-    est.S0.cvd <- exp(-bh)^link0
+    est.S1.cvd <- exp(-bh) ^ link1
+    est.S0.cvd <- exp(-bh) ^ link0
 
     tau.hat <- est.S1.cvd - est.S0.cvd
   }

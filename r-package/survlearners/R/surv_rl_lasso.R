@@ -26,10 +26,10 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -42,18 +42,18 @@
 #' @return A surv_rl_lasso object
 #' @export
 surv_rl_lasso <- function(X, Y, W, D,
-                         times = NULL,
-                         k.folds = 10,
-                         foldid = NULL,
-                         W.hat = NULL,
-                         Y.hat = NULL,
-                         C.hat = NULL,
-                         lambda.choice = "lambda.min",
-                         penalty.factor = NULL,
-                         args.lasso.nuisance = list(),
-                         args.grf.nuisance = list(),
-                         args.lasso.tau = list(),
-                         cen.fit = "Kaplan-Meier"){
+                          times = NULL,
+                          k.folds = 10,
+                          foldid = NULL,
+                          W.hat = NULL,
+                          Y.hat = NULL,
+                          C.hat = NULL,
+                          lambda.choice = "lambda.min",
+                          penalty.factor = NULL,
+                          args.lasso.nuisance = list(),
+                          args.grf.nuisance = list(),
+                          args.lasso.tau = list(),
+                          cen.fit = "Kaplan-Meier") {
 
     input <- sanitize_input(X, Y, W, D)
     X <- input$X
@@ -62,7 +62,7 @@ surv_rl_lasso <- function(X, Y, W, D,
     D <- input$D
 
     x.scl <- scale(X, center = TRUE, scale = TRUE)
-    x.scl <- x.scl[,!is.na(colSums(x.scl)), drop = FALSE]
+    x.scl <- x.scl[ ,!is.na(colSums(x.scl)), drop = FALSE]
 
     nobs <- nrow(x.scl)
     pobs <- ncol(x.scl)
@@ -74,7 +74,7 @@ surv_rl_lasso <- function(X, Y, W, D,
       }
 
       if (is.null(k.folds)) {
-          k.folds <- floor(max(3, min(10,length(W)/4)))
+          k.folds <- floor(max(3, min(10, length(W) / 4)))
       }
 
       # fold ID for cross-validation; balance treatment assignments
@@ -95,11 +95,11 @@ surv_rl_lasso <- function(X, Y, W, D,
       penalty.factor.tau <- c(0, penalty.factor)
     }
 
-    if (is.null(W.hat)){
+    if (is.null(W.hat)) {
       stop("propensity score needs to be supplied")
     } else if (length(W.hat) == 1) {
       W.hat <- rep(W.hat, nrow(X))
-    } else if (length(W.hat) != nrow(X)){
+    } else if (length(W.hat) != nrow(X)) {
       stop("W.hat has incorrect length.")
     }
 
@@ -110,16 +110,16 @@ surv_rl_lasso <- function(X, Y, W, D,
                                 lambda = NULL,
                                 penalty.factor = penalty.factor.nuisance.m)
 
-    if (is.null(Y.hat)){
+    if (is.null(Y.hat)) {
     foldid <- sample(rep(seq(k.folds), length = length(W)))
     survt1 <- survt0 <- rep(NA, length(W))
-    for (k in 1:k.folds){
-      XW <- as.matrix(data.frame(W[!foldid==k], X[!foldid==k, ]))
-      y <- survival::Surv(Y[!foldid==k], D[!foldid==k])
+    for (k in 1:k.folds) {
+      XW <- as.matrix(data.frame(W[!foldid == k], X[!foldid == k, ]))
+      y <- survival::Surv(Y[!foldid == k], D[!foldid == k])
       y.fit <- do.call(glmnet::cv.glmnet, c(list(x = XW, y = y), args.lasso.nuisance))
-      S0 <- base_surv(y.fit, Y[!foldid==k], D[!foldid==k], XW, lambda = y.fit$lambda.min)
-      survt1[foldid==k] <- pred_surv(y.fit, S0, cbind(rep(1, length(W[foldid==k])), X[foldid==k, ]), times = times, lambda = y.fit$lambda.min)
-      survt0[foldid==k] <- pred_surv(y.fit, S0, cbind(rep(0, length(W[foldid==k])), X[foldid==k, ]), times = times, lambda = y.fit$lambda.min)
+      S0 <- base_surv(y.fit, Y[!foldid == k], D[!foldid == k], XW, lambda = y.fit$lambda.min)
+      survt1[foldid == k] <- pred_surv(y.fit, S0, cbind(rep(1, length(W[foldid == k])), X[foldid == k, ]), times = times, lambda = y.fit$lambda.min)
+      survt0[foldid == k] <- pred_surv(y.fit, S0, cbind(rep(0, length(W[foldid == k])), X[foldid == k, ]), times = times, lambda = y.fit$lambda.min)
     }
     Y.hat  <- W.hat * survt1 + (1 - W.hat) * survt0
     } else {
@@ -136,27 +136,27 @@ surv_rl_lasso <- function(X, Y, W, D,
                               prediction.type = "Nelson-Aalen",
                               compute.oob.predictions = TRUE)
 
-    if (is.null(C.hat)){
-    if (cen.fit == "Kaplan-Meier"){
+    if (is.null(C.hat)) {
+    if (cen.fit == "Kaplan-Meier") {
       traindat <- data.frame(Y = Y, D = D)
       shuffle <- sample(nrow(traindat))
-      kmdat <- traindat[shuffle,]
-      folds <- cut(seq(1, nrow(kmdat)), breaks=10, labels=FALSE)
+      kmdat <- traindat[shuffle, ]
+      folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
       C.hat <- rep(NA, nrow(kmdat))
-      for(z in 1:10){
-        testIndexes <- which(folds==z, arr.ind=TRUE)
+      for (z in 1:10) {
+        testIndexes <- which(folds == z, arr.ind = TRUE)
         testData <- kmdat[testIndexes, ]
         trainData <- kmdat[-testIndexes, ]
         c.fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
-        cent <- testData$Y; cent[testData$D==0] <- times
+        cent <- testData$Y; cent[testData$D == 0] <- times
         C.hat[testIndexes] <- summary(c.fit, times = cent)$surv
       }
       shudat <- data.frame(shuffle, C.hat)
       C.hat <- shudat[order(shuffle), ]$C.hat
-    } else if (cen.fit == "survival.forest"){
+    } else if (cen.fit == "survival.forest") {
       c.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = 1 - D), args.grf.nuisance))
       C.hat <- predict(c.fit, failure.times = c.fit$failure.times)$predictions
-      cent <- Y; cent[D==0] <- times
+      cent <- Y; cent[D == 0] <- times
       cen.times.index <- findInterval(cent, c.fit$failure.times)
       C.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
      }
@@ -166,13 +166,13 @@ surv_rl_lasso <- function(X, Y, W, D,
 
     # use binary data
     tempdat <- data.frame(Y, D, W, Y.hat, W.hat, C.hat, foldid, x.scl)
-    binary.data <- tempdat[tempdat$D==1|tempdat$Y > times,]          # remove subjects who got censored before the time of interest t50
-    binary.data$D[binary.data$D==1 & binary.data$Y > times] <- 0     # recode the event status for subjects who had events after t50
-    binary.data <- binary.data[complete.cases(binary.data),]
+    binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > times, ]          # remove subjects who got censored before the time of interest t50
+    binary.data$D[binary.data$D == 1 & binary.data$Y > times] <- 0     # recode the event status for subjects who had events after t50
+    binary.data <- binary.data[complete.cases(binary.data), ]
 
-    sample.weights <- 1/binary.data$C.hat
+    sample.weights <- 1 / binary.data$C.hat
     y.tilde <- (1 - binary.data$D) - binary.data$Y.hat
-    x.scl <- binary.data[, 8:dim(binary.data)[2]]
+    x.scl <- binary.data[ , 8:dim(binary.data)[2]]
     foldid2 <- sample(rep(seq(k.folds), length = length(binary.data$W)))
 
     x.scl.tilde <- cbind(as.numeric(binary.data$W - binary.data$W.hat) * cbind(1, x.scl))
@@ -217,10 +217,10 @@ surv_rl_lasso <- function(X, Y, W, D,
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
-#' censor.time <- (numeratorC/(4^2))^(1/2)
+#' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 #' Y <- pmin(failure.time, censor.time)
 #' D <- as.integer(failure.time <= censor.time)
 #' n.test <- 500
@@ -239,7 +239,7 @@ predict.surv_rl_lasso <- function(object,
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
     newdata.scl <- scale(newdata, center = TRUE, scale = TRUE)
-    newdata.scl <- newdata.scl[,!is.na(colSums(newdata.scl)), drop = FALSE]
+    newdata.scl <- newdata.scl[ ,!is.na(colSums(newdata.scl)), drop = FALSE]
     newdata.scl.pred <- cbind(1, newdata.scl)
     tau.hat <- newdata.scl.pred %*% object$tau.beta
   } else {

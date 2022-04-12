@@ -32,9 +32,9 @@ generate_tutorial_survival_data(
 
 \item{p.i}{The number of variables in the interaction term}
 
-\item{f.b}{The function form of the main effects (linear/nonlinear)}
+\item{f.b}{The function form of the main effects (linear / nonlinear)}
 
-\item{f.i}{The function form of the treatment-covariate interactions (linear/nonlinear)}
+\item{f.i}{The function form of the treatment-covariate interactions (linear / nonlinear)}
 
 \item{pi}{The propensity score}
 
@@ -46,7 +46,7 @@ generate_tutorial_survival_data(
 
 \item{cen.scale}{The scale parameter in Weibull distribution for censoring time}
 
-\item{cenM}{The complexity of censoring mechanism (dependent/independent to covariates)}
+\item{cenM}{The complexity of censoring mechanism (dependent / independent to covariates)}
 
 \item{n.mc}{The number of monte carlo draws to estimate the treatment effect with. Default is 10000.}
 
