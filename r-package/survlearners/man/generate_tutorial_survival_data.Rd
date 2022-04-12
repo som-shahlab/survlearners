@@ -30,7 +30,7 @@ generate_tutorial_survival_data(
 
 \item{p.b}{The number of variables in the main effect function}
 
-\item{p.i}{The propensity score}
+\item{p.i}{The number of variables in the interaction term}
 
 \item{f.b}{The function form of the main effects (linear/nonlinear)}
 

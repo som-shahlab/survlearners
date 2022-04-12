@@ -18,8 +18,6 @@ surv_tl_grf(X, W, Y, D, times, alpha = 0.05)
 \item{times}{The prediction time of interest}
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
-
-\item{data.test}{The testing data set}
 }
 \value{
 A vector of estimated conditional average treatment effects

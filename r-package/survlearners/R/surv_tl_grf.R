@@ -6,7 +6,6 @@
 #' @param W The treatment variable (0 or 1)
 #' @param Y The follow-up time
 #' @param D The event indicator
-#' @param data.test The testing data set
 #' @param times The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @examples

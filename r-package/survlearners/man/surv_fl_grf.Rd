@@ -22,7 +22,6 @@ surv_fl_grf(X, W, Y, D, times, alpha = 0.05, ps = NULL, cen.fit = "KM")
 \item{ps}{The propensity score}
 
 \item{cen.fit}{The choice of model fitting for censoring}
-
 }
 \value{
 A vector of estimated conditional average treatment effects
