@@ -40,23 +40,23 @@ F-learner, implemented via survival_forest in the grf package
 }
 \examples{
 \donttest{
-n = 1000; p = 25
-times = 0.2
+n <- 1000; p <- 25
+times <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
 numeratorT <- -log(runif(n))
-T <- (numeratorT / exp(1 * X[,1] + (-0.5 - 1 * X[,2]) * W))^2
+T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
 failure.time <- pmin(T, Y.max)
 numeratorC <- -log(runif(n))
-censor.time <- (numeratorC/(4^2))^(1/2)
+censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
 Y <- pmin(failure.time, censor.time)
 D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.fl.grf.fit = surv_fl_grf(X, Y, W, D, times, W.hat = 0.5)
-cate = predict(surv.fl.grf.fit)
-cate.test = predict(surv.fl.grf.fit, X.test)
+surv.fl.grf.fit <- surv_fl_grf(X, Y, W, D, times, W.hat = 0.5)
+cate <- predict(surv.fl.grf.fit)
+cate.test <- predict(surv.fl.grf.fit, X.test)
 }
 }

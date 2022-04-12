@@ -32,9 +32,9 @@ generate_tutorial_survival_data(
 
 \item{p.i}{The number of variables in the interaction term}
 
-\item{f.b}{The function form of the main effects (linear/nonlinear)}
+\item{f.b}{The function form of the main effects (linear / nonlinear)}
 
-\item{f.i}{The function form of the treatment-covariate interactions (linear/nonlinear)}
+\item{f.i}{The function form of the treatment-covariate interactions (linear / nonlinear)}
 
 \item{pi}{The propensity score}
 
@@ -46,7 +46,7 @@ generate_tutorial_survival_data(
 
 \item{cen.scale}{The scale parameter in Weibull distribution for censoring time}
 
-\item{cenM}{The complexity of censoring mechanism (dependent/independent to covariates)}
+\item{cenM}{The complexity of censoring mechanism (dependent / independent to covariates)}
 
 \item{n.mc}{The number of monte carlo draws to estimate the treatment effect with. Default is 10000.}
 
@@ -64,8 +64,8 @@ Simulation data sets for comparing metalearners on estimating CATE in survival o
 }
 \examples{
 \donttest{
-n = 1000; p = 25
-data = generate_tutorial_survival_data(n, p, p.b = 1, p.i = 1, f.b = "L", f.i = "L", times = 0.2)
-cate.true = generate_tutorial_survival_data(n, p, p.b = 1, p.i = 1, f.b = "L", f.i = "L", times = 0.2)$catesp
+n <- 1000; p <- 25
+data <- generate_tutorial_survival_data(n, p, p.b = 1, p.i = 1, f.b = "L", f.i = "L", times = 0.2)
+cate.true <- generate_tutorial_survival_data(n, p, p.b = 1, p.i = 1, f.b = "L", f.i = "L", times = 0.2)$catesp
 }
 }
