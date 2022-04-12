@@ -36,7 +36,7 @@ surv_xl_lasso(
 A surv_xl_lasso object
 }
 \description{
-X-learner, implemented via glmnet (lasso) with 'coxph' distribution
+X-learner, implemented via glmnet (lasso) with "coxph" distribution
 }
 \examples{
 \donttest{

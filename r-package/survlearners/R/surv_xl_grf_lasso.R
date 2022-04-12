@@ -1,7 +1,7 @@
 #' @title X-learner of lasso and grf
 #'
 #' @description  X-learner, implemented via grf (for nuisance parameter estimation)
-#' and glmnet (lasso) with 'coxph' distribution (for target function CATE estimation)
+#' and glmnet (lasso) with "coxph" distribution (for target function CATE estimation)
 #'
 #' @param X The baseline covariates
 #' @param W The treatment variable (0 or 1)
@@ -62,7 +62,7 @@ Tgrf1 <- 1-surf1
 Tgrf0 <- 1-surf0
 
 # IPCW weights
-if(cen.fit == "Kaplan-Meier"){
+if (cen.fit == "Kaplan-Meier"){
   shuffle <- sample(length(Y))
   kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
   folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
@@ -77,7 +77,7 @@ if(cen.fit == "Kaplan-Meier"){
   }
   shudat <- data.frame(shuffle, C.hat)
   C.hat <- shudat[order(shuffle), ]$C.hat
-}else if (cen.fit == "survival.forest"){
+} else if (cen.fit == "survival.forest"){
   c.fit <- grf::survival_forest(cbind(W, X),
                                 Y,
                                 1 - D,
@@ -93,7 +93,7 @@ ipcw <- 1 / C.hat
 # Propensity score
 if (is.null(W.hat)){
   stop("propensity score needs to be supplied")
-}else{
+} else {
   W.hat <- rep(W.hat, length(W))
 }
 
@@ -131,7 +131,7 @@ ret <- list(tau.fit1 = tau.fit1,
             tau.fit0 = tau.fit0,
             W.hat = W.hat,
             tau.hat = tau.hat)
-class(ret) <- 'surv_xl_grf_lasso'
+class(ret) <- "surv_xl_grf_lasso"
 ret
 }
 
@@ -172,15 +172,15 @@ predict.surv_xl_grf_lasso = function(object,
                                      newdata = NULL,
                                      W.hat = NULL,
                                      ...) {
-  if(is.null(newdata)){
+  if (is.null(newdata)){
     return(object$tau.hat)
-  }else{
+  } else {
     XLtau1 <- as.vector(-predict(object$tau.fit1, newdata, s = "lambda.min"))
     XLtau0 <- as.vector(-predict(object$tau.fit0, newdata, s = "lambda.min"))
-    if(is.null(W.hat)){
+    if (is.null(W.hat)){
       W.hat <- rep(object$W.hat[1], nrow(newdata))
-    }else{
-      if(length(W.hat)==1){
+    } else {
+      if (length(W.hat)==1){
       W.hat <- rep(W.hat, nrow(newdata))
       }
     }

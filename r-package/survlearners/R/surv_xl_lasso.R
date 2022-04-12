@@ -1,6 +1,6 @@
 #' @title X-learner of lasso
 #'
-#' @description  X-learner, implemented via glmnet (lasso) with 'coxph' distribution
+#' @description  X-learner, implemented via glmnet (lasso) with "coxph" distribution
 #'
 #' @param X The baseline covariates
 #' @param W The treatment variable (0 or 1)
@@ -35,7 +35,7 @@
 #' @export
 surv_xl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier"){
 
-  # fit model on W==1 (cross-fitted using 'preval' in glmnet)
+  # fit model on W==1 (cross-fitted using "preval" in glmnet)
   foldid1 <- sample(rep(seq(10), length = length(Y[W==1])))
   x1 <- as.matrix(data.frame(X[W==1, ]))
   lasso.fit1 <- glmnet::cv.glmnet(x1,
@@ -54,7 +54,7 @@ surv_xl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
                                 times = times,
                                 lambda = lasso.fit1$lambda.min)
 
-  # fit model on W==0 (cross-fitted using 'preval' in glmnet)
+  # fit model on W==0 (cross-fitted using "preval" in glmnet)
   foldid0 <- sample(rep(seq(10), length = length(Y[W==0])))
   x0 <- as.matrix(data.frame(X[W==0, ]))
   lasso.fit0 <- glmnet::cv.glmnet(x0,
@@ -76,8 +76,8 @@ surv_xl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
   Tlasso1 <- 1 - surf1
   Tlasso0 <- 1 - surf0
 
-  # IPCW weights (cross-fitted using 'preval' in glmnet)
-  if(cen.fit == "Kaplan-Meier"){
+  # IPCW weights (cross-fitted using "preval" in glmnet)
+  if (cen.fit == "Kaplan-Meier"){
     shuffle <- sample(length(Y))
     kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
@@ -93,7 +93,7 @@ surv_xl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
     }
     shudat <- data.frame(shuffle, C.hat)
     C.hat <- shudat[order(shuffle), ]$C.hat
-  }else if (cen.fit == "survival.forest"){
+  } else if (cen.fit == "survival.forest"){
     c.fit <- grf::survival_forest(cbind(W, X),
                                   Y,
                                   1 - D,
@@ -105,10 +105,10 @@ surv_xl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
     C.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
   }
 
-  # Propensity score (cross-fitted using 'preval' in glmnet)
+  # Propensity score (cross-fitted using "preval" in glmnet)
   if (is.null(W.hat)){
     stop("propensity score needs to be supplied")
-  }else{
+  } else {
     W.hat <- rep(W.hat, length(W))
   }
 
@@ -146,7 +146,7 @@ surv_xl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
               tau.fit0 = tau.fit0,
               W.hat = W.hat,
               tau.hat = tau.hat)
-  class(ret) <- 'surv_xl_lasso'
+  class(ret) <- "surv_xl_lasso"
   ret
 }
 
@@ -187,15 +187,15 @@ predict.surv_xl_lasso = function(object,
                                  newdata = NULL,
                                  W.hat = NULL,
                                  ...) {
-  if(is.null(newdata)){
+  if (is.null(newdata)){
     return(object$tau.hat)
-  }else{
+  } else {
     XLtau1 <- as.vector(-predict(object$tau.fit1, newdata, s = "lambda.min"))
     XLtau0 <- as.vector(-predict(object$tau.fit0, newdata, s = "lambda.min"))
-    if(is.null(W.hat)){
+    if (is.null(W.hat)){
       W.hat <- rep(object$W.hat[1], nrow(newdata))
-    }else{
-      if(length(W.hat)==1){
+    } else {
+      if (length(W.hat)==1){
       W.hat <- rep(W.hat, nrow(newdata))
       }
     }

@@ -47,33 +47,33 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
                            V14:V15 + V16:V17 + V18:V19 + V20:V21 + V22:V23 + V24:V25 - 1, NLX)
     W <- rbinom(n, 1, pi)
     numerator <- -log(runif(n))
-    if(f.b == "L" & f.i == "L"){
-      if(p.b == 1 & p.i == 1){
+    if (f.b == "L" & f.i == "L"){
+      if (p.b == 1 & p.i == 1){
         cox.ft <- (numerator / exp(beta * X[,1] + (-0.5 - gamma * X[,2]) * W))^2
-      }else if(p.b == p & p.i == 1){
+      } else if (p.b == p & p.i == 1){
         betah <- rep(beta/sqrt(p.b), p.b)
         cox.ft <- (numerator / exp(X %*% betah + (-0.5 - gamma * X[,2]) * W))^2
-      }else if(p.b == p & p.i == p){
+      } else if (p.b == p & p.i == p){
         betah <- rep(beta/sqrt(p.b), p.b); gammah <- rep(gamma/sqrt(p.i), p.i)
         cox.ft <- (numerator / exp(X %*% betah + (-0.5 - X %*% gammah) * W))^2
       }
-    }else if(f.b == "NL" & f.i == "L"){
-      if(p.b == 1 & p.i == 1){
+    } else if (f.b == "NL" & f.i == "L"){
+      if (p.b == 1 & p.i == 1){
         cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * X[,2]) * W))^2
-      }else if(p.b == p & p.i == 1){
+      } else if (p.b == p & p.i == 1){
         betah <- c(0.99, rep(0.33, (p.b-1)/2))
         cox.ft <- (numerator / exp(NLXs %*% betah + (-0.5 - gamma * X[,2]) * W))^2
-      }else if(p.b == p & p.i == p){
+      } else if (p.b == p & p.i == p){
         betah <- c(0.99, rep(0.33, (p.b-1)/2)); gammah <- rep(gamma/sqrt(p.i), p.i)
         cox.ft <- (numerator / exp(NLXs %*% betah + (-0.5 - X %*% gammah) * W))^2
       }
-    }else if(f.b == "NL" & f.i == "NL"){
-      if(p.b == 1 & p.i == 1){
+    } else if (f.b == "NL" & f.i == "NL"){
+      if (p.b == 1 & p.i == 1){
         cox.ft <- (numerator / exp(beta * as.numeric(X[,1] > 0.5) + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2
-      }else if(p.b == p & p.i == 1){
+      } else if (p.b == p & p.i == 1){
         betah <- c(0.99, rep(0.33, (p.b-1)/2))
         cox.ft <- (numerator / exp(NLXs %*% betah + (-0.5 - gamma * as.numeric(X[,2] > 0.5)) * W))^2
-      }else if(p.b == p & p.i == p){
+      } else if (p.b == p & p.i == p){
         betah <- c(0.99, rep(0.33, (p.b-1)/2)); gammah <- c(0.99, rep(0.33, (p.i-1)/2))
         cox.ft <- (numerator / exp(NLXs %*% betah + (-0.5 - NLXs %*% gammah) * W))^2
       }
@@ -82,7 +82,7 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
 
     # varying censoring rate by changing cen.scale and rho
     numeratorC <- -log(runif(n))
-    if(cenM == "dX"){
+    if (cenM == "dX"){
       cen.scale <- exp(0.5 + 2 * X[,1] + (1 + 2 * X[,2]) * W)
     }
     censor.time <- (numeratorC/(cen.scale^rho))^(1/rho)
@@ -94,8 +94,8 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
     # generate true CATEs
     mu0sp <- mu1sp <- catesp <- rep(NA, n)
     numerator <- -log(runif(n.mc))
-    if(f.b == "L" & f.i == "L"){
-      if(p.b == 1 & p.i == 1){
+    if (f.b == "L" & f.i == "L"){
+      if (p.b == 1 & p.i == 1){
         for (i in 1:n) {
           cox.ft0 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 0))^2
           cox.ft1 <- (numerator / exp(beta * X[i, 1] + (-0.5 - gamma * X[i, 2]) * 1))^2
@@ -103,7 +103,7 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
           mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
           catesp[i] <- mu1sp[i] - mu0sp[i]
           }
-      }else if(p.b == p & p.i == 1){
+      } else if (p.b == p & p.i == 1){
         for (i in 1:n) {
           cox.ft0 <- (numerator / as.vector(exp(t(X[i,]) %*% betah + (-0.5 - gamma * X[i, 2]) * 0)))^2
           cox.ft1 <- (numerator / as.vector(exp(t(X[i,]) %*% betah + (-0.5 - gamma * X[i, 2]) * 1)))^2
@@ -111,7 +111,7 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
           mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
           catesp[i] <- mu1sp[i] - mu0sp[i]
         }
-      }else if(p.b == p & p.i == p){
+      } else if (p.b == p & p.i == p){
         for (i in 1:n) {
           cox.ft0 <- (numerator / as.vector(exp(t(X[i,]) %*% betah + (-0.5 - t(X[i,]) %*% gammah) * 0)))^2
           cox.ft1 <- (numerator / as.vector(exp(t(X[i,]) %*% betah + (-0.5 - t(X[i,]) %*% gammah) * 1)))^2
@@ -120,8 +120,8 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
           catesp[i] <- mu1sp[i] - mu0sp[i]
         }
       }
-    }else if(f.b == "NL" & f.i == "L"){
-      if(p.b == 1 & p.i == 1){
+    } else if (f.b == "NL" & f.i == "L"){
+      if (p.b == 1 & p.i == 1){
         for (i in 1:n) {
           cox.ft0 <- (numerator / exp(beta * as.numeric(X[i,1] > 0.5) + (-0.5 - gamma * X[i, 2]) * 0))^2
           cox.ft1 <- (numerator / exp(beta * as.numeric(X[i,1] > 0.5) + (-0.5 - gamma * X[i, 2]) * 1))^2
@@ -129,7 +129,7 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
           mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
           catesp[i] <- mu1sp[i] - mu0sp[i]
           }
-        }else if(p.b == p & p.i == 1){
+        } else if (p.b == p & p.i == 1){
           for (i in 1:n) {
             cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * X[i, 2]) * 0)))^2
             cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * X[i, 2]) * 1)))^2
@@ -137,7 +137,7 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
             mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
-        }else if (p.b == p & p.i == p){
+        } else if (p.b == p & p.i == p){
           for (i in 1:n) {
             cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(X[i,]) %*% gammah) * 0)))^2
             cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(X[i,]) %*% gammah) * 1)))^2
@@ -146,8 +146,8 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
         }
-      }else if(f.b == "NL" & f.i == "NL"){
-        if(p.b == 1 & p.i == 1){
+      } else if (f.b == "NL" & f.i == "NL"){
+        if (p.b == 1 & p.i == 1){
           for (i in 1:n) {
             cox.ft0 <- (numerator / exp(beta * as.numeric(X[i,1] > 0.5) + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 0))^2
             cox.ft1 <- (numerator / exp(beta * as.numeric(X[i,1] > 0.5) + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 1))^2
@@ -155,7 +155,7 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
             mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
-        }else if(p.b == p & p.i == 1){
+        } else if (p.b == p & p.i == 1){
           for (i in 1:n) {
             cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 0)))^2
             cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 1)))^2
@@ -163,7 +163,7 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
             mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
-        }else if(p.b == p & p.i == p){
+        } else if (p.b == p & p.i == p){
           for (i in 1:n) {
             cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(NLXs[i, ]) %*% gammah) * 0)))^2
             cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(NLXs[i, ]) %*% gammah) * 1)))^2

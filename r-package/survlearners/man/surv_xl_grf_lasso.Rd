@@ -37,7 +37,7 @@ A surv_xl_grf_lasso object
 }
 \description{
 X-learner, implemented via grf (for nuisance parameter estimation)
-and glmnet (lasso) with 'coxph' distribution (for target function CATE estimation)
+and glmnet (lasso) with "coxph" distribution (for target function CATE estimation)
 }
 \examples{
 \donttest{

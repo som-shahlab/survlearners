@@ -60,7 +60,7 @@ surv_tl_coxph <- function(X, Y, W, D, times){
               bh0 = bh.dat0,
               tau.hat = tau.hat,
               times = times)
-  class(ret) <- 'surv_tl_coxph'
+  class(ret) <- "surv_tl_coxph"
   ret
 }
 
@@ -101,13 +101,13 @@ predict.surv_tl_coxph = function(object,
                                  newdata = NULL,
                                  times = NULL,
                                  ...) {
-  if(is.null(newdata)){
+  if (is.null(newdata)){
     return(object$tau.hat)
-  }else{
-    if(is.null(times)){
+  } else {
+    if (is.null(times)){
       index1 <- findInterval(object$times, object$bh1$time)
       index0 <- findInterval(object$times, object$bh0$time)
-    }else{
+    } else {
       index1 <- findInterval(times, object$bh1$time)
       index0 <- findInterval(times, object$bh0$time)
     }

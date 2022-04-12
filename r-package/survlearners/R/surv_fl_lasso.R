@@ -1,6 +1,6 @@
 #' @title F-learner of lasso
 #'
-#' @description  F-learner, implemented via glmnet (lasso) with 'coxph' distribution
+#' @description  F-learner, implemented via glmnet (lasso) with "coxph" distribution
 #'
 #' @param X The baseline covariates
 #' @param W The treatment variable (0 or 1)
@@ -36,7 +36,7 @@
 surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier"){
 
   # IPCW weights
-  if(cen.fit == "Kaplan-Meier"){
+  if (cen.fit == "Kaplan-Meier"){
     shuffle <- sample(length(Y))
     kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
@@ -52,7 +52,7 @@ surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
     }
     shudat <- data.frame(shuffle, C.hat)
     C.hat <- shudat[order(shuffle), ]$C.hat
-  }else if (cen.fit == "survival.forest"){
+  } else if (cen.fit == "survival.forest"){
     c.fit <- grf::survival_forest(cbind(W, X),
                                   Y,
                                   1 - D,
@@ -68,7 +68,7 @@ surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
   # Propensity score
   if (is.null(W.hat)){
     stop("propensity score needs to be supplied")
-  }else{
+  } else {
     W.hat <- rep(W.hat, length(Y))
   }
 
@@ -87,7 +87,7 @@ surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
 
   ret <- list(tau.fit = tau.fit,
               tau.hat = tau.hat)
-  class(ret) <- 'surv_fl_lasso'
+  class(ret) <- "surv_fl_lasso"
   ret
 }
 
@@ -126,9 +126,9 @@ surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
 predict.surv_fl_lasso = function(object,
                                  newdata = NULL,
                                  ...) {
-  if(is.null(newdata)){
+  if (is.null(newdata)){
     return(object$tau.hat)
-  }else{
+  } else {
     return(-predict(object$tau.fit, newdata))
   }
 }

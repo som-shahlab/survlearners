@@ -60,7 +60,7 @@ surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
   Tgrf0 <- 1-surf0
 
   # IPCW weights
-  if(cen.fit == "Kaplan-Meier"){
+  if (cen.fit == "Kaplan-Meier"){
     shuffle <- sample(length(Y))
     kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
@@ -75,7 +75,7 @@ surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
     }
     shudat <- data.frame(shuffle, C.hat)
     C.hat <- shudat[order(shuffle), ]$C.hat
-  }else if (cen.fit == "survival.forest"){
+  } else if (cen.fit == "survival.forest"){
     c.fit <- grf::survival_forest(cbind(W, X),
                                   Y,
                                   1 - D,
@@ -91,7 +91,7 @@ surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
   # Propensity score
   if (is.null(W.hat)){
     stop("propensity score needs to be supplied")
-  }else{
+  } else {
     W.hat <- rep(W.hat, length(W))
   }
 
@@ -123,7 +123,7 @@ surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
               tau.fit0 = tau.fit0,
               W.hat = W.hat,
               tau.hat = tau.hat)
-  class(ret) <- 'surv_xl_grf'
+  class(ret) <- "surv_xl_grf"
   ret
 }
 
@@ -164,15 +164,15 @@ predict.surv_xl_grf = function(object,
                                newdata = NULL,
                                W.hat = NULL,
                                ...) {
-  if(is.null(newdata)){
+  if (is.null(newdata)){
     return(object$tau.hat)
-  }else{
+  } else {
     XLtau1 <- -predict(object$tau.fit1, data.frame(newdata))
     XLtau0 <- -predict(object$tau.fit0, data.frame(newdata))
-    if(is.null(W.hat)){
+    if (is.null(W.hat)){
       W.hat <- rep(object$W.hat[1], nrow(newdata))
-    }else{
-      if(length(W.hat)==1){
+    } else {
+      if (length(W.hat)==1){
       W.hat <- rep(W.hat, nrow(newdata))
       }
     }

@@ -47,7 +47,7 @@ surv_sl_grf <- function(X, Y, W, D, times, alpha = 0.05){
   ret <- list(tau.fit = tau.fit,
               tau.hat = tau.hat,
               times = times)
-  class(ret) <- 'surv_sl_grf'
+  class(ret) <- "surv_sl_grf"
   ret
 }
 
@@ -88,12 +88,12 @@ predict.surv_sl_grf = function(object,
                                newdata = NULL,
                                times = NULL,
                                ...) {
-  if(is.null(newdata)){
+  if (is.null(newdata)){
     return(object$tau.hat)
-  }else{
-    if(is.null(times)){
+  } else {
+    if (is.null(times)){
       index <- findInterval(object$times, object$fit$failure.times)
-    }else{
+    } else {
       index <- findInterval(times, object$fit$failure.times)
     }
     surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[, index]

@@ -169,7 +169,7 @@ predict.surv_sl_lasso <- function(object,
     link1 <- exp(newdata.scl.pred1 %*% object$s.beta)
     link0 <- exp(newdata.scl.pred0 %*% object$s.beta)
 
-    if(is.null(times)){
+    if (is.null(times)){
     times <- object$times
     }
     index <- findInterval(times, object$S0.t$time)

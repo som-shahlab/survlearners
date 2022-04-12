@@ -56,7 +56,7 @@ surv_tl_grf <- function(X, Y, W, D, times, alpha = 0.05){
               fit0 = grffit0,
               tau.hat = tau.hat,
               times = times)
-  class(ret) <- 'surv_tl_grf'
+  class(ret) <- "surv_tl_grf"
   ret
 }
 
@@ -98,13 +98,13 @@ predict.surv_tl_grf = function(object,
                                newdata = NULL,
                                times = NULL,
                                ...) {
-  if(is.null(newdata)){
+  if (is.null(newdata)){
     return(object$tau.hat)
-  }else{
-    if(is.null(times)){
+  } else {
+    if (is.null(times)){
       index1 <- findInterval(object$times, object$fit1$failure.times)
       index0 <- findInterval(object$times, object$fit0$failure.times)
-    }else{
+    } else {
       index1 <- findInterval(times, object$fit1$failure.times)
       index0 <- findInterval(times, object$fit0$failure.times)
     }

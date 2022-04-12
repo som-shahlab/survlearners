@@ -97,9 +97,9 @@ surv_rl_lasso = function(X, Y, W, D,
 
     if (is.null(W.hat)){
       stop("propensity score needs to be supplied")
-    }else if (length(W.hat) == 1) {
+    } else if (length(W.hat) == 1) {
       W.hat <- rep(W.hat, nrow(X))
-    }else if (length(W.hat) != nrow(X)){
+    } else if (length(W.hat) != nrow(X)){
       stop("W.hat has incorrect length.")
     }
 
@@ -122,7 +122,7 @@ surv_rl_lasso = function(X, Y, W, D,
       survt0[foldid==k] <- pred_surv(y.fit, S0, cbind(rep(0, length(W[foldid==k])), X[foldid==k, ]), times = times, lambda = y.fit$lambda.min)
     }
     Y.hat  <- W.hat * survt1 + (1 - W.hat) * survt0
-    }else {
+    } else {
       y.fit = NULL
     }
 
@@ -137,7 +137,7 @@ surv_rl_lasso = function(X, Y, W, D,
                               compute.oob.predictions = TRUE)
 
     if (is.null(C.hat)){
-    if(cen.fit == "Kaplan-Meier"){
+    if (cen.fit == "Kaplan-Meier"){
       traindat <- data.frame(Y = Y, D = D)
       shuffle <- sample(nrow(traindat))
       kmdat <- traindat[shuffle,]
@@ -153,14 +153,14 @@ surv_rl_lasso = function(X, Y, W, D,
       }
       shudat <- data.frame(shuffle, C.hat)
       C.hat <- shudat[order(shuffle), ]$C.hat
-    }else if (cen.fit == "survival.forest"){
+    } else if (cen.fit == "survival.forest"){
       c.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = 1 - D), args.grf.nuisance))
       C.hat <- predict(c.fit, failure.times = c.fit$failure.times)$predictions
       cent <- Y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c.fit$failure.times)
       C.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
      }
-    }else {
+    } else {
       c.fit = NULL
     }
 
@@ -242,7 +242,7 @@ predict.surv_rl_lasso <- function(object,
     newdata.scl = newdata.scl[,!is.na(colSums(newdata.scl)), drop = FALSE]
     newdata.scl.pred = cbind(1, newdata.scl)
     tau.hat = newdata.scl.pred %*% object$tau.beta
-  }else {
+  } else {
     tau.hat = object$tau.hat
   }
   return(tau.hat)

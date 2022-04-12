@@ -108,7 +108,7 @@ predict.surv_sl_coxph <- function(object,
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
 
-    if(is.null(times)){
+    if (is.null(times)){
     times <- object$times
     }
 

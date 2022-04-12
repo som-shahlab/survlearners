@@ -19,12 +19,12 @@ pred_surv <- function(fit, S0, X, times, lambda){
   link <- predict(fit$glmnet.fit,X,type = "link")[,fit$lambda==lambda]
   colnames(link) <- NULL
 
-  if(length(times)>1){
+  if (length(times)>1){
     S0.t <- rep(NA, length(times))
     for (i in 1:length(times)){
       S0.t[i] <- S0$survival[S0$time>=times[i]][1]
     }
-  }else{
+  } else {
     S0.t <- S0$survival[S0$time>=times][1]
   }
 
@@ -35,12 +35,12 @@ pred_surv_preval <- function(fit, S0, times, lambda){
   link <- fit$fit.preval[,!is.na(colSums(fit$fit.preval))][, fit$lambda[!is.na(colSums(fit$fit.preval))] == lambda]
   colnames(link) <- NULL
 
-  if(length(times)>1){
+  if (length(times)>1){
     S0.t <- rep(NA, length(times))
     for (i in 1:length(times)){
       S0.t[i] <- S0$survival[S0$time>=times[i]][1]
     }
-  }else{
+  } else {
     S0.t <- S0$survival[S0$time>=times][1]
   }
 

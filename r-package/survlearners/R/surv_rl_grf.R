@@ -61,9 +61,9 @@ surv_rl_grf = function(X, Y, W, D,
 
   if (is.null(W.hat)){
     stop("propensity score needs to be supplied")
-  }else if (length(W.hat) == 1) {
+  } else if (length(W.hat) == 1) {
     W.hat <- rep(W.hat, nrow(X))
-  }else if (length(W.hat) != nrow(X)){
+  } else if (length(W.hat) != nrow(X)){
     stop("W.hat has incorrect length.")
   }
 
@@ -96,12 +96,12 @@ surv_rl_grf = function(X, Y, W, D,
     surf1 <- S1.hat[, times.index]
     surf0 <- S0.hat[, times.index]
     Y.hat  <- W.hat * surf1 + (1 - W.hat) * surf0
-  }else {
+  } else {
     y.fit = NULL
   }
 
   if (is.null(C.hat)){
-    if(cen.fit == "Kaplan-Meier"){
+    if (cen.fit == "Kaplan-Meier"){
       traindat <- data.frame(Y = Y, D = D)
       shuffle <- sample(nrow(traindat))
       kmdat <- traindat[shuffle,]
@@ -117,14 +117,14 @@ surv_rl_grf = function(X, Y, W, D,
       }
       shudat <- data.frame(shuffle, C.hat)
       C.hat <- shudat[order(shuffle), ]$C.hat
-    }else if (cen.fit == "survival.forest"){
+    } else if (cen.fit == "survival.forest"){
       c.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = 1 - D), args.grf.nuisance))
       C.hat <- predict(c.fit, failure.times = c.fit$failure.times)$predictions
       cent <- Y; cent[D==0] <- times
       cen.times.index <- findInterval(cent, c.fit$failure.times)
       C.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
     }
-  }else{
+  } else {
     c.fit <- NULL
   }
 

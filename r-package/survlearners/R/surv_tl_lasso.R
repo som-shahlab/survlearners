@@ -83,7 +83,7 @@ surv_tl_lasso <- function(X, Y, W, D, times){
               bsurv0 = bsurv0,
               tau.hat = tau.hat,
               times = times)
-  class(ret) <- 'surv_tl_lasso'
+  class(ret) <- "surv_tl_lasso"
   ret
 }
 
@@ -124,10 +124,10 @@ predict.surv_tl_lasso = function(object,
                                  newdata = NULL,
                                  times = NULL,
                                  ...) {
-  if(is.null(newdata)){
+  if (is.null(newdata)){
     return(object$tau.hat)
-  }else{
-    if(is.null(times)){
+  } else {
+    if (is.null(times)){
       surf1 <- pred_surv(fit = object$fit1,
                          S0 = object$bsurv1,
                          X = newdata,
@@ -139,7 +139,7 @@ predict.surv_tl_lasso = function(object,
                          X = newdata,
                          times = object$times,
                          lambda = object$fit0$lambda.min)
-    }else{
+    } else {
       surf1 <- pred_surv(fit = object$fit1,
                          S0 = object$bsurv1,
                          X = newdata,
