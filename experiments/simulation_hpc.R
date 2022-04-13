@@ -2,7 +2,7 @@ rm(list = ls())
 library(survlearners)
 source("../../experiments/comparison_estimators.R")
 
-# *** Comparison methods ***
+# *** Comparison methods *** 
 estimators <- list(cate_sl_coxph = cate_sl_coxph,
                    cate_tl_coxph = cate_tl_coxph,
                    cate_csf_probs = cate_csf_probs,
