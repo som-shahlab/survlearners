@@ -2,7 +2,7 @@ rm(list = ls())
 library(survlearners)
 source("../../experiments/comparison_estimators.R")
 
-# *** Comparison methods ***
+# *** Comparison methods *** 
 estimators <- list(cate_sl_coxph = cate_sl_coxph,
                    cate_tl_coxph = cate_tl_coxph,
                    cate_csf_probs = cate_csf_probs,
@@ -155,7 +155,7 @@ for (sim in 1:n.sim) {
 
   out <- c(out, list(df))
   #}
-  #, error <- function(e) {an.error.occured[sim] <<- TRUE})
+  #, error = function(e) {an.error.occured[sim] <<- TRUE})
 }
 print(sum(an.error.occured, na.rm = TRUE))
 out.df <- do.call(rbind, out)
