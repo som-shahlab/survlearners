@@ -92,9 +92,9 @@ predict.surv_sl_grf <- function(object,
     return(object$tau.hat)
   } else {
     if (is.null(times)) {
-      index <- findInterval(object$times, object$fit$failure.times)
+      index <- findInterval(object$times, object$tau.fit$failure.times)
     } else {
-      index <- findInterval(times, object$fit$failure.times)
+      index <- findInterval(times, object$tau.fit$failure.times)
     }
     surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[ ,index]
     surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata))$predictions[ ,index]
