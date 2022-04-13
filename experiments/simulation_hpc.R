@@ -1,21 +1,25 @@
+rm(list = ls())
+library(survlearners)
+source("../../experiments/comparison_estimators.R")
+
 # *** Comparison methods ***
-estimators <- list(surv_sl_coxph = surv_sl_coxph,
-                   surv_tl_coxph = surv_tl_coxph,
-                   #surv_csf_probs = surv_csf_probs,
-                   surv_xl_grf_lasso = surv_xl_grf_lasso,
-                   surv_rl_grf_lasso = surv_rl_grf_lasso,
+estimators <- list(cate_sl_coxph = cate_sl_coxph,
+                   cate_tl_coxph = cate_tl_coxph,
+                   cate_csf_probs = cate_csf_probs,
+                   cate_xl_grf_lasso = cate_xl_grf_lasso,
+                   cate_rl_grf_lasso = cate_rl_grf_lasso,
 
-                   surv_sl_lasso = surv_sl_lasso,
-                   surv_tl_lasso = surv_tl_lasso,
-                   surv_fl_lasso = surv_fl_lasso,
-                   surv_xl_lasso = surv_xl_lasso,
-                   surv_rl_lasso = surv_rl_lasso,
+                   cate_sl_lasso = cate_sl_lasso,
+                   cate_tl_lasso = cate_tl_lasso,
+                   cate_fl_lasso = cate_fl_lasso,
+                   cate_xl_lasso = cate_xl_lasso,
+                   cate_rl_lasso = cate_rl_lasso,
 
-                   surv_sl_grf = surv_sl_grf,
-                   surv_tl_grf = surv_tl_grf,
-                   surv_fl_grf = surv_fl_grf,
-                   surv_xl_grf = surv_xl_grf,
-                   surv_rl_grf = surv_rl_grf)
+                   cate_sl_grf = cate_sl_grf,
+                   cate_tl_grf = cate_tl_grf,
+                   cate_fl_grf = cate_fl_grf,
+                   cate_xl_grf = cate_xl_grf,
+                   cate_rl_grf = cate_rl_grf)
 
 # *** Setup ***
 out <- list()
@@ -48,7 +52,7 @@ grid[15, ]$cenM <- "dX"
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary heterogeneity: sd(CATE)/sd(mu0sp) 0.17, 0.55, 0.9 (baseline)
 grid[16:21, ]$gamma <- c(rep(0.46, 3), rep(0, 3))
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary event rate
-grid[22:27, ]$times <- c(rep(0.02,3), rep(0.001,3), rep(0.4,3))
+grid[22:30, ]$times <- c(rep(0.02,3), rep(0.001,3), rep(0.4,3))
 rownames(grid) <- 1:dim(grid)[1]
 
 if(length(args <- commandArgs(T))>0){
@@ -71,7 +75,7 @@ cenM <- grid$cenM[i]
 times <- grid$times[i]
 an.error.occured <- rep(NA, n.sim)
 for (sim in 1:n.sim) {
-  tryCatch( {
+  #tryCatch( {
   print(paste("sim", sim))
   data <- generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i, pi = pi,
                                           gamma = gamma, rho = rho, cen.scale = cen.scale, cenM = cenM, dgp = dgp,
@@ -90,11 +94,10 @@ for (sim in 1:n.sim) {
     estimator.name <- names(estimators)[j]
     print(estimator.name)
     if (grepl("sl", estimator.name, fixed = TRUE) == TRUE | grepl("tl", estimator.name, fixed = TRUE) == TRUE) {
-      fit <- estimators[[estimator.name]](data$X, data$Y, data$W, data$D, times = times)
+      predictions[,j] <- estimators[[estimator.name]](data, data.test, times = times)
     } else {
-      fit <- estimators[[estimator.name]](data$X, data$Y, data$W, data$D, times = times, W.hat = pi)
+      predictions[,j] <- estimators[[estimator.name]](data, data.test, times = times, W.hat = pi)
     }
-    predictions[,j] <- as.numeric(unlist(predict(fit, newdata$X)))
 
     correct.classification <- sign(predictions[,j]) == true.catesp.sign
 
@@ -117,7 +120,7 @@ for (sim in 1:n.sim) {
 
   # Scatter plot of pred and true CATEs
   if (sim==1){
-    newnames <- str_replace_all(names(estimators), "surv_", "")
+    newnames <- str_replace_all(names(estimators), "cate_", "")
     names(estimators) <- names(estimators)
     png(paste0("grid", i, "cen.fit.KM.png"),
         width = 10, height = 6, units = 'in', res = 300)
@@ -151,8 +154,8 @@ for (sim in 1:n.sim) {
   df$sim <- sim
 
   out <- c(out, list(df))
-  }
-  , error <- function(e) {an.error.occured[sim] <<- TRUE})
+  #}
+  #, error <- function(e) {an.error.occured[sim] <<- TRUE})
 }
 print(sum(an.error.occured, na.rm = TRUE))
 out.df <- do.call(rbind, out)
