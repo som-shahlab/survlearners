@@ -1,88 +1,58 @@
 rm(list = ls())
-library(survival)
-library(grf)
-library(randomForestSRC)
-library(survival)
-library(gbm)
-library(glmnet)
-library(stringr)
-ccdf <- function(pred, true){
-  concordant <- paircum <- 0
-  for (i in 1:(length(pred)-1)){
-    for (j in (i+1):length(pred)){
-      paircum <- paircum + 1
-      if(pred[i] >= pred[j] & true[i] >= true[j] | pred[i] < pred[j] & true[i] < true[j]){
-        concordant <- concordant + 1
-      }else{
-        concordant <- concordant
-      }
-    }
-  }
-  return(concordant/paircum)
-}
-source("./R/sprint_parametric_simulation.R")
-source("./R/dgps.R")
-source("./R/utils.R")
-source("./R/scoxph.R")
-source("./R/slasso_surv.R")
-source("./R/Flasso.R")
-source("./R/Fgrf.R")
-source("./R/rlasso.R")
-source("./R/rgrf.R")
-source("./R/rlasgrf.R")
-source("./R/comparison_estimators.R")
+library(survlearners)
+source("../../experiments/comparison_estimators.R")
 
 # *** Comparison methods ***
-estimators = list(estimate_coxph_sl = estimate_coxph_sl,
-                  estimate_coxph_tl = estimate_coxph_tl,
-                  estimate_csf_probs = estimate_csf_probs,
-                  estimate_ipcw_las_grf_xl = estimate_ipcw_las_grf_xl,
-                  estimate_ipcw_las_grf_rl = estimate_ipcw_las_grf_rl,
+estimators <- list(cate_sl_coxph = cate_sl_coxph,
+                   cate_tl_coxph = cate_tl_coxph,
+                   cate_csf_probs = cate_csf_probs,
+                   cate_xl_grf_lasso = cate_xl_grf_lasso,
+                   cate_rl_grf_lasso = cate_rl_grf_lasso,
 
-                  estimate_lasso_sl = estimate_lasso_sl,
-                  estimate_lasso_tl = estimate_lasso_tl,
-                  estimate_ipcw_lasso_fl = estimate_ipcw_lasso_fl,
-                  estimate_ipcw_lasso_xl = estimate_ipcw_lasso_xl,
-                  estimate_ipcw_lasso_rl = estimate_ipcw_lasso_rl,
+                   cate_sl_lasso = cate_sl_lasso,
+                   cate_tl_lasso = cate_tl_lasso,
+                   cate_fl_lasso = cate_fl_lasso,
+                   cate_xl_lasso = cate_xl_lasso,
+                   cate_rl_lasso = cate_rl_lasso,
 
-                  estimate_grf_sl = estimate_grf_sl,
-                  estimate_grf_tl = estimate_grf_tl,
-                  estimate_ipcw_grf_fl = estimate_ipcw_grf_fl,
-                  estimate_ipcw_grf_xl = estimate_ipcw_grf_xl,
-                  estimate_ipcw_grf_rl = estimate_ipcw_grf_rl)
+                   cate_sl_grf = cate_sl_grf,
+                   cate_tl_grf = cate_tl_grf,
+                   cate_fl_grf = cate_fl_grf,
+                   cate_xl_grf = cate_xl_grf,
+                   cate_rl_grf = cate_rl_grf)
 
 # *** Setup ***
-out = list()
-n.sim = 20      # change to 35 when "unbalanced"
-n.mc = 10000
+out <- list()
+n.sim <- 20      # change to 35 when "unbalanced"
+n.mc <- 10000
 
 # Simulations scenarios
-grid = expand.grid(n = 5000,
-                   p = 25,
-                   n.test = 5000,
-                   dgp = c("fcomplex"),
-                   p_b = c(1, 25, 25),
-                   f_b = c("L", "NL", "NL"),
-                   pi = c(0.5),
-                   gamma = 1,
-                   rho = c(2),
-                   cen_scale = c(4),
-                   cenM = c("indX"),
-                   times = (0.2),
-                   stringsAsFactors = FALSE)
-grid$f_i <- c(rep("L", 6), rep("NL", 3))
-grid$p_i <- rep(c(1, 1, 25), 3)
+grid <- expand.grid(n = 5000,
+                    p = 25,
+                    n.test = 5000,
+                    dgp = c("fcomplex"),
+                    p.b = c(1, 25, 25),
+                    f.b = c("L", "NL", "NL"),
+                    pi = c(0.5),
+                    gamma = 1,
+                    rho = c(2),
+                    cen.scale = c(4),
+                    cenM = c("indX"),
+                    times = (0.2),
+                    stringsAsFactors = FALSE)
+grid$f.i <- c(rep("L", 6), rep("NL", 3))
+grid$p.i <- rep(c(1, 1, 25), 3)
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,])
 grid[10:12, ]$pi <- c(0.01)               # unbalanced design
 grid <- rbind(grid, grid[1,], grid[1,])
-grid[13:14, ]$cen_scale <- c(8, 8)        # vary censoring rate (under indX): 30% (default), 70% (early censor), 65%
+grid[13:14, ]$cen.scale <- c(8, 8)        # vary censoring rate (under indX): 30% (default), 70% (early censor), 65%
 grid[13, ]$rho <- 1
 grid <- rbind(grid, grid[1,])             # vary censoring generating model (= dX)
 grid[15, ]$cenM <- "dX"
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary heterogeneity: sd(CATE)/sd(mu0sp) 0.17, 0.55, 0.9 (baseline)
 grid[16:21, ]$gamma <- c(rep(0.46, 3), rep(0, 3))
-grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary event rate
-grid[22:27, ]$times <- c(rep(0.02,3), rep(0.001,3))
+grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary event rate
+grid[22:30, ]$times <- c(rep(0.02,3), rep(0.001,3), rep(0.4,3))
 rownames(grid) <- 1:dim(grid)[1]
 
 if(length(args <- commandArgs(T))>0){
@@ -91,65 +61,68 @@ if(length(args <- commandArgs(T))>0){
   message("running for grid ", i)
 }
 
-n = grid$n[i]
-p = grid$p[i]
-n.test = grid$n.test[i]
-pi = grid$pi[i]
-dgp = grid$dgp[i]
-p_b = grid$p_b[i]; p_i = grid$p_i[i]
-f_b = grid$f_b[i]; f_i = grid$f_i[i]
-gamma = grid$gamma[i]
-rho = grid$rho[i]
-cen_scale = grid$cen_scale[i]
-cenM = grid$cenM[i]
-times = grid$times[i]
+n <- grid$n[i]
+p <- grid$p[i]
+n.test <- grid$n.test[i]
+pi <- grid$pi[i]
+dgp <- grid$dgp[i]
+p.b <- grid$p.b[i]; p.i <- grid$p.i[i]
+f.b <- grid$f.b[i]; f.i <- grid$f.i[i]
+gamma <- grid$gamma[i]
+rho <- grid$rho[i]
+cen.scale <- grid$cen.scale[i]
+cenM <- grid$cenM[i]
+times <- grid$times[i]
 an.error.occured <- rep(NA, n.sim)
 for (sim in 1:n.sim) {
-  tryCatch( {
+  #tryCatch( {
   print(paste("sim", sim))
-  data = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, pi = pi,
-                                         gamma = gamma, rho = rho, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
-                                         n.mc = 10, times = times)
-  data.test = generate_tutorial_survival_data(n = n, p = p, p_b = p_b, p_i = p_i, f_b = f_b, f_i = f_i, pi = pi,
-                                              gamma = gamma, rho = rho, cen_scale = cen_scale, cenM = cenM, dgp = dgp,
-                                              n.mc = n.mc, times = times)
+  data <- generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i, pi = pi,
+                                          gamma = gamma, rho = rho, cen.scale = cen.scale, cenM = cenM, dgp = dgp,
+                                          n.mc = 10, times = times)
+  data.test <- generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i, pi = pi,
+                                               gamma = gamma, rho = rho, cen.scale = cen.scale, cenM = cenM, dgp = dgp,
+                                               n.mc = n.mc, times = times)
 
-  data$Y = pmax(rep(0.001, length(data$Y)), data$Y)
-  true.catesp = data.test$catesp
-  true.catesp.sign = data.test$catesp.sign
+  data$Y <- pmax(rep(0.001, length(data$Y)), data$Y)
+  true.catesp <- data.test$catesp
+  true.catesp.sign <- data.test$catesp.sign
 
-  predictions = matrix(NA, n.test, length(estimators))
-  estimator.output = list()
+  predictions <- matrix(NA, n.test, length(estimators))
+  estimator.output <- list()
   for (j in 1:length(estimators)) {
-    estimator.name = names(estimators)[j]
+    estimator.name <- names(estimators)[j]
     print(estimator.name)
-    predictions[,j] = as.numeric(unlist(estimators[[estimator.name]](data, data.test, ps = pi, cen_fit = "KM",
-                                                                     times = times, meta_learner = TRUE)))
-    correct.classification = sign(predictions[,j]) == true.catesp.sign
+    if (grepl("sl", estimator.name, fixed = TRUE) == TRUE | grepl("tl", estimator.name, fixed = TRUE) == TRUE) {
+      predictions[,j] <- estimators[[estimator.name]](data, data.test, times = times)
+    } else {
+      predictions[,j] <- estimators[[estimator.name]](data, data.test, times = times, W.hat = pi)
+    }
+
+    correct.classification <- sign(predictions[,j]) == true.catesp.sign
 
     # calibration slope
-    calib_fit <- lm(predictions[,j] ~ true.catesp)
+    calib.fit <- lm(predictions[,j] ~ true.catesp)
 
-    dfj = data.frame(
-      estimator.name = estimator.name,
-      mse = mean((predictions[,j] - true.catesp)^2),
-      bias = mean(abs(predictions[,j] - true.catesp)),
-      rcorr = cor(predictions[,j], true.catesp),
-      #taucorr = cor(predictions[,j], true.catesp, method = "kendall"),  # use Kendall's tau for next round run
-      calib_coef = calib_fit$coefficients[2],
-      concordance = ccdf(predictions[,j], true.catesp),
-      classif.rate = mean(correct.classification, na.rm = TRUE) # NA: to ignore X1 < 0.3 in DGP 4.
+    dfj <- data.frame(estimator.name = estimator.name,
+                      true.catesp.var = var(true.catesp),
+                      mse = mean((predictions[,j] - true.catesp)^2),
+                      bias = mean(abs(predictions[,j] - true.catesp)),
+                      rcorr = cor(predictions[,j], true.catesp),
+                      taucorr = cor(predictions[,j], true.catesp, method = "kendall"),  # use Kendall's tau for concordance
+                      calib.coef = calib.fit$coefficients[2],
+                      # concordance = ccdf(predictions[,j], true.catesp),
+                      classif.rate = mean(correct.classification, na.rm = TRUE) # NA: to ignore X1 < 0.3 in DGP 4.
     )
     dfj$rcorr[is.na(dfj$rcorr)==TRUE] <- 0  # assign correlation to 0 when CATE = ATE
-    estimator.output[[j]] = dfj
+    estimator.output[[j]] <- dfj
   }
 
   # Scatter plot of pred and true CATEs
   if (sim==1){
-    newnames <- str_replace_all(names(estimators), "estimate_", "")
-    newnames <- str_replace_all(newnames, "ipcw_", "")
+    newnames <- str_replace_all(names(estimators), "cate_", "")
     names(estimators) <- names(estimators)
-    png(paste0("grid", i, "cen_fit_KM.png"),
+    png(paste0("grid", i, "cen.fit.KM.png"),
         width = 10, height = 6, units = 'in', res = 300)
     par(mfrow=c(3,5),
         oma = c(4,4,0,0) + 0.1,
@@ -172,18 +145,18 @@ for (sim in 1:n.sim) {
     dev.off()
   }
 
-  df = do.call(rbind, estimator.output)
-  df$n = n
-  df$p = p
-  df$n.test = n.test
-  df$dgp = dgp
-  df$horizon = times
-  df$sim = sim
+  df <- do.call(rbind, estimator.output)
+  df$n <- n
+  df$p <- p
+  df$n.test <- n.test
+  df$dgp <- dgp
+  df$horizon <- times
+  df$sim <- sim
 
-  out = c(out, list(df))
-  }
-  , error = function(e) {an.error.occured[sim] <<- TRUE})
+  out <- c(out, list(df))
+  #}
+  #, error <- function(e) {an.error.occured[sim] <<- TRUE})
 }
 print(sum(an.error.occured, na.rm = TRUE))
-out.df = do.call(rbind, out)
+out.df <- do.call(rbind, out)
 write.csv(out.df, gzfile(paste0("./ML_grid_",i,"_KMfit_p1.csv.gz")), row.names = FALSE)
