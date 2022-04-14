@@ -59,15 +59,25 @@ surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Me
   grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1, ], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
   surf1 <- rep(NA, length(W))
   t0.index <- findInterval(t0, grffit1$failure.times)
-  surf1[W == 1] <- predict(grffit1)$predictions[ , t0.index]
-  surf1[W == 0] <- predict(grffit1, X[W == 0, ])$predictions[ , t0.index]
+  if (t0.index == 0) {
+    surf1[W == 1] <- rep(1, length(D[W == 1]))
+    surf1[W == 0] <- rep(1, length(D[W == 0]))
+  } else {
+    surf1[W == 1] <- predict(grffit1)$predictions[ , t0.index]
+    surf1[W == 0] <- predict(grffit1, X[W == 0, ])$predictions[ , t0.index]
+  }
 
   # fit model on W == 0
   grffit0 <- do.call(grf::survival_forest, c(list(X = X[W == 0, ], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
   surf0 <- rep(NA, length(W))
   t0.index <- findInterval(t0, grffit0$failure.times)
-  surf0[W == 0] <- predict(grffit0)$predictions[ , t0.index]
-  surf0[W == 1] <- predict(grffit0, X[W == 1, ])$predictions[ , t0.index]
+  if (t0.index == 0) {
+    surf0[W == 0] <- rep(1, length(D[W == 0]))
+    surf0[W == 1] <- rep(1, length(D[W == 1]))
+  } else {
+    surf0[W == 0] <- predict(grffit0)$predictions[ , t0.index]
+    surf0[W == 1] <- predict(grffit0, X[W == 1, ])$predictions[ , t0.index]
+  }
 
   Tgrf1 <- 1 - surf1
   Tgrf0 <- 1 - surf0

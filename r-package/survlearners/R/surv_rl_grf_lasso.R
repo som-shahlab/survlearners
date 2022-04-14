@@ -106,9 +106,13 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
     y.fit[["X.orig"]][ , ncol(X) + 1] <- W
 
     t0.index <- findInterval(t0, y.fit$failure.times)
-    surf1 <- S1.hat[ , t0.index]
-    surf0 <- S0.hat[ , t0.index]
-    Y.hat  <- W.hat * surf1 + (1 - W.hat) * surf0
+    if (t0.index == 0) {
+      Y.hat <- rep(1, nrow(X))
+    } else {
+      surf1 <- S1.hat[ , t0.index]
+      surf0 <- S0.hat[ , t0.index]
+      Y.hat  <- W.hat * surf1 + (1 - W.hat) * surf0
+    }
   } else {
     y.fit <- NULL
   }
