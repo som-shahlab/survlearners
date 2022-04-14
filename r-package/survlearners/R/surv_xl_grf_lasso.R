@@ -34,7 +34,7 @@
 #' }
 #' @return A surv_xl_grf_lasso object
 #' @export
-surv_xl_grf_lasso <- function(X, Y, W, D, t0, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier") {
+surv_xl_grf_lasso <- function(X, Y, W, D, t0, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier", k.folds = 10) {
 
 # fit model on W == 1
 grffit1 <- grf::survival_forest(X[W == 1, ],
@@ -65,19 +65,12 @@ Tgrf0 <- 1 - surf0
 Q <- as.numeric(D == 1 | Y > t0)    # indicator for uncensored at t0
 U <- pmin(Y, t0)                         # truncated follow-up time by t0
 if (cen.fit == "Kaplan-Meier") {
-  shuffle <- sample(length(U))
-  kmdat <- data.frame(U = U[shuffle], Q = Q[shuffle])
-  folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
-  C.hat <- rep(NA, nrow(kmdat))
-  for (z in 1:10) {
-    testIndexes <- which(folds == z, arr.ind = TRUE)
-    testData <- kmdat[testIndexes, ]
-    trainData <- kmdat[-testIndexes, ]
-    c.fit <- survival::survfit(survival::Surv(trainData$U, 1 - trainData$Q) ~ 1)
-    C.hat[testIndexes] <- summary(c.fit, times = testData$U)$surv
+  fold.id <- sample(rep(seq(k.folds), length = nrow(X)))
+  C.hat <- rep(NA, length(fold.id))
+  for (z in 1:k.folds) {
+    c.fit <- survival::survfit(survival::Surv(Y[!fold.id == z], 1 - Q[!fold.id == z]) ~ 1)
+    C.hat[fold.id == z] <- summary(c.fit, times = U[fold.id == z])$surv
   }
-  shudat <- data.frame(shuffle, C.hat)
-  C.hat <- shudat[order(shuffle), ]$C.hat
 } else if (cen.fit == "survival.forest") {
   c.fit <- grf::survival_forest(cbind(W, X),
                                 U,

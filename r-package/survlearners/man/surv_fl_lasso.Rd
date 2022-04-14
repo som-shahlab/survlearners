@@ -12,7 +12,8 @@ surv_fl_lasso(
   t0,
   alpha = 0.05,
   W.hat = NULL,
-  cen.fit = "Kaplan-Meier"
+  cen.fit = "Kaplan-Meier",
+  k.folds = 10
 )
 }
 \arguments{
