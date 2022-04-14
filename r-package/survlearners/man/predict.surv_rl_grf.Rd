@@ -4,14 +4,12 @@
 \alias{predict.surv_rl_grf}
 \title{predict for surv_rl_grf}
 \usage{
-\method{predict}{surv_rl_grf}(object, newdata = NULL, tau.only = TRUE, ...)
+\method{predict}{surv_rl_grf}(object, newdata = NULL, ...)
 }
 \arguments{
 \item{object}{A surv_rl_grf object}
 
 \item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
-
-\item{tau.only}{If set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.}
 
 \item{...}{Additional arguments (currently not used)}
 }

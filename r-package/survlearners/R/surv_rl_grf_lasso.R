@@ -139,28 +139,29 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
   }
 
   # create binary data
-  tempdat <- data.frame(Y, D, W, Y.hat, W.hat, C.hat, x.scl)
-  binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > t0, ]          # remove subjects who got censored before the time of interest t50
-  binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0     # recode the event status for subjects who had events after t50
-  binary.data <- binary.data[complete.cases(binary.data), ]
+  D.t0 <- D
+  D.t0[D == 1 & Y > t0] <- 0
+  D.t0 <- D.t0[D == 1 | Y > t0]
+  Y.hat.t0 <- Y.hat[D == 1 | Y > t0]
+  W.t0 <- W[D == 1 | Y > t0]
+  W.hat.t0 <- W.hat[D == 1 | Y > t0]
+  X.t0 <- x.scl[D == 1 | Y > t0,, drop = FALSE]
+  sample.weights.t0 <- 1 / C.hat[D == 1 | Y > t0]
 
-  sample.weights <- 1 / binary.data$C.hat     # the treatment weight is already accounted
-  y.tilde <- (1 - binary.data$D) - binary.data$Y.hat
-  x.scl <- binary.data[ , 7:dim(binary.data)[2]]
-  foldid2 <- sample(rep(seq(k.folds), length = length(binary.data$W)))
+  foldid <- sample(rep(seq(k.folds), length = nrow(X.t0)))
+  y.tilde <- (1 - D.t0) - Y.hat.t0
+  x.scl.tilde <- as.matrix(as.numeric(W.t0 - W.hat.t0) * cbind(1, X.t0))
+  x.scl.pred <- cbind(1, X.t0)
 
-  x.scl.tilde <- cbind(as.numeric(binary.data$W - binary.data$W.hat) * cbind(1, x.scl))
-  x.scl.pred <- cbind(1, x.scl)
-
-  args.lasso.tau <- list(weights = sample.weights,
-                         foldid = foldid2,
+  args.lasso.tau <- list(weights = sample.weights.t0,
+                         foldid = foldid,
                          alpha = 1,
                          lambda = NULL,
                          penalty.factor = penalty.factor.tau,
                          standardize = FALSE)
-  tau.fit <- do.call(glmnet::cv.glmnet, c(list(x = as.matrix(x.scl.tilde), y = y.tilde), args.lasso.tau))
+  tau.fit <- do.call(glmnet::cv.glmnet, c(list(x = x.scl.tilde, y = y.tilde), args.lasso.tau))
   tau.beta <- as.vector(t(coef(tau.fit, s = lambda.choice)[-1]))
-  tau.hat <- as.matrix(x.scl.pred) %*% tau.beta
+  tau.hat <- x.scl.pred %*% tau.beta
 
   ret <- list(tau.fit = tau.fit,
               tau.beta = tau.beta,

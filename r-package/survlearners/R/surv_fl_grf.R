@@ -69,7 +69,6 @@ surv_fl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
     cen.times.index <- findInterval(U, c.fit$failure.times)
     C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
   }
-  sample.weights <- 1 / C.hat
 
   # Propensity score
   if (is.null(W.hat)) {
@@ -78,18 +77,18 @@ surv_fl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
     W.hat <- rep(W.hat, length(Y))
   }
 
-  # Subset of uncensored subjects
-  tempdat <- data.frame(Y = Y, D = D, W = W, W.hat, sample.weights, X)
-  binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > t0, ]
-  binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0
-  binary.data <- binary.data[complete.cases(binary.data), ]
-  b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
-                 X = as.matrix(binary.data[ ,6:ncol(binary.data)]),
-                 sample.weights = binary.data$sample.weights, W.hat = binary.data$W.hat)
+  # CATE function
+  D.t0 <- D
+  D.t0[D == 1 & Y > t0] <- 0
+  D.t0 <- D.t0[D == 1 | Y > t0]
+  W.t0 <- W[D == 1 | Y > t0]
+  X.t0 <- X[D == 1 | Y > t0,, drop = FALSE]
+  sample.weights.t0 <- 1 / C.hat[D == 1 | Y > t0]
+  W.hat.t0 <- W.hat[D == 1 | Y > t0]
 
-  Z <- b.data$W * b.data$D / b.data$W.hat - (1 - b.data$W) * b.data$D / (1 - b.data$W.hat)
-  tau.fit <- grf::regression_forest(b.data$X, Z, sample.weights = b.data$sample.weights)
-  tau.hat <- -predict(tau.fit, X)
+  Z <- W.t0 * D.t0 / W.hat.t0 - (1 - W.t0) * D.t0 / (1 - W.hat.t0)
+  tau.fit <- grf::regression_forest(X.t0, Z, sample.weights = sample.weights.t0)
+  tau.hat <- -predict(tau.fit, X.t0)
 
   ret <- list(tau.fit = tau.fit,
               tau.hat = tau.hat)
