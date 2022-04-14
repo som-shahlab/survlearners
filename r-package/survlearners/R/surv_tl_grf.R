@@ -39,7 +39,11 @@ surv_tl_grf <- function(X, Y, W, D, t0, alpha = 0.05) {
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
   index <- findInterval(t0, grffit1$failure.times)
-  surf1 <- predict(grffit1, X)$predictions[ ,index]
+  if (index == 0) {
+    surf1 <- rep(1, nrow(X))
+  } else {
+    surf1 <- predict(grffit1, X)$predictions[ ,index]
+  }
 
   # Model for W = 0
   grffit0 <- grf::survival_forest(X[W == 0, ],
@@ -48,7 +52,11 @@ surv_tl_grf <- function(X, Y, W, D, t0, alpha = 0.05) {
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
   index <- findInterval(t0, grffit0$failure.times)
-  surf0 <- predict(grffit0, X)$predictions[ ,index]
+  if (index == 0) {
+    surf0 <- rep(1, nrow(X))
+  } else {
+    surf0 <- predict(grffit0, X)$predictions[ ,index]
+  }
 
   tau.hat <- surf1 - surf0
 
@@ -108,8 +116,18 @@ predict.surv_tl_grf <- function(object,
       index1 <- findInterval(t0, object$fit1$failure.times)
       index0 <- findInterval(t0, object$fit0$failure.times)
     }
-    surf1 <- predict(object$fit1, newdata)$predictions[ ,index1]
-    surf0 <- predict(object$fit0, newdata)$predictions[ ,index0]
+    if (index1 == 0) {
+      surf1 <- rep(1, nrow(newdata))
+    } else {
+      surf1 <- predict(object$fit1, newdata)$predictions[ ,index1]
+    }
+
+    if (index0 == 0) {
+      surf0 <- rep(1, nrow(newdata))
+    } else {
+      surf0 <- predict(object$fit0, newdata)$predictions[ ,index0]
+    }
+
     return(surf1 - surf0)
   }
 }

@@ -40,8 +40,14 @@ surv_sl_grf <- function(X, Y, W, D, t0, alpha = 0.05) {
                                   prediction.type = "Nelson-Aalen")
 
   index <- findInterval(t0, tau.fit$failure.times)
-  surf1 <- predict(tau.fit, cbind(rep(1, nrow(X)), X))$predictions[ ,index]
-  surf0 <- predict(tau.fit, cbind(rep(0, nrow(X)), X))$predictions[ ,index]
+  if (index == 0) {
+    surf1 <- rep(1, nrow(X))
+    surf0 <- rep(1, nrow(X))
+  } else {
+    surf1 <- predict(tau.fit, cbind(rep(1, nrow(X)), X))$predictions[ ,index]
+    surf0 <- predict(tau.fit, cbind(rep(0, nrow(X)), X))$predictions[ ,index]
+  }
+
   tau.hat <- surf1 - surf0
 
   ret <- list(tau.fit = tau.fit,
@@ -96,8 +102,15 @@ predict.surv_sl_grf <- function(object,
     } else {
       index <- findInterval(t0, object$tau.fit$failure.times)
     }
-    surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[ ,index]
-    surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata))$predictions[ ,index]
+
+    if (index == 0) {
+      surf1 <- rep(1, nrow(newdata))
+      surf0 <- rep(1, nrow(newdata))
+    } else {
+      surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[ ,index]
+      surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata))$predictions[ ,index]
+    }
+
     return(surf1 - surf0)
   }
 }
