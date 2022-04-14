@@ -77,32 +77,31 @@ surv_xl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
   Tlasso0 <- 1 - surf0
 
   # IPCW weights (cross-fitted using "preval" in glmnet)
+  Q <- as.numeric(D == 1 | Y > times)    # indicator for uncensored at t0
+  U <- pmin(Y, times)                         # truncated follow-up time by t0
   if (cen.fit == "Kaplan-Meier") {
-    shuffle <- sample(length(Y))
-    kmdat <- data.frame(Y = Y[shuffle], D = D[shuffle])
+    shuffle <- sample(length(U))
+    kmdat <- data.frame(U = U[shuffle], Q = Q[shuffle])
     folds <- cut(seq(1, nrow(kmdat)), breaks = 10, labels = FALSE)
     C.hat <- rep(NA, nrow(kmdat))
     for (z in 1:10) {
       testIndexes <- which(folds == z, arr.ind = TRUE)
       testData <- kmdat[testIndexes, ]
       trainData <- kmdat[-testIndexes, ]
-      c.fit <- survival::survfit(survival::Surv(trainData$Y, 1 - trainData$D) ~ 1)
-      cent <- testData$Y
-      cent[testData$D == 0] <- times
-      C.hat[testIndexes] <- summary(c.fit, times = cent)$surv
+      c.fit <- survival::survfit(survival::Surv(trainData$U, 1 - trainData$Q) ~ 1)
+      C.hat[testIndexes] <- summary(c.fit, times = testData$U)$surv
     }
     shudat <- data.frame(shuffle, C.hat)
     C.hat <- shudat[order(shuffle), ]$C.hat
   } else if (cen.fit == "survival.forest") {
     c.fit <- grf::survival_forest(cbind(W, X),
-                                  Y,
-                                  1 - D,
+                                  U,
+                                  1 - Q,
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
     C.hat <- predict(c.fit)$predictions
-    cent <- Y; cent[D == 0] <- times
-    cen.times.index <- findInterval(cent, c.fit$failure.times)
-    C.hat <- C.hat[cbind(1:length(Y), cen.times.index)]
+    cen.times.index <- findInterval(U, c.fit$failure.times)
+    C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
   }
 
   # Propensity score (cross-fitted using "preval" in glmnet)
