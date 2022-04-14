@@ -10,10 +10,10 @@ surv_xl_lasso(
   W,
   D,
   t0,
-  alpha = 0.05,
   W.hat = NULL,
   cen.fit = "Kaplan-Meier",
-  k.folds = 10
+  k.folds = 10,
+  args.grf.nuisance = list()
 )
 }
 \arguments{
@@ -27,13 +27,13 @@ surv_xl_lasso(
 
 \item{t0}{The prediction time of interest}
 
-\item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
-
 \item{W.hat}{The propensity score}
 
 \item{cen.fit}{The choice of model fitting for censoring}
 
 \item{k.folds}{The number of folds for estimating nuisance parameters via cross-fitting}
+
+\item{args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
 }
 \value{
 A surv_xl_lasso object
