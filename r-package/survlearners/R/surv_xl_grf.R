@@ -6,14 +6,14 @@
 #' @param Y The follow-up time
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
-#' @param times The prediction time of interest
+#' @param t0 The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param W.hat The propensity score
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -27,13 +27,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.xl.grf.fit <- surv_xl_grf(X, Y, W, D, times, W.hat = 0.5)
+#' surv.xl.grf.fit <- surv_xl_grf(X, Y, W, D, t0, W.hat = 0.5)
 #' cate <- predict(surv.xl.grf.fit)
 #' cate.test <- predict(surv.xl.grf.fit, X.test)
 #' }
 #' @return A surv_xl_grf object
 #' @export
-surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier") {
+surv_xl_grf <- function(X, Y, W, D, t0, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier") {
   # fit model on W == 1
   grffit1 <- grf::survival_forest(X[W == 1, ],
                                   Y[W == 1],
@@ -41,9 +41,9 @@ surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
   surf1 <- rep(NA, length(W))
-  times.index <- findInterval(times, grffit1$failure.times)
-  surf1[W == 1] <- predict(grffit1)$predictions[ ,times.index]
-  surf1[W == 0] <- predict(grffit1, X[W == 0, ])$predictions[ ,times.index]
+  t0.index <- findInterval(t0, grffit1$failure.times)
+  surf1[W == 1] <- predict(grffit1)$predictions[ ,t0.index]
+  surf1[W == 0] <- predict(grffit1, X[W == 0, ])$predictions[ ,t0.index]
 
   # fit model on W == 0
   grffit0 <- grf::survival_forest(X[W == 0, ],
@@ -52,16 +52,16 @@ surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
   surf0 <- rep(NA, length(W))
-  times.index <- findInterval(times, grffit0$failure.times)
-  surf0[W == 0] <- predict(grffit0)$predictions[ ,times.index]
-  surf0[W == 1] <- predict(grffit0, X[W == 1, ])$predictions[ ,times.index]
+  t0.index <- findInterval(t0, grffit0$failure.times)
+  surf0[W == 0] <- predict(grffit0)$predictions[ ,t0.index]
+  surf0[W == 1] <- predict(grffit0, X[W == 1, ])$predictions[ ,t0.index]
 
   Tgrf1 <- 1 - surf1
   Tgrf0 <- 1 - surf0
 
   # IPCW weights
-  Q <- as.numeric(D == 1 | Y > times)    # indicator for uncensored at t0
-  U <- pmin(Y, times)                         # truncated follow-up time by t0
+  Q <- as.numeric(D == 1 | Y > t0)    # indicator for uncensored at t0
+  U <- pmin(Y, t0)                         # truncated follow-up time by t0
   if (cen.fit == "Kaplan-Meier") {
     shuffle <- sample(length(U))
     kmdat <- data.frame(U = U[shuffle], Q = Q[shuffle])
@@ -99,8 +99,8 @@ surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
 
   # X-learner
   tempdat <- data.frame(Y = Y, D = D, W = W, sample.weights, X, Tgrf0, Tgrf1)
-  binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > times, ]
-  binary.data$D[binary.data$D == 1 & binary.data$Y > times] <- 0
+  binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > t0, ]
+  binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0
   binary.data <- binary.data[complete.cases(binary.data), ]
   b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
                  X = as.matrix(binary.data[ ,5:(ncol(binary.data)-2)]),
@@ -139,7 +139,7 @@ surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -153,7 +153,7 @@ surv_xl_grf <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit =
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.xl.grf.fit <- surv_xl_grf(X, Y, W, D, times, W.hat = 0.5)
+#' surv.xl.grf.fit <- surv_xl_grf(X, Y, W, D, t0, W.hat = 0.5)
 #' cate <- predict(surv.xl.grf.fit)
 #' cate.test <- predict(surv.xl.grf.fit, X.test)
 #' }

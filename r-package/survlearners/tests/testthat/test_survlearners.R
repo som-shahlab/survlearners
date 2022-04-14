@@ -12,16 +12,16 @@ dgp = "fcomplex"
 
 t0 <- 0.2
 data <- survlearners:::generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i,
-                                       dgp = dgp, n.mc = 10, times = t0)
+                                       dgp = dgp, n.mc = 10, t0 = t0)
 
 data.test <- survlearners:::generate_tutorial_survival_data(n = n.test, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i,
-                                            dgp = dgp, n.mc = 10000, times = t0)
+                                            dgp = dgp, n.mc = 10000, t0 = t0)
 
 
 # surv_s_grf: Compare new implementation against Crystal's previous one
 
 
-estimate_grf_sl <- function(data, data.test, times = times, alpha = 0.05, ps = NULL, cen_fit = "KM", meta_learner = TRUE){
+estimate_grf_sl <- function(data, data.test, t0 = t0, alpha = 0.05, ps = NULL, cen_fit = "KM", meta_learner = TRUE){
   traindat <- data.frame(data$Y, data$D, data$W, data$X)
   testdat <- data.frame(data.test$Y, data.test$D, data.test$W, data.test$X)
   colnames(traindat)[1:3] <-colnames(testdat)[1:3] <- c("Y", "D", "W")
@@ -29,7 +29,7 @@ estimate_grf_sl <- function(data, data.test, times = times, alpha = 0.05, ps = N
   testdat0 <- testdat; testdat0$W <- 0
 
   Y.grid <- seq(min(traindat$Y), max(traindat$Y), (max(traindat$Y) - min(traindat$Y))/100)
-  index <- findInterval(times, Y.grid)
+  index <- findInterval(t0, Y.grid)
   grffit <- survival_forest(as.matrix(traindat[,3:dim(traindat)[2]]),
                             traindat$Y,
                             traindat$D,
@@ -45,6 +45,6 @@ estimate_grf_sl <- function(data, data.test, times = times, alpha = 0.05, ps = N
 # set.seed(1)
 # tau_hat <- surv_s_grf(data, data.test, t0)
 set.seed(1)
-tau_hat_old <- estimate_grf_sl(data, data.test, times = t0)
+tau_hat_old <- estimate_grf_sl(data, data.test, t0 = t0)
 
 # expect_equal(tau_hat, tau_hat_old)

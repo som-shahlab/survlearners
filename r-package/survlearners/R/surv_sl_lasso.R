@@ -6,7 +6,7 @@
 #' @param Y The follow-up time
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
-#' @param times The prediction time of interest
+#' @param t0 The prediction time of interest
 #' @param alpha Mix tuning parameter for the elastic net
 #' @param k.folds Number of folds for cross validation
 #' @param foldid User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k.folds option.
@@ -16,7 +16,7 @@
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -30,13 +30,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.lasso.fit <- surv_sl_lasso(X, Y, W, D, times)
+#' surv.sl.lasso.fit <- surv_sl_lasso(X, Y, W, D, t0)
 #' cate <- predict(surv.sl.lasso.fit)
 #' cate.test <- predict(surv.sl.lasso.fit, X.test)
 #' }
 #' @return a surv_sl_lasso object
 #' @export
-surv_sl_lasso <- function(X, Y, W, D, times,
+surv_sl_lasso <- function(X, Y, W, D, t0,
                           alpha = 1,
                           k.folds = NULL,
                           foldid = NULL,
@@ -100,7 +100,7 @@ surv_sl_lasso <- function(X, Y, W, D, times,
                     D = D,
                     X = x.scl.tilde,
                     lambda = tau.fit$lambda.min)
-  index <- findInterval(times, S0.t$time)
+  index <- findInterval(t0, S0.t$time)
   S0 <- S0.t[index, ]$survival
   surv1 <- S0 ^ exp(link1)
   surv0 <- S0 ^ exp(link0)
@@ -114,7 +114,7 @@ surv_sl_lasso <- function(X, Y, W, D, times,
               beta.org = s.beta,
               s.beta = s.beta.adj,
               S0.t = S0.t,
-              times = times,
+              t0 = t0,
               tau.hat = tau.hat,
               lambda.choice = lambda.choice)
 
@@ -128,13 +128,13 @@ surv_sl_lasso <- function(X, Y, W, D, times,
 #'
 #' @param object A surv_sl_lasso object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
-#' @param times The prediction time of interest
+#' @param t0 The prediction time of interest
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -148,7 +148,7 @@ surv_sl_lasso <- function(X, Y, W, D, times,
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.lasso.fit <- surv_sl_lasso(X, Y, W, D, times)
+#' surv.sl.lasso.fit <- surv_sl_lasso(X, Y, W, D, t0)
 #' cate <- predict(surv.sl.lasso.fit)
 #' cate.test <- predict(surv.sl.lasso.fit, X.test)
 #' }
@@ -157,7 +157,7 @@ surv_sl_lasso <- function(X, Y, W, D, times,
 #' @export
 predict.surv_sl_lasso <- function(object,
                                   newdata = NULL,
-                                  times = NULL,
+                                  t0 = NULL,
                                   ...) {
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
@@ -169,10 +169,10 @@ predict.surv_sl_lasso <- function(object,
     link1 <- exp(newdata.scl.pred1 %*% object$s.beta)
     link0 <- exp(newdata.scl.pred0 %*% object$s.beta)
 
-    if (is.null(times)) {
-    times <- object$times
+    if (is.null(t0)) {
+    t0 <- object$t0
     }
-    index <- findInterval(times, object$S0.t$time)
+    index <- findInterval(t0, object$S0.t$time)
     S0 <- object$S0.t[index, ]$survival
 
     surv1 <- S0^exp(link1)

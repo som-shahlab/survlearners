@@ -6,7 +6,7 @@
 #' @param Y The follow-up time
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
-#' @param times The prediction time of interest
+#' @param t0 The prediction time of interest
 #' @param k.folds Number of folds for cross validation
 #' @param foldid User-supplied foldid. Must have length equal to length(W). If provided, it overrides the k.folds option.
 #' @param W.hat Propensity score
@@ -21,7 +21,7 @@
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -35,14 +35,14 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.lasso.fit <- surv_rl_lasso(X, Y, W, D, times, W.hat = 0.5)
+#' surv.rl.lasso.fit <- surv_rl_lasso(X, Y, W, D, t0, W.hat = 0.5)
 #' cate <- predict(surv.rl.lasso.fit)
 #' cate.test <- predict(surv.rl.lasso.fit, X.test)
 #' }
 #' @return A surv_rl_lasso object
 #' @export
 surv_rl_lasso <- function(X, Y, W, D,
-                          times = NULL,
+                          t0 = NULL,
                           k.folds = 10,
                           foldid = NULL,
                           W.hat = NULL,
@@ -118,8 +118,8 @@ surv_rl_lasso <- function(X, Y, W, D,
       y <- survival::Surv(Y[!foldid == k], D[!foldid == k])
       y.fit <- do.call(glmnet::cv.glmnet, c(list(x = XW, y = y), args.lasso.nuisance))
       S0 <- base_surv(y.fit, Y[!foldid == k], D[!foldid == k], XW, lambda = y.fit$lambda.min)
-      survt1[foldid == k] <- pred_surv(y.fit, S0, cbind(rep(1, length(W[foldid == k])), X[foldid == k, ]), times = times, lambda = y.fit$lambda.min)
-      survt0[foldid == k] <- pred_surv(y.fit, S0, cbind(rep(0, length(W[foldid == k])), X[foldid == k, ]), times = times, lambda = y.fit$lambda.min)
+      survt1[foldid == k] <- pred_surv(y.fit, S0, cbind(rep(1, length(W[foldid == k])), X[foldid == k, ]), t0 = t0, lambda = y.fit$lambda.min)
+      survt0[foldid == k] <- pred_surv(y.fit, S0, cbind(rep(0, length(W[foldid == k])), X[foldid == k, ]), t0 = t0, lambda = y.fit$lambda.min)
     }
     Y.hat  <- W.hat * survt1 + (1 - W.hat) * survt0
     } else {
@@ -137,8 +137,8 @@ surv_rl_lasso <- function(X, Y, W, D,
                               compute.oob.predictions = TRUE)
 
     if (is.null(C.hat)) {
-      Q <- as.numeric(D == 1 | Y > times)         # indicator for uncensored at t0
-      U <- pmin(Y, times)                         # truncated follow-up time by t0
+      Q <- as.numeric(D == 1 | Y > t0)         # indicator for uncensored at t0
+      U <- pmin(Y, t0)                         # truncated follow-up time by t0
       if (cen.fit == "Kaplan-Meier") {
         shuffle <- sample(length(U))
         kmdat <- data.frame(U = U[shuffle], Q = Q[shuffle])
@@ -165,8 +165,8 @@ surv_rl_lasso <- function(X, Y, W, D,
 
     # use binary data
     tempdat <- data.frame(Y, D, W, Y.hat, W.hat, C.hat, foldid, x.scl)
-    binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > times, ]          # remove subjects who got censored before the time of interest t50
-    binary.data$D[binary.data$D == 1 & binary.data$Y > times] <- 0     # recode the event status for subjects who had events after t50
+    binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > t0, ]          # remove subjects who got censored before the time of interest t50
+    binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0     # recode the event status for subjects who had events after t50
     binary.data <- binary.data[complete.cases(binary.data), ]
 
     sample.weights <- 1 / binary.data$C.hat
@@ -211,7 +211,7 @@ surv_rl_lasso <- function(X, Y, W, D,
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -225,7 +225,7 @@ surv_rl_lasso <- function(X, Y, W, D,
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.lasso.fit <- surv_rl_lasso(X, Y, W, D, times, W.hat = 0.5)
+#' surv.rl.lasso.fit <- surv_rl_lasso(X, Y, W, D, t0, W.hat = 0.5)
 #' cate <- predict(surv.rl.lasso.fit)
 #' cate.test <- predict(surv.rl.lasso.fit, X.test)
 #' }
