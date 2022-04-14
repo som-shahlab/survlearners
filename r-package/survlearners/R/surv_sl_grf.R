@@ -33,6 +33,23 @@
 #' @export
 surv_sl_grf <- function(X, Y, W, D, t0, args.grf.nuisance = list()) {
 
+  args.grf.nuisance <- list(failure.times = NULL,
+                            num.trees = max(50, 2000 / 4),
+                            sample.weights = NULL,
+                            clusters = NULL,
+                            equalize.cluster.weights = FALSE,
+                            sample.fraction = 0.5,
+                            mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
+                            min.node.size = 15,
+                            honesty = TRUE,
+                            honesty.fraction = 0.5,
+                            honesty.prune.leaves = TRUE,
+                            alpha = 0.05,
+                            prediction.type = "Nelson-Aalen",
+                            compute.oob.predictions = TRUE,
+                            num.threads = NULL,
+                            seed = runif(1, 0, .Machine$integer.max))
+
   tau.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = D), args.grf.nuisance))
   index <- findInterval(t0, tau.fit$failure.times)
   if (index == 0) {
