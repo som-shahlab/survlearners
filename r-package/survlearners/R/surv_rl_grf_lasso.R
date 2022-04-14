@@ -93,7 +93,7 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
                             honesty.prune.leaves = TRUE,
                             alpha = 0.05,
                             prediction.type = "Nelson-Aalen",
-                            compute.oob.predictions = TRUE,
+                            compute.oob.predictions = FALSE,
                             num.threads = NULL,
                             seed = runif(1, 0, .Machine$integer.max))
 
@@ -131,6 +131,7 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
       shudat <- data.frame(shuffle, C.hat)
       C.hat <- shudat[order(shuffle), ]$C.hat
     } else if (cen.fit == "survival.forest") {
+      args.grf.nuisance$compute.oob.predictions <- TRUE
       c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = U, D = 1 - Q), args.grf.nuisance))
       C.hat <- predict(c.fit)$predictions
       cen.times.index <- findInterval(U, c.fit$failure.times)
