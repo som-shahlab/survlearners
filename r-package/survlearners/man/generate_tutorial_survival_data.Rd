@@ -18,7 +18,7 @@ generate_tutorial_survival_data(
   cen.scale = 4,
   cenM = "indX",
   n.mc = 10000,
-  times = NULL,
+  t0 = NULL,
   Y.max = NULL,
   dgp = "fcomplex"
 )
@@ -50,7 +50,7 @@ generate_tutorial_survival_data(
 
 \item{n.mc}{The number of monte carlo draws to estimate the treatment effect with. Default is 10000.}
 
-\item{times}{The time of interest}
+\item{t0}{The time of interest}
 
 \item{Y.max}{The maximum failure time}
 
@@ -68,10 +68,10 @@ n <- 1000; p <- 25
 data <- generate_tutorial_survival_data(n, p,
                                         p.b = 1, p.i = 1,
                                         f.b = "L", f.i = "L",
-                                        times = 0.2)
+                                        t0 = 0.2)
 cate.true <- generate_tutorial_survival_data(n, p,
                                              p.b = 1, p.i = 1,
                                              f.b = "L", f.i = "L",
-                                             times = 0.2)$catesp
+                                             t0 = 0.2)$catesp
 }
 }

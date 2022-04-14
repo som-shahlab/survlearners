@@ -6,11 +6,11 @@
 #' @param Y The follow-up time
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
-#' @param times The prediction time of interest
+#' @param t0 The prediction time of interest
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -24,13 +24,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.coxph.fit <- surv_sl_coxph(X, Y, W, D, times)
+#' surv.sl.coxph.fit <- surv_sl_coxph(X, Y, W, D, t0)
 #' cate <- predict(surv.sl.coxph.fit)
 #' cate.test <- predict(surv.sl.coxph.fit, X.test)
 #' }
 #' @return A surv_sl_coxph object
 #' @export
-surv_sl_coxph <- function(X, Y, W, D, times) {
+surv_sl_coxph <- function(X, Y, W, D, t0) {
 
   input <- sanitize_input(X, Y, W, D)
   X <- input$X
@@ -48,7 +48,7 @@ surv_sl_coxph <- function(X, Y, W, D, times) {
 
   tau.fit <- survival::coxph(formula, data = tmpdat)
   bh.dat <- survival::basehaz(tau.fit, centered = FALSE)
-  index <- findInterval(times, bh.dat$time)
+  index <- findInterval(t0, bh.dat$time)
   bh <- bh.dat[index, 1]
 
   link1 <- exp(as.matrix(x.pred1) %*% tau.fit$coefficients)
@@ -62,7 +62,7 @@ surv_sl_coxph <- function(X, Y, W, D, times) {
   ret <- list(tau.fit = tau.fit,
               bh = bh,
               s.beta = tau.fit$coefficients,
-              times = times,
+              t0 = t0,
               tau.hat = tau.hat)
 
   class(ret) <- "surv_sl_coxph"
@@ -75,13 +75,13 @@ surv_sl_coxph <- function(X, Y, W, D, times) {
 #'
 #' @param object A surv_sl_coxph object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
-#' @param times The prediction time of interest
+#' @param t0 The prediction time of interest
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -95,7 +95,7 @@ surv_sl_coxph <- function(X, Y, W, D, times) {
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.sl.coxph.fit <- surv_sl_coxph(X, Y, W, D, times)
+#' surv.sl.coxph.fit <- surv_sl_coxph(X, Y, W, D, t0)
 #' cate <- predict(surv.sl.coxph.fit)
 #' cate.test <- predict(surv.sl.coxph.fit, X.test)
 #' }
@@ -103,17 +103,17 @@ surv_sl_coxph <- function(X, Y, W, D, times) {
 #' @export
 predict.surv_sl_coxph <- function(object,
                                   newdata = NULL,
-                                  times = NULL,
+                                  t0 = NULL,
                                   ...) {
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
 
-    if (is.null(times)) {
-    times <- object$times
+    if (is.null(t0)) {
+    t0 <- object$t0
     }
 
     bh.dat <- survival::basehaz(object$tau.fit, centered = FALSE)
-    index <- findInterval(times, bh.dat$time)
+    index <- findInterval(t0, bh.dat$time)
     bh <- bh.dat[index, 1]
 
     x.pred1 <- data.frame(0.5, 0.5 * newdata, newdata)

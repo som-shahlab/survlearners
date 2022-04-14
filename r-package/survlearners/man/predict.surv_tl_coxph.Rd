@@ -4,14 +4,14 @@
 \alias{predict.surv_tl_coxph}
 \title{predict for surv_tl_coxph}
 \usage{
-\method{predict}{surv_tl_coxph}(object, newdata = NULL, times = NULL, ...)
+\method{predict}{surv_tl_coxph}(object, newdata = NULL, t0 = NULL, ...)
 }
 \arguments{
 \item{object}{An surv_tl_coxph object}
 
 \item{newdata}{Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data}
 
-\item{times}{The prediction time of interest}
+\item{t0}{The prediction time of interest}
 
 \item{...}{Additional arguments (currently not used)}
 }
@@ -24,7 +24,7 @@ get estimated tau(X) using the trained surv_tl_coxph model
 \examples{
 \donttest{
 n <- 1000; p <- 25
-times <- 0.2
+t0 <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -38,7 +38,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.tl.coxph.fit <- surv_tl_coxph(X, Y, W, D, times)
+surv.tl.coxph.fit <- surv_tl_coxph(X, Y, W, D, t0)
 cate <- predict(surv.tl.coxph.fit)
 cate.test <- predict(surv.tl.coxph.fit, X.test)
 }

@@ -6,14 +6,14 @@
 #' @param W The treatment variable (0 or 1)
 #' @param Y The follow-up time
 #' @param D The event indicator
-#' @param times The prediction time of interest
+#' @param t0 The prediction time of interest
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param W.hat The propensity score
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -27,17 +27,17 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.fl.lasso.fit <- surv_fl_lasso(X, Y, W, D, times, W.hat = 0.5)
+#' surv.fl.lasso.fit <- surv_fl_lasso(X, Y, W, D, t0, W.hat = 0.5)
 #' cate <- predict(surv.fl.lasso.fit)
 #' cate.test <- predict(surv.fl.lasso.fit, X.test)
 #' }
 #' @return A surv_fl_lasso object
 #' @export
-surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier") {
+surv_fl_lasso <- function(X, Y, W, D, t0, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier") {
 
   # IPCW weights
-  Q <- as.numeric(D == 1 | Y > times)    # indicator for uncensored at t0
-  U <- pmin(Y, times)                         # truncated follow-up time by t0
+  Q <- as.numeric(D == 1 | Y > t0)    # indicator for uncensored at t0
+  U <- pmin(Y, t0)                         # truncated follow-up time by t0
   if (cen.fit == "Kaplan-Meier") {
     shuffle <- sample(length(U))
     kmdat <- data.frame(U = U[shuffle], Q = Q[shuffle])
@@ -59,7 +59,7 @@ surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
                                   alpha = alpha,
                                   prediction.type = "Nelson-Aalen")
     C.hat <- predict(c.fit)$predictions
-    cen.times.index <- findInterval(U, c.fit$failure.times)
+    cen.times.index <- findInterval(U, c.fit$failure.t0)
     C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
   }
   sample.weights <- 1 / C.hat
@@ -73,8 +73,8 @@ surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
 
   # Subset of uncensored subjects
   tempdat <- data.frame(Y = Y, D = D, W = W, W.hat, sample.weights, X)
-  binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > times, ]
-  binary.data$D[binary.data$D == 1 & binary.data$Y > times] <- 0
+  binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > t0, ]
+  binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0
   binary.data <- binary.data[complete.cases(binary.data), ]
   b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
                  X = as.matrix(binary.data[ ,6:ncol(binary.data)]),
@@ -101,7 +101,7 @@ surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
-#' times <- 0.2
+#' t0 <- 0.2
 #' Y.max <- 2
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
@@ -115,7 +115,7 @@ surv_fl_lasso <- function(X, Y, W, D, times, alpha = 0.05, W.hat = NULL, cen.fit
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.fl.lasso.fit <- surv_fl_lasso(X, Y, W, D, times, W.hat = 0.5)
+#' surv.fl.lasso.fit <- surv_fl_lasso(X, Y, W, D, t0, W.hat = 0.5)
 #' cate <- predict(surv.fl.lasso.fit)
 #' cate.test <- predict(surv.fl.lasso.fit, X.test)
 #' }

@@ -9,7 +9,7 @@ surv_rl_grf_lasso(
   Y,
   W,
   D,
-  times = NULL,
+  t0 = NULL,
   k.folds = 10,
   W.hat = NULL,
   Y.hat = NULL,
@@ -30,7 +30,7 @@ surv_rl_grf_lasso(
 
 \item{D}{The event indicator}
 
-\item{times}{The prediction time of interest}
+\item{t0}{The prediction time of interest}
 
 \item{k.folds}{Number of folds for cross validation}
 
@@ -59,7 +59,7 @@ R-learner, implemented via the grf package for nuisance parameter estimation and
 \examples{
 \donttest{
 n <- 1000; p <- 25
-times <- 0.2
+t0 <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -73,7 +73,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.rl.grf.lasso.fit <- surv_rl_grf_lasso(X, Y, W, D, times, W.hat = 0.5)
+surv.rl.grf.lasso.fit <- surv_rl_grf_lasso(X, Y, W, D, t0, W.hat = 0.5)
 cate <- predict(surv.rl.grf.lasso.fit)
 cate.test <- predict(surv.rl.grf.lasso.fit, X.test)
 }

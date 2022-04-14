@@ -15,7 +15,7 @@
 #' @param cen.scale The scale parameter in Weibull distribution for censoring time
 #' @param cenM The complexity of censoring mechanism (dependent / independent to covariates)
 #' @param n.mc The number of monte carlo draws to estimate the treatment effect with. Default is 10000.
-#' @param times The time of interest
+#' @param t0 The time of interest
 #' @param Y.max The maximum failure time
 #' @param dgp The type of DGP
 #' @examples
@@ -24,17 +24,17 @@
 #' data <- generate_tutorial_survival_data(n, p,
 #'                                         p.b = 1, p.i = 1,
 #'                                         f.b = "L", f.i = "L",
-#'                                         times = 0.2)
+#'                                         t0 = 0.2)
 #' cate.true <- generate_tutorial_survival_data(n, p,
 #'                                              p.b = 1, p.i = 1,
 #'                                              f.b = "L", f.i = "L",
-#'                                              times = 0.2)$catesp
+#'                                              t0 = 0.2)$catesp
 #' }
 #' @return A simulation data set
 #' @export
 generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = NULL, f.i = NULL,
                                             pi = 0.5, beta = 1, gamma = 1, rho = 2, cen.scale = 4, cenM = "indX",
-                                            n.mc = 10000, times = NULL, Y.max = NULL, dgp = "fcomplex") {
+                                            n.mc = 10000, t0 = NULL, Y.max = NULL, dgp = "fcomplex") {
 
   if (dgp == "fcomplex") {
     if (is.null(Y.max)) {
@@ -92,8 +92,8 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
     censor.time <- (numeratorC / (cen.scale ^ rho)) ^ (1 / rho)
     Y <- pmin(failure.time, censor.time); median(Y)
     D <- as.integer(failure.time <= censor.time); table(D); summary(Y[D == 1])
-    cen <- ifelse(D == 0 & Y < times, 0, 1); table(cen)         # censoring rate = 0.3 at times = 0.2
-    event <- ifelse(D == 1 & Y < times, 1, 0); table(event)     # observed event rate = 0.3 at times = 0.2
+    cen <- ifelse(D == 0 & Y < t0, 0, 1); table(cen)         # censoring rate = 0.3 at t0 = 0.2
+    event <- ifelse(D == 1 & Y < t0, 1, 0); table(event)     # observed event rate = 0.3 at t0 = 0.2
 
     # generate true CATEs
     mu0sp <- mu1sp <- catesp <- rep(NA, n)
@@ -103,24 +103,24 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
         for (i in 1:n) {
           cox.ft0 <- (numerator / exp(beta * X[i,1] + (-0.5 - gamma * X[i,2]) * 0))^2
           cox.ft1 <- (numerator / exp(beta * X[i,1] + (-0.5 - gamma * X[i,2]) * 1))^2
-          mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
-          mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
+          mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
+          mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
           catesp[i] <- mu1sp[i] - mu0sp[i]
           }
       } else if (p.b == ap & p.i == 1) {
         for (i in 1:n) {
           cox.ft0 <- (numerator / as.vector(exp(t(X[i,1:ap]) %*% betah + (-0.5 - gamma * X[i,2]) * 0)))^2
           cox.ft1 <- (numerator / as.vector(exp(t(X[i,1:ap]) %*% betah + (-0.5 - gamma * X[i,2]) * 1)))^2
-          mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
-          mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
+          mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
+          mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
           catesp[i] <- mu1sp[i] - mu0sp[i]
         }
       } else if (p.b == ap & p.i == ap) {
         for (i in 1:n) {
           cox.ft0 <- (numerator / as.vector(exp(t(X[i,1:ap]) %*% betah + (-0.5 - t(X[i,1:ap]) %*% gammah) * 0)))^2
           cox.ft1 <- (numerator / as.vector(exp(t(X[i,1:ap]) %*% betah + (-0.5 - t(X[i,1:ap]) %*% gammah) * 1)))^2
-          mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
-          mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
+          mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
+          mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
           catesp[i] <- mu1sp[i] - mu0sp[i]
         }
       }
@@ -129,24 +129,24 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
         for (i in 1:n) {
           cox.ft0 <- (numerator / exp(beta * as.numeric(X[i,1] > 0.5) + (-0.5 - gamma * X[i,2]) * 0))^2
           cox.ft1 <- (numerator / exp(beta * as.numeric(X[i,1] > 0.5) + (-0.5 - gamma * X[i,2]) * 1))^2
-          mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
-          mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
+          mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
+          mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
           catesp[i] <- mu1sp[i] - mu0sp[i]
           }
         } else if (p.b == ap & p.i == 1) {
           for (i in 1:n) {
             cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * X[i,2]) * 0)))^2
             cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * X[i,2]) * 1)))^2
-            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
-            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
+            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
+            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
         } else if (p.b == ap & p.i == ap) {
           for (i in 1:n) {
             cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(X[i,1:ap]) %*% gammah) * 0)))^2
             cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(X[i,1:ap]) %*% gammah) * 1)))^2
-            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
-            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
+            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
+            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
         }
@@ -155,24 +155,24 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
           for (i in 1:n) {
             cox.ft0 <- (numerator / exp(beta * as.numeric(X[i,1] > 0.5) + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 0))^2
             cox.ft1 <- (numerator / exp(beta * as.numeric(X[i,1] > 0.5) + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 1))^2
-            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
-            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
+            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
+            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
         } else if (p.b == ap & p.i == 1) {
           for (i in 1:n) {
             cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 0)))^2
             cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 1)))^2
-            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
-            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
+            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
+            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
         } else if (p.b == ap & p.i == ap) {
           for (i in 1:n) {
             cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(NLXs[i, ]) %*% gammah) * 0)))^2
             cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(NLXs[i, ]) %*% gammah) * 1)))^2
-            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > times)
-            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > times)
+            mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
+            mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
         }

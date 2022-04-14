@@ -4,7 +4,7 @@
 \alias{surv_tl_grf}
 \title{T-learner of grf}
 \usage{
-surv_tl_grf(X, Y, W, D, times, alpha = 0.05)
+surv_tl_grf(X, Y, W, D, t0, alpha = 0.05)
 }
 \arguments{
 \item{X}{The baseline covariates}
@@ -15,7 +15,7 @@ surv_tl_grf(X, Y, W, D, times, alpha = 0.05)
 
 \item{D}{The event indicator}
 
-\item{times}{The prediction time of interest}
+\item{t0}{The prediction time of interest}
 
 \item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
 }
@@ -28,7 +28,7 @@ T-learner, implemented via survival_forest (grf package)
 \examples{
 \donttest{
 n <- 1000; p <- 25
-times <- 0.2
+t0 <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -42,7 +42,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.tl.grf.fit <- surv_tl_grf(X, Y, W, D, times)
+surv.tl.grf.fit <- surv_tl_grf(X, Y, W, D, t0)
 cate <- predict(surv.tl.grf.fit)
 cate.test <- predict(surv.tl.grf.fit, X.test)
 }

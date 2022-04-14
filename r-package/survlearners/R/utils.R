@@ -15,33 +15,33 @@ base_surv <- function(fit, Y, D, X, lambda) {
   outcome <- data.frame(time = Y,survival = S0)
   outcome
 }
-pred_surv <- function(fit, S0, X, times, lambda) {
+pred_surv <- function(fit, S0, X, t0, lambda) {
   link <- predict(fit$glmnet.fit,X,type = "link")[ ,fit$lambda == lambda]
   colnames(link) <- NULL
 
-  if (length(times)>1) {
-    S0.t <- rep(NA, length(times))
-    for (i in 1:length(times)) {
-      S0.t[i] <- S0$survival[S0$time >= times[i]][1]
+  if (length(t0)>1) {
+    S0.t <- rep(NA, length(t0))
+    for (i in 1:length(t0)) {
+      S0.t[i] <- S0$survival[S0$time >= t0[i]][1]
     }
   } else {
-    S0.t <- S0$survival[S0$time >= times][1]
+    S0.t <- S0$survival[S0$time >= t0][1]
   }
 
   surv <- S0.t^exp(link)
   surv
 }
-pred_surv_preval <- function(fit, S0, times, lambda) {
+pred_surv_preval <- function(fit, S0, t0, lambda) {
   link <- fit$fit.preval[ ,!is.na(colSums(fit$fit.preval))][ , fit$lambda[!is.na(colSums(fit$fit.preval))] == lambda]
   colnames(link) <- NULL
 
-  if (length(times)>1) {
-    S0.t <- rep(NA, length(times))
-    for (i in 1:length(times)) {
-      S0.t[i] <- S0$survival[S0$time >= times[i]][1]
+  if (length(t0)>1) {
+    S0.t <- rep(NA, length(t0))
+    for (i in 1:length(t0)) {
+      S0.t[i] <- S0$survival[S0$time >= t0[i]][1]
     }
   } else {
-    S0.t <- S0$survival[S0$time >= times][1]
+    S0.t <- S0$survival[S0$time >= t0][1]
   }
 
   surv <- S0.t^exp(link)

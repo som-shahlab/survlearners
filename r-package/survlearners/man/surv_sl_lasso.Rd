@@ -9,7 +9,7 @@ surv_sl_lasso(
   Y,
   W,
   D,
-  times,
+  t0,
   alpha = 1,
   k.folds = NULL,
   foldid = NULL,
@@ -27,7 +27,7 @@ surv_sl_lasso(
 
 \item{D}{The event indicator}
 
-\item{times}{The prediction time of interest}
+\item{t0}{The prediction time of interest}
 
 \item{alpha}{Mix tuning parameter for the elastic net}
 
@@ -50,7 +50,7 @@ S-learner, implemented via glmnet (lasso)
 \examples{
 \donttest{
 n <- 1000; p <- 25
-times <- 0.2
+t0 <- 0.2
 Y.max <- 2
 X <- matrix(rnorm(n * p), n, p)
 W <- rbinom(n, 1, 0.5)
@@ -64,7 +64,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.sl.lasso.fit <- surv_sl_lasso(X, Y, W, D, times)
+surv.sl.lasso.fit <- surv_sl_lasso(X, Y, W, D, t0)
 cate <- predict(surv.sl.lasso.fit)
 cate.test <- predict(surv.sl.lasso.fit, X.test)
 }
