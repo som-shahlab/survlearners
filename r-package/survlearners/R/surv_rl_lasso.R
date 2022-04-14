@@ -105,7 +105,7 @@ surv_rl_lasso <- function(X, Y, W, D,
 
 
     args.lasso.nuisance <- list(family = "cox",
-                                nfolds = 10,
+                                nfolds = k.folds,
                                 alpha = 1,
                                 lambda = NULL,
                                 penalty.factor = penalty.factor.nuisance.m)

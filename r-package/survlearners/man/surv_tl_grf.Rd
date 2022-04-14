@@ -4,7 +4,7 @@
 \alias{surv_tl_grf}
 \title{T-learner of grf}
 \usage{
-surv_tl_grf(X, Y, W, D, t0, alpha = 0.05)
+surv_tl_grf(X, Y, W, D, t0, args.grf.nuisance = list())
 }
 \arguments{
 \item{X}{The baseline covariates}
@@ -17,7 +17,7 @@ surv_tl_grf(X, Y, W, D, t0, alpha = 0.05)
 
 \item{t0}{The prediction time of interest}
 
-\item{alpha}{Imbalance tuning parameter for a split (see grf documentation)}
+\item{args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
 }
 \value{
 A surv_tl_grf object

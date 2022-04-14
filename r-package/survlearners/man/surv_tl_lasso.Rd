@@ -4,7 +4,7 @@
 \alias{surv_tl_lasso}
 \title{T-learner of lasso}
 \usage{
-surv_tl_lasso(X, Y, W, D, t0)
+surv_tl_lasso(X, Y, W, D, t0, k.folds = 10)
 }
 \arguments{
 \item{X}{The baseline covariates}
@@ -16,6 +16,8 @@ surv_tl_lasso(X, Y, W, D, t0)
 \item{D}{The event indicator}
 
 \item{t0}{The prediction time of interest}
+
+\item{k.folds}{The number of folds for estimating nuisance parameters via cross-fitting}
 }
 \value{
 A surv_tl_lasso object

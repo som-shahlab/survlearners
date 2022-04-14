@@ -7,6 +7,7 @@
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param t0 The prediction time of interest
+#' @param k.folds The number of folds for estimating nuisance parameters via cross-fitting
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
@@ -30,10 +31,10 @@
 #' }
 #' @return A surv_tl_lasso object
 #' @export
-surv_tl_lasso <- function(X, Y, W, D, t0) {
+surv_tl_lasso <- function(X, Y, W, D, t0, k.folds = 10) {
 
   # Model for W = 1
-  foldid <- sample(rep(seq(10), length = length(Y[W == 1])))
+  foldid <- sample(rep(seq(k.folds), length = length(Y[W == 1])))
   x1 <- as.matrix(data.frame(X[W == 1, ]))
   lasso.fit1 <- glmnet::cv.glmnet(x1,
                                   survival::Surv(Y[W == 1], D[W == 1]),
@@ -55,7 +56,7 @@ surv_tl_lasso <- function(X, Y, W, D, t0) {
 
 
   # Model for W = 0
-  foldid <- sample(rep(seq(10), length = length(Y[W == 0])))
+  foldid <- sample(rep(seq(k.folds), length = length(Y[W == 0])))
   x0 <- as.matrix(data.frame(X[W == 0, ]))
   lasso.fit0 <- glmnet::cv.glmnet(x0,
                                   survival::Surv(Y[W == 0], D[W == 0]),

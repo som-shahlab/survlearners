@@ -38,7 +38,7 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
                           k.folds = 10, args.grf.nuisance = list()) {
 
   # fit model on W == 1 (cross-fitted using "preval" in glmnet)
-  foldid1 <- sample(rep(seq(10), length = length(Y[W == 1])))
+  foldid1 <- sample(rep(seq(k.folds), length = length(Y[W == 1])))
   x1 <- as.matrix(data.frame(X[W == 1, ]))
   lasso.fit1 <- glmnet::cv.glmnet(x1,
                                   survival::Surv(Y[W == 1], D[W == 1]),
@@ -57,7 +57,7 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
                              lambda = lasso.fit1$lambda.min)
 
   # fit model on W == 0 (cross-fitted using "preval" in glmnet)
-  foldid0 <- sample(rep(seq(10), length = length(Y[W == 0])))
+  foldid0 <- sample(rep(seq(k.folds), length = length(Y[W == 0])))
   x0 <- as.matrix(data.frame(X[W == 0, ]))
   lasso.fit0 <- glmnet::cv.glmnet(x0,
                                   survival::Surv(Y[W == 0], D[W == 0]),
@@ -129,7 +129,7 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
                  X = as.matrix(binary.data[ ,5:(ncol(binary.data)-2)]),
                  sample.weights = binary.data$sample.weights, mu0 = binary.data$Tlasso0, mu1 = binary.data$Tlasso1)
 
-  foldid <- sample(rep(seq(10), length = length(b.data$Y[b.data$W == 1])))
+  foldid <- sample(rep(seq(k.folds), length = length(b.data$Y[b.data$W == 1])))
   tau.fit1 <- glmnet::cv.glmnet(b.data$X[b.data$W == 1, ],
                                 b.data$D[b.data$W == 1] - b.data$mu0[b.data$W == 1],
                                 weights = b.data$sample.weights[b.data$W == 1],
@@ -137,7 +137,7 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
                                 alpha = 1)
   XLtau1 <- as.vector(-predict(tau.fit1, X, s = "lambda.min"))
 
-  foldid <- sample(rep(seq(10), length = length(b.data$Y[b.data$W == 0])))
+  foldid <- sample(rep(seq(k.folds), length = length(b.data$Y[b.data$W == 0])))
   tau.fit0 <- glmnet::cv.glmnet(b.data$X[b.data$W == 0, ],
                                 b.data$mu1[b.data$W == 0] - b.data$D[b.data$W == 0],
                                 weights = b.data$sample.weights[b.data$W == 0],

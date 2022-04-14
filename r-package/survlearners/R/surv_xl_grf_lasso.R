@@ -118,7 +118,7 @@ surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Me
                  X = as.matrix(binary.data[ ,5:(ncol(binary.data)-2)]),
                  sample.weights = binary.data$sample.weights, mu0 = binary.data$Tgrf0, mu1 = binary.data$Tgrf1)
 
-  foldid <- sample(rep(seq(10), length = length(b.data$Y[b.data$W == 1])))
+  foldid <- sample(rep(seq(k.folds), length = length(b.data$Y[b.data$W == 1])))
   tau.fit1 <- glmnet::cv.glmnet(b.data$X[b.data$W == 1, ],
                                 b.data$D[b.data$W == 1] - b.data$mu0[b.data$W == 1],
                                 weights = b.data$sample.weights[b.data$W == 1],
@@ -126,7 +126,7 @@ surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Me
                                 alpha = 1)
   XLtau1 <- as.vector(-predict(tau.fit1, X, s = "lambda.min"))
 
-  foldid <- sample(rep(seq(10), length = length(b.data$Y[b.data$W == 0])))
+  foldid <- sample(rep(seq(k.folds), length = length(b.data$Y[b.data$W == 0])))
   tau.fit0 <- glmnet::cv.glmnet(b.data$X[b.data$W == 0, ],
                                 b.data$mu1[b.data$W == 0] - b.data$D[b.data$W == 0],
                                 weights = b.data$sample.weights[b.data$W == 0],

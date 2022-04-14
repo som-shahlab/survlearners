@@ -7,7 +7,7 @@
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param t0 The prediction time of interest
-#' @param alpha Imbalance tuning parameter for a split (see grf documentation)
+#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
@@ -31,13 +31,27 @@
 #' }
 #' @return A surv_tl_grf object
 #' @export
-surv_tl_grf <- function(X, Y, W, D, t0, alpha = 0.05) {
+surv_tl_grf <- function(X, Y, W, D, t0, args.grf.nuisance = list()) {
+
+  args.grf.nuisance <- list(failure.times = NULL,
+                            num.trees = max(50, 2000 / 4),
+                            sample.weights = NULL,
+                            clusters = NULL,
+                            equalize.cluster.weights = FALSE,
+                            sample.fraction = 0.5,
+                            mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
+                            min.node.size = 15,
+                            honesty = TRUE,
+                            honesty.fraction = 0.5,
+                            honesty.prune.leaves = TRUE,
+                            alpha = 0.05,
+                            prediction.type = "Nelson-Aalen",
+                            compute.oob.predictions = TRUE,
+                            num.threads = NULL,
+                            seed = runif(1, 0, .Machine$integer.max))
+
   # Model for W = 1
-  grffit1 <- grf::survival_forest(X[W == 1, ],
-                                  Y[W == 1],
-                                  D[W == 1],
-                                  alpha = alpha,
-                                  prediction.type = "Nelson-Aalen")
+  grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1, ], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
   index <- findInterval(t0, grffit1$failure.times)
   if (index == 0) {
     surf1 <- rep(1, nrow(X))
@@ -46,11 +60,7 @@ surv_tl_grf <- function(X, Y, W, D, t0, alpha = 0.05) {
   }
 
   # Model for W = 0
-  grffit0 <- grf::survival_forest(X[W == 0, ],
-                                  Y[W == 0],
-                                  D[W == 0],
-                                  alpha = alpha,
-                                  prediction.type = "Nelson-Aalen")
+  grffit0 <- do.call(grf::survival_forest, c(list(X = X[W == 0, ], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
   index <- findInterval(t0, grffit0$failure.times)
   if (index == 0) {
     surf0 <- rep(1, nrow(X))
