@@ -8,10 +8,10 @@
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param t0 The prediction time of interest
-#' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param W.hat The propensity score
 #' @param cen.fit The choice of model fitting for censoring
 #' @param k.folds The number of folds for estimating nuisance parameters via cross-fitting
+#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
@@ -35,98 +35,104 @@
 #' }
 #' @return A surv_xl_grf_lasso object
 #' @export
-surv_xl_grf_lasso <- function(X, Y, W, D, t0, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier", k.folds = 10) {
+surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
+                              k.folds = 10, args.grf.nuisance = list()) {
 
-# fit model on W == 1
-grffit1 <- grf::survival_forest(X[W == 1, ],
-                                Y[W == 1],
-                                D[W == 1],
-                                alpha = alpha,
-                                prediction.type = "Nelson-Aalen")
-surf1 <- rep(NA, length(W))
-t0.index <- findInterval(t0, grffit1$failure.times)
-surf1[W == 1] <- predict(grffit1)$predictions[ , t0.index]
-surf1[W == 0] <- predict(grffit1, X[W == 0, ])$predictions[ , t0.index]
+  args.grf.nuisance <- list(failure.times = NULL,
+                            num.trees = max(50, 2000 / 4),
+                            sample.weights = NULL,
+                            clusters = NULL,
+                            equalize.cluster.weights = FALSE,
+                            sample.fraction = 0.5,
+                            mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
+                            min.node.size = 15,
+                            honesty = TRUE,
+                            honesty.fraction = 0.5,
+                            honesty.prune.leaves = TRUE,
+                            alpha = 0.05,
+                            prediction.type = "Nelson-Aalen",
+                            compute.oob.predictions = TRUE,
+                            num.threads = NULL,
+                            seed = runif(1, 0, .Machine$integer.max))
 
-# fit model on W == 0
-grffit0 <- grf::survival_forest(X[W == 0, ],
-                                Y[W == 0],
-                                D[W == 0],
-                                alpha = alpha,
-                                prediction.type = "Nelson-Aalen")
-surf0 <- rep(NA, length(W))
-t0.index <- findInterval(t0, grffit0$failure.times)
-surf0[W == 0] <- predict(grffit0)$predictions[ , t0.index]
-surf0[W == 1] <- predict(grffit0, X[W == 1, ])$predictions[ , t0.index]
+  # fit model on W == 1
+  grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1, ], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
+  surf1 <- rep(NA, length(W))
+  t0.index <- findInterval(t0, grffit1$failure.times)
+  surf1[W == 1] <- predict(grffit1)$predictions[ , t0.index]
+  surf1[W == 0] <- predict(grffit1, X[W == 0, ])$predictions[ , t0.index]
 
-Tgrf1 <- 1 - surf1
-Tgrf0 <- 1 - surf0
+  # fit model on W == 0
+  grffit0 <- do.call(grf::survival_forest, c(list(X = X[W == 0, ], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
+  surf0 <- rep(NA, length(W))
+  t0.index <- findInterval(t0, grffit0$failure.times)
+  surf0[W == 0] <- predict(grffit0)$predictions[ , t0.index]
+  surf0[W == 1] <- predict(grffit0, X[W == 1, ])$predictions[ , t0.index]
 
-# IPCW weights
-Q <- as.numeric(D == 1 | Y > t0)    # indicator for uncensored at t0
-U <- pmin(Y, t0)                         # truncated follow-up time by t0
-if (cen.fit == "Kaplan-Meier") {
-  fold.id <- sample(rep(seq(k.folds), length = nrow(X)))
-  C.hat <- rep(NA, length(fold.id))
-  for (z in 1:k.folds) {
-    c.fit <- survival::survfit(survival::Surv(Y[!fold.id == z], 1 - Q[!fold.id == z]) ~ 1)
-    C.hat[fold.id == z] <- summary(c.fit, times = U[fold.id == z])$surv
+  Tgrf1 <- 1 - surf1
+  Tgrf0 <- 1 - surf0
+
+  # IPCW weights
+  Q <- as.numeric(D == 1 | Y > t0)    # indicator for uncensored at t0
+  U <- pmin(Y, t0)                         # truncated follow-up time by t0
+  if (cen.fit == "Kaplan-Meier") {
+    fold.id <- sample(rep(seq(k.folds), length = nrow(X)))
+    C.hat <- rep(NA, length(fold.id))
+    for (z in 1:k.folds) {
+      c.fit <- survival::survfit(survival::Surv(Y[!fold.id == z], 1 - Q[!fold.id == z]) ~ 1)
+      C.hat[fold.id == z] <- summary(c.fit, times = U[fold.id == z])$surv
+    }
+  } else if (cen.fit == "survival.forest") {
+    c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - Q), args.grf.nuisance))
+    C.hat <- predict(c.fit)$predictions
+    cen.times.index <- findInterval(U, c.fit$failure.times)
+    C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
   }
-} else if (cen.fit == "survival.forest") {
-  c.fit <- grf::survival_forest(cbind(W, X),
-                                U,
-                                1 - Q,
-                                alpha = alpha,
-                                prediction.type = "Nelson-Aalen")
-  C.hat <- predict(c.fit)$predictions
-  cen.times.index <- findInterval(U, c.fit$failure.times)
-  C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
-}
-ipcw <- 1 / C.hat
+  ipcw <- 1 / C.hat
 
-# Propensity score
-if (is.null(W.hat)) {
-  stop("propensity score needs to be supplied")
-} else {
-  W.hat <- rep(W.hat, length(W))
-}
+  # Propensity score
+  if (is.null(W.hat)) {
+    stop("propensity score needs to be supplied")
+  } else {
+    W.hat <- rep(W.hat, length(W))
+  }
 
-sample.weights <- ipcw / W.hat  # censoring weight * treatment weight
+  sample.weights <- ipcw / W.hat  # censoring weight * treatment weight
 
-# X-learner
-tempdat <- data.frame(Y = Y, D = D, W = W, sample.weights, X, Tgrf0, Tgrf1)
-binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > t0, ]
-binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0
-binary.data <- binary.data[complete.cases(binary.data), ]
-b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
-               X = as.matrix(binary.data[ ,5:(ncol(binary.data)-2)]),
-               sample.weights = binary.data$sample.weights, mu0 = binary.data$Tgrf0, mu1 = binary.data$Tgrf1)
+  # X-learner
+  tempdat <- data.frame(Y = Y, D = D, W = W, sample.weights, X, Tgrf0, Tgrf1)
+  binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > t0, ]
+  binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0
+  binary.data <- binary.data[complete.cases(binary.data), ]
+  b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
+                 X = as.matrix(binary.data[ ,5:(ncol(binary.data)-2)]),
+                 sample.weights = binary.data$sample.weights, mu0 = binary.data$Tgrf0, mu1 = binary.data$Tgrf1)
 
-foldid <- sample(rep(seq(10), length = length(b.data$Y[b.data$W == 1])))
-tau.fit1 <- glmnet::cv.glmnet(b.data$X[b.data$W == 1, ],
-                              b.data$D[b.data$W == 1] - b.data$mu0[b.data$W == 1],
-                              weights = b.data$sample.weights[b.data$W == 1],
-                              foldid = foldid,
-                              alpha = 1)
-XLtau1 <- as.vector(-predict(tau.fit1, X, s = "lambda.min"))
+  foldid <- sample(rep(seq(10), length = length(b.data$Y[b.data$W == 1])))
+  tau.fit1 <- glmnet::cv.glmnet(b.data$X[b.data$W == 1, ],
+                                b.data$D[b.data$W == 1] - b.data$mu0[b.data$W == 1],
+                                weights = b.data$sample.weights[b.data$W == 1],
+                                foldid = foldid,
+                                alpha = 1)
+  XLtau1 <- as.vector(-predict(tau.fit1, X, s = "lambda.min"))
 
-foldid <- sample(rep(seq(10), length = length(b.data$Y[b.data$W == 0])))
-tau.fit0 <- glmnet::cv.glmnet(b.data$X[b.data$W == 0, ],
-                              b.data$mu1[b.data$W == 0] - b.data$D[b.data$W == 0],
-                              weights = b.data$sample.weights[b.data$W == 0],
-                              foldid = foldid,
-                              alpha = 1)
-XLtau0 <- as.vector(-predict(tau.fit0, X, s = "lambda.min"))
+  foldid <- sample(rep(seq(10), length = length(b.data$Y[b.data$W == 0])))
+  tau.fit0 <- glmnet::cv.glmnet(b.data$X[b.data$W == 0, ],
+                                b.data$mu1[b.data$W == 0] - b.data$D[b.data$W == 0],
+                                weights = b.data$sample.weights[b.data$W == 0],
+                                foldid = foldid,
+                                alpha = 1)
+  XLtau0 <- as.vector(-predict(tau.fit0, X, s = "lambda.min"))
 
-# weighted CATE
-tau.hat <- as.vector(XLtau1 * (1 - W.hat) + XLtau0 * W.hat)
+  # weighted CATE
+  tau.hat <- as.vector(XLtau1 * (1 - W.hat) + XLtau0 * W.hat)
 
-ret <- list(tau.fit1 = tau.fit1,
-            tau.fit0 = tau.fit0,
-            W.hat = W.hat,
-            tau.hat = tau.hat)
-class(ret) <- "surv_xl_grf_lasso"
-ret
+  ret <- list(tau.fit1 = tau.fit1,
+              tau.fit0 = tau.fit0,
+              W.hat = W.hat,
+              tau.hat = tau.hat)
+  class(ret) <- "surv_xl_grf_lasso"
+  ret
 }
 
 #' predict for surv_xl_grf_lasso

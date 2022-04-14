@@ -7,10 +7,10 @@
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param t0 The prediction time of interest
-#' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param W.hat The propensity score
 #' @param cen.fit The choice of model fitting for censoring
 #' @param k.folds The number of folds for estimating nuisance parameters via cross-fitting
+#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
@@ -34,7 +34,8 @@
 #' }
 #' @return A surv_fl_grf object
 #' @export
-surv_fl_grf <- function(X, Y, W, D, t0, alpha = 0.05, W.hat = NULL, cen.fit = "Kaplan-Meier", k.folds = 10) {
+surv_fl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
+                        k.folds = 10, args.grf.nuisance = list()) {
 
   # IPCW weights
   Q <- as.numeric(D == 1 | Y > t0)         # indicator for uncensored at t0
@@ -47,11 +48,23 @@ surv_fl_grf <- function(X, Y, W, D, t0, alpha = 0.05, W.hat = NULL, cen.fit = "K
       C.hat[fold.id == z] <- summary(c.fit, times = U[fold.id == z])$surv
     }
   } else if (cen.fit == "survival.forest") {
-    c.fit <- grf::survival_forest(cbind(W, X),
-                                  U,
-                                  1 - Q,
-                                  alpha = alpha,
-                                  prediction.type = "Nelson-Aalen")
+    args.grf.nuisance <- list(failure.times = NULL,
+                              num.trees = max(50, 2000 / 4),
+                              sample.weights = NULL,
+                              clusters = NULL,
+                              equalize.cluster.weights = FALSE,
+                              sample.fraction = 0.5,
+                              mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
+                              min.node.size = 15,
+                              honesty = TRUE,
+                              honesty.fraction = 0.5,
+                              honesty.prune.leaves = TRUE,
+                              alpha = 0.05,
+                              prediction.type = "Nelson-Aalen",
+                              compute.oob.predictions = TRUE,
+                              num.threads = NULL,
+                              seed = runif(1, 0, .Machine$integer.max))
+    c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - Q), args.grf.nuisance))
     C.hat <- predict(c.fit)$predictions
     cen.times.index <- findInterval(U, c.fit$failure.t0)
     C.hat <- C.hat[cbind(1:length(U), cen.times.index)]

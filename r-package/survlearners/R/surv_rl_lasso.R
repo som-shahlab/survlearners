@@ -147,7 +147,7 @@ surv_rl_lasso <- function(X, Y, W, D,
           C.hat[fold.id == z] <- summary(c.fit, times = U[fold.id == z])$surv
         }
       } else if (cen.fit == "survival.forest") {
-        c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = U, D = 1 - Q), args.grf.nuisance))
+        c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - Q), args.grf.nuisance))
         C.hat <- predict(c.fit)$predictions
         cen.times.index <- findInterval(U, c.fit$failure.times)
         C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
