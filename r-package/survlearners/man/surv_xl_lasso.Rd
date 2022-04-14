@@ -32,6 +32,8 @@ surv_xl_lasso(
 \item{W.hat}{The propensity score}
 
 \item{cen.fit}{The choice of model fitting for censoring}
+
+\item{k.folds}{The number of folds for estimating nuisance parameters via cross-fitting}
 }
 \value{
 A surv_xl_lasso object

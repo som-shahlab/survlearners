@@ -11,6 +11,7 @@
 #' @param alpha Imbalance tuning parameter for a split (see grf documentation)
 #' @param W.hat The propensity score
 #' @param cen.fit The choice of model fitting for censoring
+#' @param k.folds The number of folds for estimating nuisance parameters via cross-fitting
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
