@@ -12,7 +12,8 @@ surv_xl_grf_lasso(
   t0,
   alpha = 0.05,
   W.hat = NULL,
-  cen.fit = "Kaplan-Meier"
+  cen.fit = "Kaplan-Meier",
+  k.folds = 10
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ surv_xl_grf_lasso(
 \item{W.hat}{The propensity score}
 
 \item{cen.fit}{The choice of model fitting for censoring}
+
+\item{k.folds}{The number of folds for estimating nuisance parameters via cross-fitting}
 }
 \value{
 A surv_xl_grf_lasso object

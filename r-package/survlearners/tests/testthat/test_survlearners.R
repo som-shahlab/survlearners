@@ -11,11 +11,11 @@ f.i = "NL"
 dgp = "fcomplex"
 
 t0 <- 0.2
-data <- survlearners:::generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i,
-                                       dgp = dgp, n.mc = 10, t0 = t0)
+#data <- survlearners:::generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i,
+#                                       dgp = dgp, n.mc = 10, t0 = t0)
 
-data.test <- survlearners:::generate_tutorial_survival_data(n = n.test, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i,
-                                            dgp = dgp, n.mc = 10000, t0 = t0)
+#data.test <- survlearners:::generate_tutorial_survival_data(n = n.test, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i,
+#                                            dgp = dgp, n.mc = 10000, t0 = t0)
 
 
 # surv_s_grf: Compare new implementation against Crystal's previous one
@@ -44,7 +44,7 @@ estimate_grf_sl <- function(data, data.test, t0 = t0, alpha = 0.05, ps = NULL, c
 
 # set.seed(1)
 # tau_hat <- surv_s_grf(data, data.test, t0)
-set.seed(1)
-tau_hat_old <- estimate_grf_sl(data, data.test, t0 = t0)
+#set.seed(1)
+#tau_hat_old <- estimate_grf_sl(data, data.test, t0 = t0)
 
 # expect_equal(tau_hat, tau_hat_old)
