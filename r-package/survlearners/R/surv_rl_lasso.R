@@ -154,11 +154,7 @@ surv_rl_lasso <- function(X, Y, W, D,
         shudat <- data.frame(shuffle, C.hat)
         C.hat <- shudat[order(shuffle), ]$C.hat
       } else if (cen.fit == "survival.forest") {
-        c.fit <- grf::survival_forest(cbind(W, X),
-                                      U,
-                                      1 - Q,
-                                      alpha = alpha,
-                                      prediction.type = "Nelson-Aalen")
+        c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = U, D = 1 - Q), args.grf.nuisance))
         C.hat <- predict(c.fit)$predictions
         cen.times.index <- findInterval(U, c.fit$failure.times)
         C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
