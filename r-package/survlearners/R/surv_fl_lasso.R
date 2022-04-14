@@ -66,7 +66,7 @@ surv_fl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
                               seed = runif(1, 0, .Machine$integer.max))
     c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - Q), args.grf.nuisance))
     C.hat <- predict(c.fit)$predictions
-    cen.times.index <- findInterval(U, c.fit$failure.t0)
+    cen.times.index <- findInterval(U, c.fit$failure.times)
     C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
   }
   sample.weights <- 1 / C.hat
