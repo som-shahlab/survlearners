@@ -7,7 +7,7 @@
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param t0 The prediction time of interest
-#' @param alpha Imbalance tuning parameter for a split (see grf documentation)
+#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
@@ -31,14 +31,9 @@
 #' }
 #' @return A surv_sl_grf object
 #' @export
-surv_sl_grf <- function(X, Y, W, D, t0, alpha = 0.05) {
+surv_sl_grf <- function(X, Y, W, D, t0, args.grf.nuisance = list()) {
 
-  tau.fit <- grf::survival_forest(cbind(W, X),
-                                  Y,
-                                  D,
-                                  alpha = alpha,
-                                  prediction.type = "Nelson-Aalen")
-
+  tau.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = D), args.grf.nuisance))
   index <- findInterval(t0, tau.fit$failure.times)
   if (index == 0) {
     surf1 <- rep(1, nrow(X))

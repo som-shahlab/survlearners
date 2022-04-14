@@ -88,7 +88,7 @@ surv_fl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
                  sample.weights = binary.data$sample.weights, W.hat = binary.data$W.hat)
 
   Z <- b.data$W * b.data$D / b.data$W.hat - (1 - b.data$W) * b.data$D / (1 - b.data$W.hat)
-  tau.fit <- glmnet::cv.glmnet(b.data$X, Z, family = "gaussian", weights = b.data$sample.weights, nfolds = 10, alpha = 1)
+  tau.fit <- glmnet::cv.glmnet(b.data$X, Z, family = "gaussian", weights = b.data$sample.weights, nfolds = k.folds, alpha = 1)
   tau.hat <- -predict(tau.fit, X)
 
   ret <- list(tau.fit = tau.fit,
