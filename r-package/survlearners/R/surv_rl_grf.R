@@ -125,16 +125,20 @@ surv_rl_grf <- function(X, Y, W, D,
     c.fit <- NULL
   }
 
-  # create binary data
-  tempdata <- data.frame(Y, D, W, Y.hat, W.hat, C.hat, X)
-  binary.data <- tempdata[tempdata$D == 1 | tempdata$Y > t0, ]       # remove subjects who got censored before the time of interest t50
-  binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0     # recode the event status for subjects who had events after t50
-  binary.data <- binary.data[complete.cases(binary.data), ]
+  # CATE function
+  D.t0 <- D
+  D.t0[D == 1 & Y > t0] <- 0
+  D.t0 <- D.t0[D == 1 | Y > t0]
+  Y.hat.t0 <- Y.hat[D == 1 | Y > t0]
+  W.t0 <- W[D == 1 | Y > t0]
+  W.hat.t0 <- W.hat[D == 1 | Y > t0]
+  X.t0 <- X[D == 1 | Y > t0,, drop = FALSE]
+  C.hat.t0 <- C.hat[D == 1 | Y > t0]
 
-  y.tilde <- (1 - binary.data$D) - binary.data$Y.hat
-  w.tilde <-  binary.data$W - binary.data$W.hat
+  y.tilde <- (1 - D.t0) - Y.hat.t0
+  w.tilde <- W.t0 - W.hat.t0
   pseudo.outcome <- y.tilde / w.tilde
-  sample.weights <- w.tilde^2 / binary.data$C.hat
+  sample.weights <- w.tilde^2 / C.hat.t0
 
   args.grf.tau <- list(sample.weights = sample.weights,
                        num.trees = 2000,
@@ -151,7 +155,8 @@ surv_rl_grf <- function(X, Y, W, D,
                        num.threads = NULL,
                        seed = runif(1, 0, .Machine$integer.max))
 
-  tau.fit <- do.call(grf::regression_forest, c(list(X = binary.data[ ,7:dim(binary.data)[2]], Y = pseudo.outcome), args.grf.tau))
+  tau.fit <- do.call(grf::regression_forest, c(list(X = X.t0, Y = pseudo.outcome), args.grf.tau))
+  tau.hat <- predict(tau.fit, data.frame(X))
 
   ret <- list(tau.fit = tau.fit,
               pseudo.outcome = pseudo.outcome,
@@ -160,7 +165,8 @@ surv_rl_grf <- function(X, Y, W, D,
               c.fit = c.fit,
               W.hat = W.hat,
               Y.hat = Y.hat,
-              C.hat = C.hat)
+              C.hat = C.hat,
+              tau.hat = tau.hat)
   class(ret) <- "surv_rl_grf"
   ret
 }
@@ -171,7 +177,6 @@ surv_rl_grf <- function(X, Y, W, D,
 #'
 #' @param object A surv_rl_grf object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
-#' @param tau.only If set to TRUE, onlly return prediction on tau. Otherwise, return a list including prediction on tau, propensity score, and baseline main effect.
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
@@ -200,19 +205,12 @@ surv_rl_grf <- function(X, Y, W, D,
 #' @export
 predict.surv_rl_grf <- function(object,
                                 newdata = NULL,
-                                tau.only = TRUE,
                                 ...) {
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
-  }
-  if (tau.only) {
-    return(predict(object$tau.fit, newdata)$predictions)
+    tau.hat <- predict(object$tau.fit, newdata)$predictions
   } else {
-    tau <- predict(object$tau.fit, newdata)$predictions
-    e <- predict(object$w.fit, newdata)$predictions
-    m <- predict(object$y.fit, newdata)$predictions
-    mu1 <- m + (1-e) * tau
-    mu0 <- m - e * tau
-    return(list(tau = tau, e = e, m = m, mu1 = mu1, mu0 = mu0))
+    tau.hat <- object$tau.hat
   }
+  return(tau.hat)
 }

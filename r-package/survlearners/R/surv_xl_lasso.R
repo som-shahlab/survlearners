@@ -118,32 +118,31 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
     W.hat <- rep(W.hat, length(W))
   }
 
-  sample.weights <- (1 / C.hat) * (1 / W.hat)
-
   # X-learner
-  tempdat <- data.frame(Y = Y, D = D, W = W, sample.weights, X, Tlasso0, Tlasso1)
-  binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > t0, ]
-  binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0
-  binary.data <- binary.data[complete.cases(binary.data), ]
-  b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
-                 X = as.matrix(binary.data[ ,5:(ncol(binary.data)-2)]),
-                 sample.weights = binary.data$sample.weights, mu0 = binary.data$Tlasso0, mu1 = binary.data$Tlasso1)
+   D.t0 <- D
+   D.t0[D == 1 & Y > t0] <- 0
+   D.t0 <- D.t0[D == 1 | Y > t0]
+   W.t0 <- W[D == 1 | Y > t0]
+   X.t0 <- X[D == 1 | Y > t0,, drop = FALSE]
+   Tlasso0.t0 <- Tlasso0[D == 1 | Y > t0]
+   Tlasso1.t0 <- Tlasso1[D == 1 | Y > t0]
+   sample.weights.t0 <- 1 / (C.hat * W.hat)[D == 1 | Y > t0]
 
-  foldid <- sample(rep(seq(k.folds), length = length(b.data$Y[b.data$W == 1])))
-  tau.fit1 <- glmnet::cv.glmnet(b.data$X[b.data$W == 1, ],
-                                b.data$D[b.data$W == 1] - b.data$mu0[b.data$W == 1],
-                                weights = b.data$sample.weights[b.data$W == 1],
-                                foldid = foldid,
-                                alpha = 1)
-  XLtau1 <- as.vector(-predict(tau.fit1, X, s = "lambda.min"))
+   foldid <- sample(rep(seq(k.folds), length = length(D.t0[W.t0 == 1])))
+   tau.fit1 <- glmnet::cv.glmnet(X.t0[W.t0 == 1,, drop = FALSE],
+                                 D.t0[W.t0 == 1] - Tlasso0.t0[W.t0 == 1],
+                                 weights = sample.weights.t0[W.t0 == 1],
+                                 foldid = foldid,
+                                 alpha = 1)
+   XLtau1 <- as.vector(-predict(tau.fit1, X, s = "lambda.min"))
 
-  foldid <- sample(rep(seq(k.folds), length = length(b.data$Y[b.data$W == 0])))
-  tau.fit0 <- glmnet::cv.glmnet(b.data$X[b.data$W == 0, ],
-                                b.data$mu1[b.data$W == 0] - b.data$D[b.data$W == 0],
-                                weights = b.data$sample.weights[b.data$W == 0],
-                                foldid = foldid,
-                                alpha = 1)
-  XLtau0 <- as.vector(-predict(tau.fit0, X, s = "lambda.min"))
+   foldid <- sample(rep(seq(k.folds), length = length(D.t0[W.t0 == 0])))
+   tau.fit0 <- glmnet::cv.glmnet(X.t0[W.t0 == 0,, drop = FALSE],
+                                 Tlasso1.t0[W.t0 == 0] - D.t0[W.t0 == 0],
+                                 weights = sample.weights.t0[W.t0 == 0],
+                                 foldid = foldid,
+                                 alpha = 1)
+   XLtau0 <- as.vector(-predict(tau.fit0, X, s = "lambda.min"))
 
   # weighted CATE
   tau.hat <- as.vector(XLtau1 * (1 - W.hat) + XLtau0 * W.hat)

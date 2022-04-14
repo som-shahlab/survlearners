@@ -97,7 +97,6 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
     cen.times.index <- findInterval(U, c.fit$failure.times)
     C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
   }
-  ipcw <- 1 / C.hat
 
   # Propensity score
   if (is.null(W.hat)) {
@@ -106,25 +105,24 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
     W.hat <- rep(W.hat, length(W))
   }
 
-  sample.weights <- ipcw / W.hat  # censoring weight * treatment weight
+  # CATE function
+   D.t0 <- D
+   D.t0[D == 1 & Y > t0] <- 0
+   D.t0 <- D.t0[D == 1 | Y > t0]
+   W.t0 <- W[D == 1 | Y > t0]
+   X.t0 <- X[D == 1 | Y > t0,, drop = FALSE]
+   Tgrf0.t0 <- Tgrf0[D == 1 | Y > t0]
+   Tgrf1.t0 <- Tgrf1[D == 1 | Y > t0]
+   sample.weights.t0 <- 1 / (C.hat * W.hat)[D == 1 | Y > t0]
 
-  # X-learner
-  tempdat <- data.frame(Y = Y, D = D, W = W, sample.weights, X, Tgrf0, Tgrf1)
-  binary.data <- tempdat[tempdat$D == 1 | tempdat$Y > t0, ]
-  binary.data$D[binary.data$D == 1 & binary.data$Y > t0] <- 0
-  binary.data <- binary.data[complete.cases(binary.data), ]
-  b.data <- list(Y = binary.data$Y, D = binary.data$D, W = binary.data$W,
-                 X = as.matrix(binary.data[ ,5:(ncol(binary.data)-2)]),
-                 sample.weights = binary.data$sample.weights, mu0 = binary.data$Tgrf0, mu1 = binary.data$Tgrf1)
-
-  tau.fit1 <- grf::regression_forest(b.data$X[b.data$W == 1, ],
-                                     b.data$D[b.data$W == 1] - b.data$mu0[b.data$W == 1],
-                                     sample.weights = b.data$sample.weights[b.data$W == 1])
+  tau.fit1 <- grf::regression_forest(X.t0[W.t0 == 1,, drop = FALSE],
+                                     D.t0[W.t0 == 1] - Tgrf0.t0[W.t0 == 1],
+                                     sample.weights = sample.weights.t0[W.t0 == 1])
   XLtau1 <- -predict(tau.fit1, data.frame(X))
 
-  tau.fit0 <- grf::regression_forest(b.data$X[b.data$W == 0, ],
-                                     b.data$mu1[b.data$W == 0] - b.data$D[b.data$W == 0],
-                                     sample.weights = b.data$sample.weights[b.data$W == 0])
+  tau.fit0 <- grf::regression_forest(X.t0[W.t0 == 0,, drop = FALSE],
+                                     Tgrf1.t0[W.t0 == 0] - D.t0[W.t0 == 0],
+                                     sample.weights = sample.weights.t0[W.t0 == 0])
   XLtau0 <- -predict(tau.fit0, data.frame(X))
 
   # weighted CATE
