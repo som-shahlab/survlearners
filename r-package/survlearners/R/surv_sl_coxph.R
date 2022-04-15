@@ -49,7 +49,11 @@ surv_sl_coxph <- function(X, Y, W, D, t0) {
   tau.fit <- survival::coxph(formula, data = tmpdat)
   bh.dat <- survival::basehaz(tau.fit, centered = FALSE)
   index <- findInterval(t0, bh.dat$time)
-  bh <- bh.dat[index, 1]
+  if (index == 0) {
+    bh <- 0
+  } else {
+    bh <- bh.dat[index, 1]
+  }
 
   link1 <- exp(as.matrix(x.pred1) %*% tau.fit$coefficients)
   link0 <- exp(as.matrix(x.pred0) %*% tau.fit$coefficients)
@@ -114,7 +118,11 @@ predict.surv_sl_coxph <- function(object,
 
     bh.dat <- survival::basehaz(object$tau.fit, centered = FALSE)
     index <- findInterval(t0, bh.dat$time)
-    bh <- bh.dat[index, 1]
+    if (index == 0) {
+      bh <- 0
+    } else {
+      bh <- bh.dat[index, 1]
+    }
 
     x.pred1 <- data.frame(0.5, 0.5 * newdata, newdata)
     x.pred0 <- data.frame(-0.5, -0.5 * newdata, newdata)
