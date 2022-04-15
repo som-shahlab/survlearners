@@ -155,7 +155,10 @@ surv_rl_lasso <- function(X, Y, W, D,
     } else {
       c.fit <- NULL
     }
-
+    if (any(C.hat == 0)) {
+      stop("Some or all uncensored probabilities are exactly zeros. Check input variables or consider adjust the time of interest t0.")
+    }
+    
     # CATE function
     D.t0 <- D
     D.t0[D == 1 & Y > t0] <- 0
