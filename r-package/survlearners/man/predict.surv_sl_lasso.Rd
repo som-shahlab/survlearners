@@ -33,7 +33,7 @@ T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALS
 failure.time <- pmin(T, Y.max)
 numeratorC <- -log(runif(n))
 censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
-Y <- pmin(failure.time, censor.time)
+Y <- as.numeric(pmin(failure.time, censor.time))
 D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
