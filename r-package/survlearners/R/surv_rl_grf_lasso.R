@@ -141,6 +141,9 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
   } else {
     c.fit <- NULL
   }
+  if (any(C.hat == 0)) {
+    stop("Some or all uncensored probabilities are exactly zeros. Check input variables or consider adjust the time of interest t0.")
+  }
 
   # create binary data
   D.t0 <- D

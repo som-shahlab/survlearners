@@ -28,7 +28,10 @@ jobs:
 
       - name: Install dependencies
         working-directory: r-package/survlearners
-        run: ./run.sh install_all
+        run: |
+          ./run.sh install_all
+          # Install OSX deps manually
+          sudo Rscript -e "install.packages(c('survival', 'glmnet', 'grf'), type = 'mac.binary')"
 
       - name: Tmp devel GRF install
         run: |
@@ -54,7 +57,7 @@ jobs:
       - name: Build pkgdown 
         working-directory: r-package/survlearners
         run: |
-          sudo Rscript -e "install.packages('pkgdown')"
+          sudo Rscript -e "install.packages('pkgdown', type = 'mac.binary')"
           Rscript -e "pkgdown::build_site()"
           
       - name: Deploy to GitHub pages
