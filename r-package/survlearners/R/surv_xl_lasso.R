@@ -110,7 +110,10 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
     cen.times.index <- findInterval(U, c.fit$failure.times)
     C.hat <- C.hat[cbind(1:length(U), cen.times.index)]
   }
-
+  if (any(C.hat == 0)) {
+    stop("Some or all uncensored probabilities are exactly zeros. Check input variables or consider adjust the time of interest t0.")
+  }
+  
   # Propensity score (cross-fitted using "preval" in glmnet)
   if (is.null(W.hat)) {
     stop("propensity score needs to be supplied")
