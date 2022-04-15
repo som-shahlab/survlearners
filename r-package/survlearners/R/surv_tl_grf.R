@@ -16,7 +16,7 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
@@ -51,21 +51,21 @@ surv_tl_grf <- function(X, Y, W, D, t0, args.grf.nuisance = list()) {
                             seed = runif(1, 0, .Machine$integer.max))
 
   # Model for W = 1
-  grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1, ], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
+  grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1,, drop = FALSE], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
   index <- findInterval(t0, grffit1$failure.times)
   if (index == 0) {
     surf1 <- rep(1, nrow(X))
   } else {
-    surf1 <- predict(grffit1, X)$predictions[ ,index]
+    surf1 <- predict(grffit1, X)$predictions[ ,index, drop = FALSE]
   }
 
   # Model for W = 0
-  grffit0 <- do.call(grf::survival_forest, c(list(X = X[W == 0, ], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
+  grffit0 <- do.call(grf::survival_forest, c(list(X = X[W == 0,, drop = FALSE], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
   index <- findInterval(t0, grffit0$failure.times)
   if (index == 0) {
     surf0 <- rep(1, nrow(X))
   } else {
-    surf0 <- predict(grffit0, X)$predictions[ ,index]
+    surf0 <- predict(grffit0, X)$predictions[ ,index, drop = FALSE]
   }
 
   tau.hat <- surf1 - surf0
@@ -96,7 +96,7 @@ surv_tl_grf <- function(X, Y, W, D, t0, args.grf.nuisance = list()) {
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
@@ -129,13 +129,13 @@ predict.surv_tl_grf <- function(object,
     if (index1 == 0) {
       surf1 <- rep(1, nrow(newdata))
     } else {
-      surf1 <- predict(object$fit1, newdata)$predictions[ ,index1]
+      surf1 <- predict(object$fit1, newdata)$predictions[ ,index1, drop = FALSE]
     }
 
     if (index0 == 0) {
       surf0 <- rep(1, nrow(newdata))
     } else {
-      surf0 <- predict(object$fit0, newdata)$predictions[ ,index0]
+      surf0 <- predict(object$fit0, newdata)$predictions[ ,index0, drop = FALSE]
     }
 
     return(surf1 - surf0)

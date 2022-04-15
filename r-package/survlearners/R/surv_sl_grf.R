@@ -16,7 +16,7 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
@@ -56,8 +56,8 @@ surv_sl_grf <- function(X, Y, W, D, t0, args.grf.nuisance = list()) {
     surf1 <- rep(1, nrow(X))
     surf0 <- rep(1, nrow(X))
   } else {
-    surf1 <- predict(tau.fit, cbind(rep(1, nrow(X)), X))$predictions[ ,index]
-    surf0 <- predict(tau.fit, cbind(rep(0, nrow(X)), X))$predictions[ ,index]
+    surf1 <- predict(tau.fit, cbind(rep(1, nrow(X)), X))$predictions[ ,index, drop = FALSE]
+    surf0 <- predict(tau.fit, cbind(rep(0, nrow(X)), X))$predictions[ ,index, drop = FALSE]
   }
 
   tau.hat <- surf1 - surf0
@@ -86,7 +86,7 @@ surv_sl_grf <- function(X, Y, W, D, t0, args.grf.nuisance = list()) {
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
@@ -119,8 +119,8 @@ predict.surv_sl_grf <- function(object,
       surf1 <- rep(1, nrow(newdata))
       surf0 <- rep(1, nrow(newdata))
     } else {
-      surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[ ,index]
-      surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata))$predictions[ ,index]
+      surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[ ,index, drop = FALSE]
+      surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata))$predictions[ ,index, drop = FALSE]
     }
 
     return(surf1 - surf0)

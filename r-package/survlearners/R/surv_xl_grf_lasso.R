@@ -20,7 +20,7 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
@@ -63,8 +63,8 @@ surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Me
     surf1[W == 1] <- rep(1, length(D[W == 1]))
     surf1[W == 0] <- rep(1, length(D[W == 0]))
   } else {
-    surf1[W == 1] <- predict(grffit1)$predictions[ , t0.index]
-    surf1[W == 0] <- predict(grffit1, X[W == 0, ])$predictions[ , t0.index]
+    surf1[W == 1] <- predict(grffit1)$predictions[ , t0.index, drop = FALSE]
+    surf1[W == 0] <- predict(grffit1, X[W == 0, ])$predictions[ , t0.index, drop = FALSE]
   }
 
   # fit model on W == 0
@@ -75,8 +75,8 @@ surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Me
     surf0[W == 0] <- rep(1, length(D[W == 0]))
     surf0[W == 1] <- rep(1, length(D[W == 1]))
   } else {
-    surf0[W == 0] <- predict(grffit0)$predictions[ , t0.index]
-    surf0[W == 1] <- predict(grffit0, X[W == 1, ])$predictions[ , t0.index]
+    surf0[W == 0] <- predict(grffit0)$predictions[ , t0.index, drop = FALSE]
+    surf0[W == 1] <- predict(grffit0, X[W == 1, ])$predictions[ , t0.index, drop = FALSE]
   }
 
   Tgrf1 <- 1 - surf1
@@ -160,7 +160,7 @@ surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Me
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
