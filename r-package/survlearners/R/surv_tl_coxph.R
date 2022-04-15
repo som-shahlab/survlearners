@@ -40,7 +40,11 @@ surv_tl_coxph <- function(X, Y, W, D, t0) {
   coxph.fit1 <- survival::coxph(survival::Surv(Y, D) ~ ., data = traindat1)
   bh.dat1 <- survival::basehaz(coxph.fit1, centered = FALSE)
   index <- findInterval(t0, bh.dat1$time)
-  bh <- bh.dat1[index, 1]
+  if (index == 0) {
+    bh <- 0
+  } else {
+    bh <- bh.dat1[index, 1]
+  }
   est.r1 <- predict(coxph.fit1, newdata = data.frame(X), type="risk")
   surf1 <- exp(-bh) ^ est.r1
 
@@ -48,7 +52,11 @@ surv_tl_coxph <- function(X, Y, W, D, t0) {
   coxph.fit0 <- survival::coxph(survival::Surv(Y, D) ~ ., data = traindat0)
   bh.dat0 <- survival::basehaz(coxph.fit0, centered = FALSE)
   index <- findInterval(t0, bh.dat0$time)
-  bh <- bh.dat0[index, 1]
+  if (index == 0) {
+    bh <- 0
+  } else {
+    bh <- bh.dat0[index, 1]
+  }
   est.r0 <- predict(coxph.fit0, newdata = data.frame(X), type="risk")
   surf0 <- exp(-bh) ^ est.r0
 
@@ -112,8 +120,17 @@ predict.surv_tl_coxph <- function(object,
       index0 <- findInterval(t0, object$bh0$time)
     }
 
-    bh1 <- object$bh1[index1, 1]
-    bh0 <- object$bh0[index0, 1]
+    if (index1 == 0) {
+      bh1 <- 0
+    } else {
+      bh1 <- object$bh1[index1, 1]
+    }
+
+    if (index0 == 0) {
+      bh0 <- 0
+    } else {
+      bh0 <- object$bh0[index0, 1]
+    }
 
     est.r1 <- predict(object$fit1, newdata = data.frame(newdata), type="risk")
     surf1 <- exp(-bh1) ^ est.r1

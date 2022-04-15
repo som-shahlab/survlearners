@@ -101,7 +101,12 @@ surv_sl_lasso <- function(X, Y, W, D, t0,
                     X = x.scl.tilde,
                     lambda = tau.fit$lambda.min)
   index <- findInterval(t0, S0.t$time)
-  S0 <- S0.t[index, ]$survival
+  if (index == 0) {
+    S0 <- 1
+  } else {
+    S0 <- S0.t[index, ]$survival
+  }
+
   surv1 <- S0 ^ exp(link1)
   surv0 <- S0 ^ exp(link0)
 
@@ -173,7 +178,11 @@ predict.surv_sl_lasso <- function(object,
     t0 <- object$t0
     }
     index <- findInterval(t0, object$S0.t$time)
-    S0 <- object$S0.t[index, ]$survival
+    if (index == 0) {
+      S0 <- 1
+    } else {
+      S0 <- object$S0.t[index, ]$survival
+    }
 
     surv1 <- S0^exp(link1)
     surv0 <- S0^exp(link0)
