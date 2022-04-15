@@ -29,9 +29,9 @@ jobs:
       - name: Install dependencies
         working-directory: r-package/survlearners
         run: |
-          # Install OSX deps manually
-          sudo Rscript -e "install.packages(c('glmnet', 'grf', 'survival'), type = 'mac.binary')"
           ./run.sh install_all
+          # Install OSX deps manually
+          sudo Rscript -e "install.packages(c('survival', 'glmnet', 'grf'), type = 'mac.binary')"
 
       - name: Tmp devel GRF install
         run: |
