@@ -16,7 +16,7 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
@@ -35,7 +35,7 @@ surv_tl_lasso <- function(X, Y, W, D, t0, k.folds = 10) {
 
   # Model for W = 1
   foldid <- sample(rep(seq(k.folds), length = length(Y[W == 1])))
-  x1 <- as.matrix(data.frame(X[W == 1, ]))
+  x1 <- as.matrix(data.frame(X[W == 1,, drop = FALSE]))
   lasso.fit1 <- glmnet::cv.glmnet(x1,
                                   survival::Surv(Y[W == 1], D[W == 1]),
                                   family = "cox",
@@ -57,7 +57,7 @@ surv_tl_lasso <- function(X, Y, W, D, t0, k.folds = 10) {
 
   # Model for W = 0
   foldid <- sample(rep(seq(k.folds), length = length(Y[W == 0])))
-  x0 <- as.matrix(data.frame(X[W == 0, ]))
+  x0 <- as.matrix(data.frame(X[W == 0,, drop = FALSE]))
   lasso.fit0 <- glmnet::cv.glmnet(x0,
                                   survival::Surv(Y[W == 0], D[W == 0]),
                                   family = "cox",
@@ -105,7 +105,7 @@ surv_tl_lasso <- function(X, Y, W, D, t0, k.folds = 10) {
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)

@@ -19,7 +19,7 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
@@ -112,7 +112,7 @@ surv_fl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W))^2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)

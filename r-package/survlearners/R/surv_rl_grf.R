@@ -22,7 +22,7 @@
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W)) ^ 2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W)) ^ 2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
@@ -96,8 +96,8 @@ surv_rl_grf <- function(X, Y, W, D,
     if (t0.index == 0) {
       Y.hat <- rep(1, nrow(X))
     } else {
-      surf1 <- S1.hat[ , t0.index]
-      surf0 <- S0.hat[ , t0.index]
+      surf1 <- S1.hat[ , t0.index, drop = FALSE]
+      surf0 <- S0.hat[ , t0.index, drop = FALSE]
       Y.hat  <- W.hat * surf1 + (1 - W.hat) * surf0
     }
   } else {
@@ -187,7 +187,7 @@ surv_rl_grf <- function(X, Y, W, D,
 #' X <- matrix(rnorm(n * p), n, p)
 #' W <- rbinom(n, 1, 0.5)
 #' numeratorT <- -log(runif(n))
-#' T <- (numeratorT / exp(1 * X[ ,1] + (-0.5 - 1 * X[ ,2]) * W))^2
+#' T <- (numeratorT / exp(1 * X[ ,1, drop = FALSE] + (-0.5 - 1 * X[ ,2, drop = FALSE]) * W))^2
 #' failure.time <- pmin(T, Y.max)
 #' numeratorC <- -log(runif(n))
 #' censor.time <- (numeratorC / (4 ^ 2)) ^ (1 / 2)
