@@ -1,8 +1,9 @@
 rm(list = ls())
 library(survlearners)
-source("../../experiments/comparison_estimators.R")
+library(stringr)
+source("comparison_estimators.R")
 
-# *** Comparison methods *** 
+# *** Comparison methods ***
 estimators <- list(cate_sl_coxph = cate_sl_coxph,
                    cate_tl_coxph = cate_tl_coxph,
                    cate_csf_probs = cate_csf_probs,
@@ -38,21 +39,23 @@ grid <- expand.grid(n = 5000,
                     rho = c(2),
                     cen.scale = c(4),
                     cenM = c("indX"),
-                    times = (0.2),
+                    t0 = (0.2),
                     stringsAsFactors = FALSE)
 grid$f.i <- c(rep("L", 6), rep("NL", 3))
 grid$p.i <- rep(c(1, 1, 25), 3)
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,])
-grid[10:12, ]$pi <- c(0.01)               # unbalanced design
-grid <- rbind(grid, grid[1,], grid[1,])
-grid[13:14, ]$cen.scale <- c(8, 8)        # vary censoring rate (under indX): 30% (default), 70% (early censor), 65%
-grid[13, ]$rho <- 1
-grid <- rbind(grid, grid[1,])             # vary censoring generating model (= dX)
-grid[15, ]$cenM <- "dX"
+grid[10:12, ]$pi <- c(0.05)                           # unbalanced design
+grid <- rbind(grid, grid[1,], grid[1,], grid[1,], grid[4,], grid[4,], grid[4,], grid[4,])
+grid[c(13:14, 16:17), ]$cen.scale <- c(8, 7, 8, 7)    # vary censoring rate (under indX): 30% (default), 70% (early censor), 65%
+grid[c(13, 16), ]$rho <- rep(1, 2)
+grid[c(15, 18), ]$cenM <- rep("dX", 2)                # vary censoring generating model (= dX)
+grid[19, ]$cenM <- "dX.ub"                            # unbalanced censoring
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary heterogeneity: sd(CATE)/sd(mu0sp) 0.17, 0.55, 0.9 (baseline)
-grid[16:21, ]$gamma <- c(rep(0.46, 3), rep(0, 3))
+grid[20:25, ]$gamma <- c(rep(0.46, 3), rep(0, 3))
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,], grid[2,], grid[5,], grid[8,])  # vary event rate
-grid[22:30, ]$times <- c(rep(0.02,3), rep(0.001,3), rep(0.4,3))
+grid[26:34, ]$t0 <- c(rep(0.02,3), rep(0.001,3), rep(0.35,3))
+# grid <- rbind(grid, grid[2,], grid[3,], grid[5,], grid[6,], grid[8,], grid[9,])
+# grid[31:36, ]$p <- 100
 rownames(grid) <- 1:dim(grid)[1]
 
 if(length(args <- commandArgs(T))>0){
@@ -72,17 +75,17 @@ gamma <- grid$gamma[i]
 rho <- grid$rho[i]
 cen.scale <- grid$cen.scale[i]
 cenM <- grid$cenM[i]
-times <- grid$times[i]
+t0 <- grid$t0[i]
 an.error.occured <- rep(NA, n.sim)
 for (sim in 1:n.sim) {
-  #tryCatch( {
+  tryCatch( {
   print(paste("sim", sim))
   data <- generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i, pi = pi,
                                           gamma = gamma, rho = rho, cen.scale = cen.scale, cenM = cenM, dgp = dgp,
-                                          n.mc = 10, times = times)
+                                          n.mc = 10, t0 = t0)
   data.test <- generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i, pi = pi,
                                                gamma = gamma, rho = rho, cen.scale = cen.scale, cenM = cenM, dgp = dgp,
-                                               n.mc = n.mc, times = times)
+                                               n.mc = n.mc, t0 = t0)
 
   data$Y <- pmax(rep(0.001, length(data$Y)), data$Y)
   true.catesp <- data.test$catesp
@@ -94,9 +97,9 @@ for (sim in 1:n.sim) {
     estimator.name <- names(estimators)[j]
     print(estimator.name)
     if (grepl("sl", estimator.name, fixed = TRUE) == TRUE | grepl("tl", estimator.name, fixed = TRUE) == TRUE) {
-      predictions[,j] <- estimators[[estimator.name]](data, data.test, times = times)
+      predictions[,j] <- estimators[[estimator.name]](data, data.test, t0 = t0)
     } else {
-      predictions[,j] <- estimators[[estimator.name]](data, data.test, times = times, W.hat = pi)
+      predictions[,j] <- estimators[[estimator.name]](data, data.test, t0 = t0, W.hat = pi)
     }
 
     correct.classification <- sign(predictions[,j]) == true.catesp.sign
@@ -150,12 +153,12 @@ for (sim in 1:n.sim) {
   df$p <- p
   df$n.test <- n.test
   df$dgp <- dgp
-  df$horizon <- times
+  df$horizon <- t0
   df$sim <- sim
 
   out <- c(out, list(df))
-  #}
-  #, error = function(e) {an.error.occured[sim] <<- TRUE})
+  }
+  , error = function(e) {an.error.occured[sim] <<- TRUE})
 }
 print(sum(an.error.occured, na.rm = TRUE))
 out.df <- do.call(rbind, out)
