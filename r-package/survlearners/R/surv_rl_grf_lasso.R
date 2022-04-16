@@ -33,7 +33,7 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.grf.lasso.fit <- surv_rl_grf_lasso(X, Y, W, D, t0, W.hat = 0.5)
+#' surv.rl.grf.lasso.fit <- surv_rl_grf_lasso(X, Y, W, D, t0, W.hat = 0.5, cen.fit = "survival.forest")
 #' cate <- predict(surv.rl.grf.lasso.fit)
 #' cate.test <- predict(surv.rl.grf.lasso.fit, X.test)
 #' }
@@ -132,8 +132,11 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
       c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - Q), args.grf.nuisance))
       C.hat <- predict(c.fit)$predictions
       index <- findInterval(U, c.fit$failure.times)
-      if (index == 0) {
-        C.hat <- rep(1, length(U))
+      if (any(index == 0)) {
+        tmp.index <- index
+        tmp.index[which(tmp.index == 0)] <- 1
+        C.hat <- C.hat[cbind(1:length(U), tmp.index)]
+        C.hat[which(index == 0)] <- 1
       } else {
         C.hat <- C.hat[cbind(1:length(U), index)]
       }

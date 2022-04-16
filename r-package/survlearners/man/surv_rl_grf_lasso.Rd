@@ -73,7 +73,7 @@ D <- as.integer(failure.time <= censor.time)
 n.test <- 500
 X.test <- matrix(rnorm(n.test * p), n.test, p)
 
-surv.rl.grf.lasso.fit <- surv_rl_grf_lasso(X, Y, W, D, t0, W.hat = 0.5)
+surv.rl.grf.lasso.fit <- surv_rl_grf_lasso(X, Y, W, D, t0, W.hat = 0.5, cen.fit = "survival.forest")
 cate <- predict(surv.rl.grf.lasso.fit)
 cate.test <- predict(surv.rl.grf.lasso.fit, X.test)
 }
