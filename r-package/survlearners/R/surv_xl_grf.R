@@ -92,6 +92,7 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
       C.hat[fold.id == z] <- summary(c.fit, times = U[fold.id == z])$surv
     }
   } else if (cen.fit == "survival.forest") {
+    args.grf.nuisance$alpha <- 0.05
     c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - Q), args.grf.nuisance))
     C.hat <- predict(c.fit)$predictions
     index <- findInterval(U, c.fit$failure.times)

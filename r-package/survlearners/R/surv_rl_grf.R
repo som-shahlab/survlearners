@@ -116,6 +116,7 @@ surv_rl_grf <- function(X, Y, W, D,
       }
     } else if (cen.fit == "survival.forest") {
       args.grf.nuisance$compute.oob.predictions <- TRUE
+      args.grf.nuisance$alpha <- 0.05
       c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - Q), args.grf.nuisance))
       C.hat <- predict(c.fit)$predictions
       index <- findInterval(U, c.fit$failure.times)
