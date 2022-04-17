@@ -4,8 +4,6 @@ library(stringr)
 source("comparison_estimators.R")
 
 # *** Comparison methods ***
-# These estimators use 'Kaplan-Meier' estimator for censoring weights,
-# DO NOT use this script for running censoring cases (grid 1, 13-19)
 estimators <- list(cate_sl_coxph = cate_sl_coxph,
                    cate_tl_coxph = cate_tl_coxph,
                    cate_csf_probs = cate_csf_probs,
@@ -22,7 +20,16 @@ estimators <- list(cate_sl_coxph = cate_sl_coxph,
                    cate_tl_grf = cate_tl_grf,
                    cate_fl_grf = cate_fl_grf,
                    cate_xl_grf = cate_xl_grf,
-                   cate_rl_grf = cate_rl_grf)
+                   cate_rl_grf = cate_rl_grf,
+
+                   cate_xl_grf_lasso_sf = cate_xl_grf_lasso_sf,
+                   cate_rl_grf_lasso_sf = cate_rl_grf_lasso_sf,
+                   cate_fl_lasso_sf = cate_fl_lasso_sf,
+                   cate_xl_lasso_sf = cate_xl_lasso_sf,
+                   cate_rl_lasso_sf = cate_rl_lasso_sf,
+                   cate_fl_grf_sf = cate_fl_grf_sf,
+                   cate_xl_grf_sf = cate_xl_grf_sf,
+                   cate_rl_grf_sf = cate_rl_grf_sf)
 
 # *** Setup ***
 out <- list()
@@ -48,7 +55,7 @@ grid$p.i <- rep(c(1, 1, 25), 3)
 grid <- rbind(grid, grid[2,], grid[5,], grid[8,])
 grid[10:12, ]$pi <- c(0.05)                           # unbalanced design
 grid <- rbind(grid, grid[1,], grid[1,], grid[1,], grid[4,], grid[4,], grid[4,], grid[4,])
-grid[c(13:14, 16:17), ]$cen.scale <- c(8, 6, 8, 6)    # vary censoring rate (under indX): 30% (default), 70% (early censor), 65%
+grid[c(13:14, 16:17), ]$cen.scale <- c(8, 7, 8, 7)    # vary censoring rate (under indX): 30% (default), 70% (early censor), 65%
 grid[c(13, 16), ]$rho <- rep(1, 2)
 grid[c(15, 18), ]$cenM <- rep("dX", 2)                # vary censoring generating model (= dX)
 grid[19, ]$cenM <- "dX.ub"                            # unbalanced censoring
@@ -78,7 +85,7 @@ cenM <- grid$cenM[i]
 t0 <- grid$t0[i]
 an.error.occured <- rep(NA, n.sim)
 for (sim in 1:n.sim) {
-  tryCatch( {
+  #tryCatch( {
   print(paste("sim", sim))
   data <- generate_tutorial_survival_data(n = n, p = p, p.b = p.b, p.i = p.i, f.b = f.b, f.i = f.i, pi = pi,
                                           gamma = gamma, rho = rho, cen.scale = cen.scale, cenM = cenM, dgp = dgp,
@@ -114,7 +121,6 @@ for (sim in 1:n.sim) {
                       rcorr = cor(predictions[,j], true.catesp),
                       taucorr = cor(predictions[,j], true.catesp, method = "kendall"),  # use Kendall's tau for concordance
                       calib.coef = calib.fit$coefficients[2],
-                      # concordance = ccdf(predictions[,j], true.catesp),
                       classif.rate = mean(correct.classification, na.rm = TRUE) # NA: to ignore X1 < 0.3 in DGP 4.
     )
     dfj$rcorr[is.na(dfj$rcorr)==TRUE] <- 0  # assign correlation to 0 when CATE = ATE
@@ -125,9 +131,9 @@ for (sim in 1:n.sim) {
   if (sim==1){
     newnames <- str_replace_all(names(estimators), "cate_", "")
     names(estimators) <- names(estimators)
-    png(paste0("grid", i, "cen.fit.KM.png"),
-        width = 10, height = 6, units = 'in', res = 300)
-    par(mfrow=c(3,5),
+    png(paste0("grid", i, "cen.fit.png"),
+        width = 10, height = 10, units = 'in', res = 300)
+    par(mfrow=c(5,5),
         oma = c(4,4,0,0) + 0.1,
         mar = c(2,1,1,1) + 0.1)
     for (z in 1:length(estimators)){
@@ -138,8 +144,8 @@ for (sim in 1:n.sim) {
       abline(0, 1, col = "red", lwd=1)
       abline(h=mean(true.catesp), col = "blue", lwd=1)
       levels <- round(seq(min(true.catesp), max(true.catesp), by = (max(true.catesp) - min(true.catesp))/5),1)
-      axis(side = 1, at=levels, labels = if (z %in% 11:15) levels else FALSE)
-      axis(side = 2, at=levels, labels = if (z %in% c(1, 6, 11)) levels else FALSE)
+      axis(side = 1, at=levels, labels = if (z %in% 21:25) levels else FALSE)
+      axis(side = 2, at=levels, labels = if (z %in% c(1, 6, 11, 16, 21)) levels else FALSE)
     }
     title(xlab = "Estimated CATE",
           ylab = "True CATE",
@@ -157,9 +163,9 @@ for (sim in 1:n.sim) {
   df$sim <- sim
 
   out <- c(out, list(df))
-  }
-  , error = function(e) {an.error.occured[sim] <<- TRUE})
+  #}
+  #, error = function(e) {an.error.occured[sim] <<- TRUE})
 }
 print(sum(an.error.occured, na.rm = TRUE))
 out.df <- do.call(rbind, out)
-write.csv(out.df, gzfile(paste0("./ML_grid_",i,"_KMfit_p5.csv.gz")), row.names = FALSE)
+write.csv(out.df, gzfile(paste0("./ML_grid_",i,"_SFfit_p1.csv.gz")), row.names = FALSE)

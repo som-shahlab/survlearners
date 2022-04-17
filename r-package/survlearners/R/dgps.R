@@ -87,7 +87,7 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
     # varying censoring rate by changing cen.scale and rho
     numeratorC <- -log(runif(n))
     if (cenM == "dX") {
-      cen.scale <- exp(0.5 + 2 * X[ ,1] + (1 + 2 * X[ ,2]) * W)
+      cen.scale <- exp(0.5 + 2 * X[ ,1] + 2 * X[ ,2] * W)
     } else if (cenM == "dX.ub") {
       cen.scale <- exp(0.5 + 1 * X[ ,1] + 1 * W + (1 + 2 * X[ ,2]) * W)
     }
