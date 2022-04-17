@@ -70,7 +70,13 @@ cate_xl_grf_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kapla
 }
 
 cate_xl_grf_lasso_sf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "survival.forest", alpha = 0.05){
-  fit <- surv_xl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit, args.grf.nuisance = list(alpha = alpha))
+  fit <- surv_xl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit, args.grf.nuisance = list(alpha = alpha))r
+  cate <- as.numeric(unlist(predict(fit, data.test$X)))
+  cate
+}
+
+cate_xl_grf_lasso_sf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "survival.forest"){
+  fit <- surv_xl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit)
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
@@ -94,11 +100,13 @@ cate_rl_grf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meie
   cate
 }
 
+
 cate_rl_grf_sf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "survival.forest", alpha = 0.05){
   fit <- surv_rl_grf(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit, args.grf.nuisance = list(alpha = alpha))
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
+
 
 cate_rl_grf_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier", alpha = 0.05){
   fit <- surv_rl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit, args.grf.nuisance = list(alpha = alpha))
@@ -108,6 +116,12 @@ cate_rl_grf_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kapla
 
 cate_rl_grf_lasso_sf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "survival.forest", alpha = 0.05){
   fit <- surv_rl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit, args.grf.nuisance = list(alpha = alpha))
+  cate <- as.numeric(unlist(predict(fit, data.test$X)))
+  cate
+}
+
+cate_rl_grf_lasso_sf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "survival.forest"){
+  fit <- surv_rl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit)
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
