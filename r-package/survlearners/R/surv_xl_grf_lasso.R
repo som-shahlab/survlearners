@@ -11,7 +11,7 @@
 #' @param W.hat The propensity score
 #' @param cen.fit The choice of model fitting for censoring
 #' @param k.folds The number of folds for estimating nuisance parameters via cross-fitting
-#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
+#' @param new.args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
@@ -36,7 +36,7 @@
 #' @return A surv_xl_grf_lasso object
 #' @export
 surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
-                              k.folds = 10, args.grf.nuisance = list()) {
+                              k.folds = 10, new.args.grf.nuisance = list()) {
 
   args.grf.nuisance <- list(failure.times = NULL,
                             num.trees = max(50, 2000 / 4),
@@ -54,6 +54,7 @@ surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Me
                             compute.oob.predictions = TRUE,
                             num.threads = NULL,
                             seed = runif(1, 0, .Machine$integer.max))
+  args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
   # fit model on W == 1
   grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1, ], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))

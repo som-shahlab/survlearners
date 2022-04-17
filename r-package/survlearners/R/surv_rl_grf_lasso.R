@@ -13,8 +13,8 @@
 #' @param C.hat Censoring weights
 #' @param penalty.factor User-supplied penalty factor, must be of length the same as number of features in X
 #' @param lambda.choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
-#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
-#' @param args.lasso.tau Input arguments for a lasso model that estimates CATE
+#' @param new.args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
+#' @param new.args.lasso.tau Input arguments for a lasso model that estimates CATE
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
@@ -47,8 +47,8 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
                               C.hat = NULL,
                               penalty.factor = NULL,
                               lambda.choice = "lambda.min",
-                              args.grf.nuisance = list(),
-                              args.lasso.tau = list(),
+                              new.args.grf.nuisance = list(),
+                              new.args.lasso.tau = list(),
                               cen.fit = "Kaplan-Meier") {
 
   input <- sanitize_input(X, Y, W, D)
@@ -96,6 +96,7 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
                             compute.oob.predictions = FALSE,
                             num.threads = NULL,
                             seed = runif(1, 0, .Machine$integer.max))
+  args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
   if (is.null(Y.hat)) {
     y.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = D), args.grf.nuisance))
@@ -170,6 +171,7 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
                          lambda = NULL,
                          penalty.factor = penalty.factor.tau,
                          standardize = FALSE)
+  args.lasso.tau[names(new.args.lasso.tau)] <- new.args.lasso.tau
   tau.fit <- do.call(glmnet::cv.glmnet, c(list(x = x.scl.tilde, y = y.tilde), args.lasso.tau))
   tau.beta <- as.vector(t(coef(tau.fit, s = lambda.choice)[-1]))
   tau.hat <- x.scl.pred %*% tau.beta

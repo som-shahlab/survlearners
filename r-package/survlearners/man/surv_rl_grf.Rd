@@ -14,8 +14,8 @@ surv_rl_grf(
   W.hat = NULL,
   Y.hat = NULL,
   C.hat = NULL,
-  args.grf.nuisance = list(),
-  args.grf.tau = list(),
+  new.args.grf.nuisance = list(),
+  new.args.grf.tau = list(),
   cen.fit = "Kaplan-Meier"
 )
 }
@@ -38,9 +38,9 @@ surv_rl_grf(
 
 \item{C.hat}{Censoring weights}
 
-\item{args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
+\item{new.args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
 
-\item{args.grf.tau}{Input arguments for a grf model that estimates CATE}
+\item{new.args.grf.tau}{Input arguments for a grf model that estimates CATE}
 
 \item{cen.fit}{The choice of model fitting for censoring}
 }

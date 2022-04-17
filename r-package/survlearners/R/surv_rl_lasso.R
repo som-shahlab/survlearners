@@ -14,9 +14,9 @@
 #' @param C.hat Censoring weights
 #' @param lambda.choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
 #' @param penalty.factor User-supplied penalty factor, must be of length the same as number of features in X
-#' @param args.lasso.nuisance Input arguments for a lasso model that estimates nuisance parameters
-#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
-#' @param args.lasso.tau Input arguments for a lasso model that estimates CATE
+#' @param new.args.lasso.nuisance Input arguments for a lasso model that estimates nuisance parameters
+#' @param new.args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
+#' @param new.args.lasso.tau Input arguments for a lasso model that estimates CATE
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
@@ -50,9 +50,9 @@ surv_rl_lasso <- function(X, Y, W, D,
                           C.hat = NULL,
                           lambda.choice = "lambda.min",
                           penalty.factor = NULL,
-                          args.lasso.nuisance = list(),
-                          args.grf.nuisance = list(),
-                          args.lasso.tau = list(),
+                          new.args.lasso.nuisance = list(),
+                          new.args.grf.nuisance = list(),
+                          new.args.lasso.tau = list(),
                           cen.fit = "Kaplan-Meier") {
 
     input <- sanitize_input(X, Y, W, D)
@@ -103,12 +103,12 @@ surv_rl_lasso <- function(X, Y, W, D,
       stop("W.hat has incorrect length.")
     }
 
-
     args.lasso.nuisance <- list(family = "cox",
                                 nfolds = k.folds,
                                 alpha = 1,
                                 lambda = NULL,
                                 penalty.factor = penalty.factor.nuisance.m)
+    args.lasso.nuisance[names(new.args.lasso.nuisance)] <- new.args.lasso.nuisance
 
     if (is.null(Y.hat)) {
     foldid <- sample(rep(seq(k.folds), length = length(W)))
@@ -135,6 +135,7 @@ surv_rl_lasso <- function(X, Y, W, D,
                               alpha = 0.05,
                               prediction.type = "Nelson-Aalen",
                               compute.oob.predictions = TRUE)
+    args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
     if (is.null(C.hat)) {
       Q <- as.numeric(D == 1 | Y > t0)         # indicator for uncensored at t0
@@ -187,6 +188,7 @@ surv_rl_lasso <- function(X, Y, W, D,
                            lambda = NULL,
                            penalty.factor = penalty.factor.tau,
                            standardize = FALSE)
+    args.lasso.tau[names(new.args.lasso.nuisance)] <- new.args.lasso.tau
     tau.fit <- do.call(glmnet::cv.glmnet, c(list(x = x.scl.tilde, y = y.tilde), args.lasso.tau))
     tau.beta <- as.vector(t(coef(tau.fit, s = lambda.choice)[-1]))
     tau.hat <- x.scl.pred %*% tau.beta
