@@ -13,8 +13,9 @@ cate_sl_lasso <- function(data, data.test, t0){
   cate
 }
 
-cate_sl_grf <- function(data, data.test, t0){
-  fit <- surv_sl_grf(data$X, data$Y, data$W, data$D, t0 = t0)
+cate_sl_grf <- function(data, data.test, t0, alpha = 0.05){
+  fit <- surv_sl_grf(data$X, data$Y, data$W, data$D, t0 = t0,
+                     args.grf.nuisance = list(alpha = alpha))
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
@@ -32,8 +33,9 @@ cate_tl_lasso <- function(data, data.test, t0){
   cate
 }
 
-cate_tl_grf <- function(data, data.test, t0){
-  fit <- surv_tl_grf(data$X, data$Y, data$W, data$D, t0 = t0)
+cate_tl_grf <- function(data, data.test, t0, alpha = 0.05){
+  fit <- surv_tl_grf(data$X, data$Y, data$W, data$D, t0 = t0,
+                     args.grf.nuisance = list(alpha = alpha))
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
@@ -45,14 +47,16 @@ cate_xl_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Me
   cate
 }
 
-cate_xl_grf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier"){
-  fit <- surv_xl_grf(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit)
+cate_xl_grf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier", alpha = 0.05){
+  fit <- surv_xl_grf(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit,
+                     args.grf.nuisance = list(alpha = alpha))
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
 
-cate_xl_grf_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier"){
-  fit <- surv_xl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit)
+cate_xl_grf_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier", alpha = 0.05){
+  fit <- surv_xl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit,
+                           args.grf.nuisance = list(alpha = alpha))
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
@@ -64,14 +68,16 @@ cate_rl_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Me
   cate
 }
 
-cate_rl_grf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier"){
-  fit <- surv_rl_grf(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit)
+cate_rl_grf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier", alpha = 0.05){
+  fit <- surv_rl_grf(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit,
+                     args.grf.nuisance = list(alpha = alpha))
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
 
-cate_rl_grf_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier"){
-  fit <- surv_rl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit)
+cate_rl_grf_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier", alpha = 0.05){
+  fit <- surv_rl_grf_lasso(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit,
+                           args.grf.nuisance = list(alpha = alpha))
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
@@ -83,8 +89,9 @@ cate_fl_lasso <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Me
   cate
 }
 
-cate_fl_grf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier"){
-  fit <- surv_fl_grf(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit)
+cate_fl_grf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier", alpha = 0.05){
+  fit <- surv_fl_grf(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit,
+                     args.grf.nuisance = list(alpha = alpha))
   cate <- as.numeric(unlist(predict(fit, data.test$X)))
   cate
 }
