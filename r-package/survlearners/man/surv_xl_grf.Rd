@@ -13,7 +13,7 @@ surv_xl_grf(
   W.hat = NULL,
   cen.fit = "Kaplan-Meier",
   k.folds = 10,
-  args.grf.nuisance = list()
+  new.args.grf.nuisance = list()
 )
 }
 \arguments{
@@ -33,7 +33,7 @@ surv_xl_grf(
 
 \item{k.folds}{The number of folds for estimating nuisance parameters via cross-fitting}
 
-\item{args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
+\item{new.args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
 }
 \value{
 A surv_xl_grf object

@@ -17,9 +17,9 @@ surv_rl_lasso(
   C.hat = NULL,
   lambda.choice = "lambda.min",
   penalty.factor = NULL,
-  args.lasso.nuisance = list(),
-  args.grf.nuisance = list(),
-  args.lasso.tau = list(),
+  new.args.lasso.nuisance = list(),
+  new.args.grf.nuisance = list(),
+  new.args.lasso.tau = list(),
   cen.fit = "Kaplan-Meier"
 )
 }
@@ -48,11 +48,11 @@ surv_rl_lasso(
 
 \item{penalty.factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 
-\item{args.lasso.nuisance}{Input arguments for a lasso model that estimates nuisance parameters}
+\item{new.args.lasso.nuisance}{Input arguments for a lasso model that estimates nuisance parameters}
 
-\item{args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
+\item{new.args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
 
-\item{args.lasso.tau}{Input arguments for a lasso model that estimates CATE}
+\item{new.args.lasso.tau}{Input arguments for a lasso model that estimates CATE}
 
 \item{cen.fit}{The choice of model fitting for censoring}
 }

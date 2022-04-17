@@ -16,8 +16,8 @@ surv_rl_grf_lasso(
   C.hat = NULL,
   penalty.factor = NULL,
   lambda.choice = "lambda.min",
-  args.grf.nuisance = list(),
-  args.lasso.tau = list(),
+  new.args.grf.nuisance = list(),
+  new.args.lasso.tau = list(),
   cen.fit = "Kaplan-Meier"
 )
 }
@@ -44,9 +44,9 @@ surv_rl_grf_lasso(
 
 \item{lambda.choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
 
-\item{args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
+\item{new.args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
 
-\item{args.lasso.tau}{Input arguments for a lasso model that estimates CATE}
+\item{new.args.lasso.tau}{Input arguments for a lasso model that estimates CATE}
 
 \item{cen.fit}{The choice of model fitting for censoring}
 }

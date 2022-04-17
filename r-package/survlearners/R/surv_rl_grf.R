@@ -11,8 +11,8 @@
 #' @param W.hat Propensity score
 #' @param Y.hat Conditional mean outcome E(Y|X)
 #' @param C.hat Censoring weights
-#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
-#' @param args.grf.tau Input arguments for a grf model that estimates CATE
+#' @param new.args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
+#' @param new.args.grf.tau Input arguments for a grf model that estimates CATE
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
@@ -43,8 +43,8 @@ surv_rl_grf <- function(X, Y, W, D,
                         W.hat = NULL,
                         Y.hat = NULL,
                         C.hat = NULL,
-                        args.grf.nuisance = list(),
-                        args.grf.tau = list(),
+                        new.args.grf.nuisance = list(),
+                        new.args.grf.tau = list(),
                         cen.fit = "Kaplan-Meier") {
 
   input <- sanitize_input(X, Y, W, D)
@@ -83,6 +83,7 @@ surv_rl_grf <- function(X, Y, W, D,
                             compute.oob.predictions = FALSE,
                             num.threads = NULL,
                             seed = runif(1, 0, .Machine$integer.max))
+  args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
   if (is.null(Y.hat)) {
     y.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = D), args.grf.nuisance))
@@ -165,7 +166,7 @@ surv_rl_grf <- function(X, Y, W, D,
                        compute.oob.predictions = TRUE,
                        num.threads = NULL,
                        seed = runif(1, 0, .Machine$integer.max))
-
+  args.grf.tau[names(new.args.grf.tau)] <- new.args.grf.tau
   tau.fit <- do.call(grf::regression_forest, c(list(X = X.t0, Y = pseudo.outcome), args.grf.tau))
   tau.hat <- predict(tau.fit, data.frame(X))
 

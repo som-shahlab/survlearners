@@ -7,7 +7,7 @@
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param t0 The prediction time of interest
-#' @param args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
+#' @param new.args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
@@ -31,7 +31,7 @@
 #' }
 #' @return A surv_sl_grf object
 #' @export
-surv_sl_grf <- function(X, Y, W, D, t0, args.grf.nuisance = list()) {
+surv_sl_grf <- function(X, Y, W, D, t0, new.args.grf.nuisance = list()) {
 
   args.grf.nuisance <- list(failure.times = NULL,
                             num.trees = max(50, 2000 / 4),
@@ -49,6 +49,7 @@ surv_sl_grf <- function(X, Y, W, D, t0, args.grf.nuisance = list()) {
                             compute.oob.predictions = TRUE,
                             num.threads = NULL,
                             seed = runif(1, 0, .Machine$integer.max))
+  args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
   tau.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = D), args.grf.nuisance))
   index <- findInterval(t0, tau.fit$failure.times)
