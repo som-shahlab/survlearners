@@ -53,21 +53,11 @@ surv_tl_grf <- function(X, Y, W, D, t0, new.args.grf.nuisance = list()) {
 
   # Model for W = 1
   grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1,, drop = FALSE], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
-  index <- findInterval(t0, grffit1$failure.times)
-  if (index == 0) {
-    surf1 <- rep(1, nrow(X))
-  } else {
-    surf1 <- predict(grffit1, X)$predictions[ ,index, drop = FALSE]
-  }
+  surf1 <- predict(grffit1, X, failure.times = t0)$predictions
 
   # Model for W = 0
   grffit0 <- do.call(grf::survival_forest, c(list(X = X[W == 0,, drop = FALSE], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
-  index <- findInterval(t0, grffit0$failure.times)
-  if (index == 0) {
-    surf0 <- rep(1, nrow(X))
-  } else {
-    surf0 <- predict(grffit0, X)$predictions[ ,index, drop = FALSE]
-  }
+  surf0 <- predict(grffit0, X, failure.times = t0)$predictions
 
   tau.hat <- surf1 - surf0
 

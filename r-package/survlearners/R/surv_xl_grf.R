@@ -57,27 +57,11 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
 
   # fit model on W == 1
   grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1, ], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
-  surf1 <- rep(NA, length(W))
-  t0.index <- findInterval(t0, grffit1$failure.times)
-  if (t0.index == 0) {
-    surf1[W == 1] <- rep(1, length(D[W == 1]))
-    surf1[W == 0] <- rep(1, length(D[W == 0]))
-  } else {
-    surf1[W == 1] <- predict(grffit1)$predictions[ ,t0.index, drop = FALSE]
-    surf1[W == 0] <- predict(grffit1, X[W == 0, ])$predictions[ ,t0.index, drop = FALSE]
-  }
+  surf1 <- predict(grffit1, X, failure.times = t0)$predictions
 
   # fit model on W == 0
   grffit0 <- do.call(grf::survival_forest, c(list(X = X[W == 0, ], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
-  surf0 <- rep(NA, length(W))
-  t0.index <- findInterval(t0, grffit0$failure.times)
-  if (t0.index == 0) {
-    surf0[W == 0] <- rep(1, length(D[W == 0]))
-    surf0[W == 1] <- rep(1, length(D[W == 1]))
-  } else {
-    surf0[W == 0] <- predict(grffit0)$predictions[ ,t0.index, drop = FALSE]
-    surf0[W == 1] <- predict(grffit0, X[W == 1, ])$predictions[ ,t0.index, drop = FALSE]
-  }
+  surf0 <- predict(grffit0, X, failure.times = t0)$predictions
 
   Tgrf1 <- 1 - surf1
   Tgrf0 <- 1 - surf0
@@ -94,16 +78,7 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
   } else if (cen.fit == "survival.forest") {
     args.grf.nuisance$alpha <- 0.05
     c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - D), args.grf.nuisance))
-    C.hat <- predict(c.fit)$predictions
-    index <- findInterval(U, c.fit$failure.times)
-    if (any(index == 0)) {
-      tmp.index <- index
-      tmp.index[which(tmp.index == 0)] <- 1
-      C.hat <- C.hat[cbind(1:length(U), tmp.index)]
-      C.hat[which(index == 0)] <- 1
-    } else {
-      C.hat <- C.hat[cbind(1:length(U), index)]
-    }
+    C.hat <- predict(c.fit, failure.times = U, prediction.times = "time")$predictions
   }
   if (any(C.hat == 0)) {
     stop("Some or all uncensored probabilities are exactly zeros. Check input variables or consider adjust the time of interest t0.")
