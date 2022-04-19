@@ -44,17 +44,9 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
                                   survival::Surv(Y[W == 1], D[W == 1]),
                                   family = "cox",
                                   alpha = 1,
-                                  keep = TRUE,
                                   foldid = foldid1)
-  lambda.1.min <- lasso.fit1$lambda[which.min(lasso.fit1$cvm[!is.na(colSums(lasso.fit1$fit.preval))])]
-  S0 <- base_surv(lasso.fit1, Y[W == 1], D[W == 1], x1, lambda = lambda.1.min)
-  surf1 <- rep(NA, length(W))
-  surf1[W == 1] <- pred_surv_preval(lasso.fit1, S0, t0 = t0, lambda = lambda.1.min)
-  surf1[W == 0] <- pred_surv(fit = lasso.fit1,
-                             S0 = S0,
-                             X = X[W == 0, ],
-                             t0 = t0,
-                             lambda = lasso.fit1$lambda.min)
+  S0 <- base_surv(lasso.fit1, Y[W == 1], D[W == 1], x1, lambda = lasso.fit1$lambda.min)
+  surf1 <- pred_surv(fit = lasso.fit1, S0 = S0, X = X, t0 = t0, lambda = lasso.fit1$lambda.min)
 
   # fit model on W == 0 (cross-fitted using "preval" in glmnet)
   foldid0 <- sample(rep(seq(k.folds), length = length(Y[W == 0])))
@@ -63,22 +55,14 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
                                   survival::Surv(Y[W == 0], D[W == 0]),
                                   family = "cox",
                                   alpha = 1,
-                                  keep = TRUE,
                                   foldid = foldid0)
-  lambda.0.min <- lasso.fit0$lambda[which.min(lasso.fit0$cvm[!is.na(colSums(lasso.fit0$fit.preval))])]
-  S0 <- base_surv(lasso.fit0, Y[W == 0], D[W == 0], x0, lambda = lambda.0.min)
-  surf0 <- rep(NA, length(W))
-  surf0[W == 0] <- pred_surv_preval(lasso.fit0, S0, t0 = t0, lambda = lambda.0.min)
-  surf0[W == 1] <- pred_surv(fit = lasso.fit0,
-                             S0 = S0,
-                             X = X[W == 1, ],
-                             t0 = t0,
-                             lambda = lasso.fit0$lambda.min)
+  S0 <- base_surv(lasso.fit0, Y[W == 0], D[W == 0], x0, lambda = lasso.fit0$lambda.min)
+  surf0 <- pred_surv(fit = lasso.fit0, S0 = S0, X = X, t0 = t0, lambda = lasso.fit0$lambda.min)
 
   Tlasso1 <- 1 - surf1
   Tlasso0 <- 1 - surf0
 
-  # IPCW weights (cross-fitted using "preval" in glmnet)
+  # IPCW weights
   U <- pmin(Y, t0)                         # truncated follow-up time by t0
   if (cen.fit == "Kaplan-Meier") {
     fold.id <- sample(rep(seq(k.folds), length = nrow(X)))
@@ -105,16 +89,7 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
                               num.threads = NULL,
                               seed = runif(1, 0, .Machine$integer.max))
     c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - D), args.grf.nuisance))
-    C.hat <- predict(c.fit)$predictions
-    index <- findInterval(U, c.fit$failure.times)
-    if (any(index == 0)) {
-      tmp.index <- index
-      tmp.index[which(tmp.index == 0)] <- 1
-      C.hat <- C.hat[cbind(1:length(U), tmp.index)]
-      C.hat[which(index == 0)] <- 1
-    } else {
-      C.hat <- C.hat[cbind(1:length(U), index)]
-    }
+    C.hat <- predict(c.fit, failure.times = U, prediction.times = "time")$predictions
   }
   if (any(C.hat == 0)) {
     stop("Some or all uncensored probabilities are exactly zeros. Check input variables or consider adjust the time of interest t0.")
