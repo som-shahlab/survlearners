@@ -106,19 +106,18 @@ surv_rl_grf <- function(X, Y, W, D,
   }
 
   if (is.null(C.hat)) {
-    Q <- as.numeric(D == 1 | Y > t0)         # indicator for uncensored at t0
     U <- pmin(Y, t0)                         # truncated follow-up time by t0
     if (cen.fit == "Kaplan-Meier") {
       fold.id <- sample(rep(seq(k.folds), length = nrow(X)))
       C.hat <- rep(NA, length(fold.id))
       for (z in 1:k.folds) {
-        c.fit <- survival::survfit(survival::Surv(Y[!fold.id == z], 1 - Q[!fold.id == z]) ~ 1)
+        c.fit <- survival::survfit(survival::Surv(Y[!fold.id == z], 1 - D[!fold.id == z]) ~ 1)
         C.hat[fold.id == z] <- summary(c.fit, times = U[fold.id == z])$surv
       }
     } else if (cen.fit == "survival.forest") {
       args.grf.nuisance$compute.oob.predictions <- TRUE
       args.grf.nuisance$alpha <- 0.05
-      c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - Q), args.grf.nuisance))
+      c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - D), args.grf.nuisance))
       C.hat <- predict(c.fit)$predictions
       index <- findInterval(U, c.fit$failure.times)
       if (any(index == 0)) {
