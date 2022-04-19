@@ -137,16 +137,16 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
           }
         } else if (p.b == ap & p.i == 1) {
           for (i in 1:n) {
-            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i,, drop = FALSE]) %*% betah + (-0.5 - gamma * X[i,2]) * 0)))^2
-            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i,, drop = FALSE]) %*% betah + (-0.5 - gamma * X[i,2]) * 1)))^2
+            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * X[i,2]) * 0)))^2
+            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * X[i,2]) * 1)))^2
             mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
             mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
         } else if (p.b == ap & p.i == ap) {
           for (i in 1:n) {
-            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i,, drop = FALSE]) %*% betah + (-0.5 - t(X[i,1:ap]) %*% gammah) * 0)))^2
-            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i,, drop = FALSE]) %*% betah + (-0.5 - t(X[i,1:ap]) %*% gammah) * 1)))^2
+            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(X[i,1:ap]) %*% gammah) * 0)))^2
+            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(X[i,1:ap]) %*% gammah) * 1)))^2
             mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
             mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
             catesp[i] <- mu1sp[i] - mu0sp[i]
@@ -163,16 +163,16 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
           }
         } else if (p.b == ap & p.i == 1) {
           for (i in 1:n) {
-            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i,, drop = FALSE]) %*% betah + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 0)))^2
-            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i,, drop = FALSE]) %*% betah + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 1)))^2
+            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 0)))^2
+            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - gamma * as.numeric(X[i,2] > 0.5)) * 1)))^2
             mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
             mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
             catesp[i] <- mu1sp[i] - mu0sp[i]
           }
         } else if (p.b == ap & p.i == ap) {
           for (i in 1:n) {
-            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i,, drop = FALSE]) %*% betah + (-0.5 - t(NLXs[i,, drop = FALSE]) %*% gammah) * 0)))^2
-            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i,, drop = FALSE]) %*% betah + (-0.5 - t(NLXs[i,, drop = FALSE]) %*% gammah) * 1)))^2
+            cox.ft0 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(NLXs[i, ]) %*% gammah) * 0)))^2
+            cox.ft1 <- (numerator / as.vector(exp(t(NLXs[i, ]) %*% betah + (-0.5 - t(NLXs[i, ]) %*% gammah) * 1)))^2
             mu0sp[i] <- mean(pmin(cox.ft0, Y.max) > t0)
             mu1sp[i] <-  mean(pmin(cox.ft1, Y.max) > t0)
             catesp[i] <- mu1sp[i] - mu0sp[i]
