@@ -45,6 +45,7 @@ surv_fl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
     for (z in 1:k.folds) {
       c.fit <- survival::survfit(survival::Surv(Y[!fold.id == z], 1 - D[!fold.id == z]) ~ 1)
       C.hat[fold.id == z] <- summary(c.fit, times = U[fold.id == z])$surv
+      C.hat[fold.id == z][U[fold.id == z] < min(Y[!fold.id == z & D == 1])] <- 1
     }
   } else if (cen.fit == "survival.forest") {
     args.grf.nuisance <- list(failure.times = NULL,
