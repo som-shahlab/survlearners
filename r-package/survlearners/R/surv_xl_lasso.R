@@ -39,7 +39,7 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
 
   # fit model on W == 1 (cross-fitted using "preval" in glmnet)
   foldid1 <- sample(rep(seq(k.folds), length = length(Y[W == 1])))
-  x1 <- as.matrix(data.frame(X[W == 1, ]))
+  x1 <- as.matrix(data.frame(X[W == 1,, drop = FALSE]))
   lasso.fit1 <- glmnet::cv.glmnet(x1,
                                   survival::Surv(Y[W == 1], D[W == 1]),
                                   family = "cox",
@@ -50,7 +50,7 @@ surv_xl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
 
   # fit model on W == 0 (cross-fitted using "preval" in glmnet)
   foldid0 <- sample(rep(seq(k.folds), length = length(Y[W == 0])))
-  x0 <- as.matrix(data.frame(X[W == 0, ]))
+  x0 <- as.matrix(data.frame(X[W == 0,, drop = FALSE]))
   lasso.fit0 <- glmnet::cv.glmnet(x0,
                                   survival::Surv(Y[W == 0], D[W == 0]),
                                   family = "cox",

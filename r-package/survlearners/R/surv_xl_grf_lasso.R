@@ -57,11 +57,11 @@ surv_xl_grf_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Me
   args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
   # fit model on W == 1
-  grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1, ], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
+  grffit1 <- do.call(grf::survival_forest, c(list(X = X[W == 1,, drop = FALSE], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
   surf1 <- predict(grffit1, X, failure.times = t0)$predictions
 
   # fit model on W == 0
-  grffit0 <- do.call(grf::survival_forest, c(list(X = X[W == 0, ], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
+  grffit0 <- do.call(grf::survival_forest, c(list(X = X[W == 0,, drop = FALSE], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
   surf0 <- predict(grffit0, X, failure.times = t0)$predictions
 
   Tgrf1 <- 1 - surf1
