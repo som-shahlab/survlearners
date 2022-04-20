@@ -30,8 +30,6 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
   W.hat <- 0.5
   for (i in 1:length(estimators)) {
     estimator <- estimators[[i]]
-    # if an estimator takes W.hat as an argument provide it
-    # else do not. TODO: every estimator should have a consistent signature with W.hat included or `...`
     set.seed(i)
     if ("W.hat" %in% names(formals(estimator))) {
       fit <- estimator(X, Y, W, D, t0, W.hat = W.hat)
@@ -85,8 +83,6 @@ test_that("estimators are ~ invariant to shifting Y by constant", {
   W.hat <- 0.5
   for (i in 1:length(estimators)) {
     estimator <- estimators[[i]]
-    # if an estimator takes W.hat as an argument provide it
-    # else do not. TODO: every estimator should have a consistent signature with W.hat included or `...`
     set.seed(i)
     if ("W.hat" %in% names(formals(estimator))) {
       fit <- estimator(X, Y, W, D, t0, W.hat = W.hat)
