@@ -105,19 +105,12 @@ predict.surv_sl_grf <- function(object,
     return(object$tau.hat)
   } else {
     if (is.null(t0)) {
-      index <- findInterval(object$t0, object$tau.fit$failure.times)
+      surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata), failure.times = object$t0)$predictions
+      surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata), failure.times = object$t0)$predictions
     } else {
-      index <- findInterval(t0, object$tau.fit$failure.times)
+      surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata), failure.times = t0)$predictions
+      surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata), failure.times = t0)$predictions
     }
-
-    if (index == 0) {
-      surf1 <- rep(1, nrow(newdata))
-      surf0 <- rep(1, nrow(newdata))
-    } else {
-      surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata))$predictions[ ,index, drop = FALSE]
-      surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata))$predictions[ ,index, drop = FALSE]
-    }
-
     return(surf1 - surf0)
   }
 }
