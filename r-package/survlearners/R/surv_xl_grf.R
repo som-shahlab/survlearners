@@ -73,7 +73,8 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
     C.hat <- rep(NA, length(fold.id))
     for (z in 1:k.folds) {
       c.fit <- survival::survfit(survival::Surv(Y[!fold.id == z], 1 - D[!fold.id == z]) ~ 1)
-      C.hat[fold.id == z] <- summary(c.fit, times = U[fold.id == z])$surv
+      kmc <- summary(c.fit, times = U[fold.id == z])
+      C.hat[fold.id == z] <- kmc$surv[match(U[fold.id == z], kmc$time)]
     }
   } else if (cen.fit == "survival.forest") {
     args.grf.nuisance$alpha <- 0.05
