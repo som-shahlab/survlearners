@@ -54,12 +54,12 @@ jobs:
         working-directory: r-package/survlearners
         run: ./run.sh dump_logs
 
-      - name: Build pkgdown 
+      - name: Build pkgdown
         working-directory: r-package/survlearners
         run: |
           sudo Rscript -e "install.packages('pkgdown', type = 'mac.binary')"
           Rscript -e "pkgdown::build_site()"
-          
+
       - name: Deploy to GitHub pages
         if: github.ref == 'refs/heads/master'
         working-directory: r-package/survlearners
@@ -69,4 +69,4 @@ jobs:
           mv docs/ ../../docs
           git add --force ../../docs/
           git commit --allow-empty -m "Update gh-pages"
-          git push --force https://$(GITHUB_PAT)@github.com/som-shahlab/survmetabench.git HEAD:gh-pages
+          git push --force https://$(GITHUB_PAT)@github.com/som-shahlab/survlearners.git HEAD:gh-pages
