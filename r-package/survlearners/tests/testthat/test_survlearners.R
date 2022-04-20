@@ -37,13 +37,11 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
       fit <- estimator(X, Y, W, D, t0)
     }
 
-    W.flipped <- 1 - W
-
     set.seed(i)
     if ("W.hat" %in% names(formals(estimator))) {
-      fit.f <- estimator(X, Y, W.flipped, D, t0, W.hat = W.hat)
+      fit.f <- estimator(X, Y, 1 - W, D, t0, W.hat = W.hat)
     } else {
-      fit.f <- estimator(X, Y, W.flipped, D, t0)
+      fit.f <- estimator(X, Y, 1 - W, D, t0)
     }
 
     expect_equal(predict(fit), -1 * predict(fit.f), tolerance = 0.1, label = names(estimators)[i])
