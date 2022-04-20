@@ -1,21 +1,21 @@
-test_that("estimators are ~ invariant to flipping treatment indicator", {
-  estimators <- list(
-    surv_fl_grf = surv_fl_grf,
-    surv_fl_lasso = surv_fl_lasso,
-    surv_rl_grf_lasso = surv_rl_grf_lasso,
-    surv_rl_grf = surv_rl_grf,
-    surv_rl_lasso = surv_rl_lasso,
-    surv_sl_coxph = surv_sl_coxph,
-    surv_sl_grf = surv_sl_grf,
-    surv_sl_lasso = surv_sl_lasso,
-    surv_tl_coxph = surv_tl_coxph,
-    surv_tl_grf = surv_tl_grf,
-    surv_tl_lasso = surv_tl_lasso,
-    surv_xl_grf_lasso = surv_xl_grf_lasso,
-    surv_xl_grf = surv_xl_grf,
-    surv_xl_lasso = surv_xl_lasso
-  )
+estimators <- list(
+  surv_fl_grf = surv_fl_grf,
+  surv_fl_lasso = surv_fl_lasso,
+  surv_rl_grf_lasso = surv_rl_grf_lasso,
+  surv_rl_grf = surv_rl_grf,
+  surv_rl_lasso = surv_rl_lasso,
+  surv_sl_coxph = surv_sl_coxph,
+  surv_sl_grf = surv_sl_grf,
+  surv_sl_lasso = surv_sl_lasso,
+  surv_tl_coxph = surv_tl_coxph,
+  surv_tl_grf = surv_tl_grf,
+  surv_tl_lasso = surv_tl_lasso,
+  surv_xl_grf_lasso = surv_xl_grf_lasso,
+  surv_xl_grf = surv_xl_grf,
+  surv_xl_lasso = surv_xl_lasso
+)
 
+test_that("estimators are ~ invariant to flipping treatment indicator", {
   n <- 500
   p <- 5
   X <- matrix(rnorm(n * p), n, p)
@@ -52,23 +52,6 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
 })
 
 test_that("estimators are ~ invariant to shifting Y by constant", {
-  estimators <- list(
-    surv_fl_grf = surv_fl_grf,
-    surv_fl_lasso = surv_fl_lasso,
-    surv_rl_grf_lasso = surv_rl_grf_lasso,
-    surv_rl_grf = surv_rl_grf,
-    surv_rl_lasso = surv_rl_lasso,
-    surv_sl_coxph = surv_sl_coxph,
-    surv_sl_grf = surv_sl_grf,
-    surv_sl_lasso = surv_sl_lasso,
-    surv_tl_coxph = surv_tl_coxph,
-    surv_tl_grf = surv_tl_grf,
-    surv_tl_lasso = surv_tl_lasso,
-    surv_xl_grf_lasso = surv_xl_grf_lasso,
-    surv_xl_grf = surv_xl_grf,
-    surv_xl_lasso = surv_xl_lasso
-  )
-
   n <- 500
   p <- 5
   X <- matrix(rnorm(n * p), n, p)
