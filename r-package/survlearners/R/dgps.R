@@ -97,6 +97,20 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
     cen <- ifelse(D == 0 & Y < t0, 0, 1); table(cen)         # censoring rate = 0.3 at t0 = 0.2
     event <- ifelse(D == 1 & Y < t0, 1, 0); table(event); table(event[W==1])    # observed event rate = 0.3 at t0 = 0.2
 
+    # generate true IPCW for dX.ub setting
+    ipcw <- rep(NA, n)
+    numeratorT <- -log(runif(n.mc))
+    numeratorC <- -log(runif(n.mc))
+    for (i in 1:n) {
+      cox.ft <- (numeratorT / exp(beta * as.numeric(X[i,1] > 0.5) + (-0.5 - gamma * X[i,2]) * W[i]))^2
+      failure.time <- pmin(cox.ft, Y.max)
+      cen.scale <- exp(0.5 + 1 * X[i,1] + 1 * W[i] + (1 + 2 * X[i,2]) * W[i])
+      censor.time <- (numeratorC / (cen.scale ^ rho)) ^ (1 / rho)
+      Y <- pmin(failure.time, censor.time)
+      D <- as.integer(failure.time <= censor.time)
+      ipcw[i] <- mean(D == 1 | Y >= t0)
+    }
+
     # generate true CATEs
     mu0sp <- mu1sp <- catesp <- rep(NA, n)
     numerator <- -log(runif(n.mc))
@@ -182,5 +196,5 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
     # sd(catesp) / sd(mu0sp)        # heterogeneity of CATE relative to variation in baseline
     catesp.sign <- sign(catesp)
   }
-  list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max)
+  list(X = X, Y = Y, W = W, D = D, catesp = catesp, catesp.sign = catesp.sign, dgp = dgp, Y.max = Y.max, ipcw = ipcw)
 }
