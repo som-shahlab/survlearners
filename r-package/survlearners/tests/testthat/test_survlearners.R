@@ -19,6 +19,7 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
   n <- 500
   p <- 5
   X <- matrix(rnorm(n * p), n, p)
+  X.test <- matrix(rnorm(251 * p), 251, p)
   W <- rbinom(n, 1, 0.5)
   ft <- 1 + rexp(n, 0.5)
   ct <- 1 + rexp(n, 0.1)
@@ -48,6 +49,7 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
     }
 
     expect_equal(predict(fit), -1 * predict(fit.f), tolerance = 0.1, label = names(estimators)[i])
+    expect_equal(predict(fit, X.test), -1 * predict(fit.f, X.test), tolerance = 0.1, label = names(estimators)[i])
   }
 })
 
@@ -72,6 +74,7 @@ test_that("estimators are ~ invariant to shifting Y by constant", {
   n <- 500
   p <- 5
   X <- matrix(rnorm(n * p), n, p)
+  X.test <- matrix(rnorm(251 * p), 251, p)
   W <- rbinom(n, 1, 0.5)
   ft <- 1 + rexp(n, 0.5)
   ct <- 1 + rexp(n, 0.1)
@@ -99,5 +102,6 @@ test_that("estimators are ~ invariant to shifting Y by constant", {
     }
 
     expect_equal(predict(fit), predict(fit.f), tolerance = 0.05, label = names(estimators)[i])
+    expect_equal(predict(fit, X.test), predict(fit.f, X.test), tolerance = 0.05, label = names(estimators)[i])
   }
 })
