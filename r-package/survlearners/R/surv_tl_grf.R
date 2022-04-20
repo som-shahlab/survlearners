@@ -111,24 +111,12 @@ predict.surv_tl_grf <- function(object,
     return(object$tau.hat)
   } else {
     if (is.null(t0)) {
-      index1 <- findInterval(object$t0, object$fit1$failure.times)
-      index0 <- findInterval(object$t0, object$fit0$failure.times)
+      surf1 <- predict(object$fit1, newdata, failure.times = object$t0)$predictions
+      surf0 <- predict(object$fit0, newdata, failure.times = object$t0)$predictions
     } else {
-      index1 <- findInterval(t0, object$fit1$failure.times)
-      index0 <- findInterval(t0, object$fit0$failure.times)
+      surf1 <- predict(object$fit1, newdata, failure.times = t0)$predictions
+      surf0 <- predict(object$fit0, newdata, failure.times = t0)$predictions
     }
-    if (index1 == 0) {
-      surf1 <- rep(1, nrow(newdata))
-    } else {
-      surf1 <- predict(object$fit1, newdata)$predictions[ ,index1, drop = FALSE]
-    }
-
-    if (index0 == 0) {
-      surf0 <- rep(1, nrow(newdata))
-    } else {
-      surf0 <- predict(object$fit0, newdata)$predictions[ ,index0, drop = FALSE]
-    }
-
     return(surf1 - surf0)
   }
 }
