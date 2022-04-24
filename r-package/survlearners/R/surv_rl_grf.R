@@ -80,7 +80,7 @@ surv_rl_grf <- function(X, Y, W, D,
                             honesty.prune.leaves = TRUE,
                             alpha = 0.05,
                             prediction.type = "Nelson-Aalen",
-                            compute.oob.predictions = FALSE,
+                            compute.oob.predictions = TRUE,
                             num.threads = NULL,
                             seed = runif(1, 0, .Machine$integer.max))
   args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
