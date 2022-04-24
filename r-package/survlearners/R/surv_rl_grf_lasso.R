@@ -93,21 +93,20 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
                             honesty.prune.leaves = TRUE,
                             alpha = 0.05,
                             prediction.type = "Nelson-Aalen",
-                            compute.oob.predictions = FALSE,
+                            compute.oob.predictions = TRUE,
                             num.threads = NULL,
                             seed = runif(1, 0, .Machine$integer.max))
   args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
   if (is.null(Y.hat)) {
-    y.fit <- do.call(grf::survival_forest, c(list(X = cbind(X, W), Y = Y, D = D), args.grf.nuisance))
-    y.fit[["X.orig"]][ , ncol(X) + 1] <- rep(1, nrow(X))
-    S1.hat <- predict(y.fit, failure.times = t0)$predictions
-    y.fit[["X.orig"]][ , ncol(X) + 1] <- rep(0, nrow(X))
-    S0.hat <- predict(y.fit, failure.times = t0)$predictions
-    y.fit[["X.orig"]][ , ncol(X) + 1] <- W
+    y1.fit <- do.call(grf::survival_forest, c(list(X = X[W == 1,, drop = FALSE], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
+    S1.hat <- predict(y1.fit, X, failure.times = t0)$predictions
+    y0.fit <- do.call(grf::survival_forest, c(list(X = X[W == 0,, drop = FALSE], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
+    S0.hat <- predict(y0.fit, X, failure.times = t0)$predictions
     Y.hat  <- W.hat * S1.hat + (1 - W.hat) * S0.hat
   } else {
-    y.fit <- NULL
+    y1.fit <- NULL
+    y0.fit <- NULL
   }
 
   if (is.null(C.hat)) {
@@ -161,7 +160,8 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
 
   ret <- list(tau.fit = tau.fit,
               tau.beta = tau.beta,
-              y.fit = y.fit,
+              y1.fit = y1.fit,
+              y0.fit = y0.fit,
               c.fit = c.fit,
               W.hat = W.hat,
               Y.hat = Y.hat,
