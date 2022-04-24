@@ -44,7 +44,7 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
       fit.f <- estimator(X, Y, 1 - W, D, t0)
     }
 
-    expect_equal(predict(fit), -1 * predict(fit.f), tolerance = 0.1, label = names(estimators)[i])
+    expect_equal(predict(fit), -1 * as.numeric(predict(fit.f)), tolerance = 0.1, label = names(estimators)[i])
     expect_equal(predict(fit, X.test), -1 * predict(fit.f, X.test), tolerance = 0.1, label = names(estimators)[i])
   }
 })
