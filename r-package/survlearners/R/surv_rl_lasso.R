@@ -88,7 +88,7 @@ surv_rl_lasso <- function(X, Y, W, D,
         warning("penalty.factor supplied is not of the same length as the number of columns in X after removing NA columns. Using all ones instead.")
       }
       penalty.factor.nuisance.w <- rep(1, pobs)
-      penalty.factor.nuisance.m <- rep(1, (pobs+1))
+      penalty.factor.nuisance.m <- rep(1, pobs)
       penalty.factor.tau <- c(0, rep(1, pobs))
     } else {
       penalty.factor.nuisance <- penalty.factor
@@ -114,16 +114,24 @@ surv_rl_lasso <- function(X, Y, W, D,
     foldid <- sample(rep(seq(k.folds), length = length(W)))
     survt1 <- survt0 <- rep(NA, length(W))
     for (k in 1:k.folds) {
-      XW <- as.matrix(data.frame(W[!foldid == k], X[!foldid == k, ]))
-      y <- survival::Surv(Y[!foldid == k], D[!foldid == k])
-      y.fit <- do.call(glmnet::cv.glmnet, c(list(x = XW, y = y), args.lasso.nuisance))
-      S0 <- base_surv(y.fit, Y[!foldid == k], D[!foldid == k], XW, lambda = y.fit$lambda.min)
-      survt1[foldid == k] <- pred_surv(y.fit, S0, cbind(rep(1, length(W[foldid == k])), X[foldid == k, ]), t0 = t0, lambda = y.fit$lambda.min)
-      survt0[foldid == k] <- pred_surv(y.fit, S0, cbind(rep(0, length(W[foldid == k])), X[foldid == k, ]), t0 = t0, lambda = y.fit$lambda.min)
+      X1 <- as.matrix(data.frame(X[(!foldid == k) & W == 1,, drop = FALSE]))
+      y1 <- Y[(!foldid == k) & W == 1]
+      D1 <- D[(!foldid == k) & W == 1]
+      y1.fit <- do.call(glmnet::cv.glmnet, c(list(x = X1, y = survival::Surv(y1, D1)), args.lasso.nuisance))
+      S0.1 <- base_surv(y1.fit, y1, D1, X1, lambda = y1.fit$lambda.min)
+      survt1[foldid == k] <- pred_surv(y1.fit, S0.1, X[foldid == k, ], t0 = t0, lambda = y1.fit$lambda.min)
+
+      X0 <- as.matrix(data.frame(X[(!foldid == k) & W == 0,, drop = FALSE]))
+      y0 <- Y[(!foldid == k) & W == 0]
+      D0 <- D[(!foldid == k) & W == 0]
+      y0.fit <- do.call(glmnet::cv.glmnet, c(list(x = X0, y = survival::Surv(y0, D0)), args.lasso.nuisance))
+      S0.0 <- base_surv(y0.fit, y0, D0, X0, lambda = y0.fit$lambda.min)
+      survt0[foldid == k] <- pred_surv(y0.fit, S0.0, X[foldid == k, ], t0 = t0, lambda = y0.fit$lambda.min)
     }
     Y.hat  <- W.hat * survt1 + (1 - W.hat) * survt0
     } else {
-      y.fit <- NULL
+      y1.fit <- NULL
+      y0.fit <- NULL
     }
 
     args.grf.nuisance <- list(failure.times = NULL,
@@ -185,13 +193,14 @@ surv_rl_lasso <- function(X, Y, W, D,
     tau.hat <- x.scl.pred %*% tau.beta
 
     ret <- list(tau.fit = tau.fit,
-               tau.beta = tau.beta,
-               y.fit = y.fit,
-               c.fit = c.fit,
-               W.hat = W.hat,
-               Y.hat = Y.hat,
-               C.hat = C.hat,
-               tau.hat = tau.hat)
+                tau.beta = tau.beta,
+                y1.fit = y1.fit,
+                y0.fit = y0.fit,
+                c.fit = c.fit,
+                W.hat = W.hat,
+                Y.hat = Y.hat,
+                C.hat = C.hat,
+                tau.hat = tau.hat)
     class(ret) <- "surv_rl_lasso"
     ret
 }
