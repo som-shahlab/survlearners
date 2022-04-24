@@ -44,8 +44,13 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
       fit.f <- estimator(X, Y, 1 - W, D, t0)
     }
 
-    expect_equal(predict(fit), -1 * as.numeric(predict(fit.f)), tolerance = 0.1, label = names(estimators)[i])
-    expect_equal(predict(fit, X.test), -1 * predict(fit.f, X.test), tolerance = 0.1, label = names(estimators)[i])
+    if (is.list(predict(fit.f)) == TRUE) {
+      expect_equal(unlist(predict(fit)), -1 * unlist(predict(fit.f)), tolerance = 0.1, label = names(estimators)[i])
+      expect_equal(unlist(predict(fit, X.test)), -1 * unlist(predict(fit.f, X.test)), tolerance = 0.1, label = names(estimators)[i])
+    } else {
+      expect_equal(predict(fit), -1 * predict(fit.f), tolerance = 0.1, label = names(estimators)[i])
+      expect_equal(predict(fit, X.test), -1 * predict(fit.f, X.test), tolerance = 0.1, label = names(estimators)[i])
+    }
   }
 })
 
@@ -77,8 +82,12 @@ test_that("estimators are ~ invariant to shifting Y by constant", {
     } else {
       fit.f <- estimator(X, Y + 100, W, D, t0 + 100)
     }
-
-    expect_equal(predict(fit), predict(fit.f), tolerance = 0.05, label = names(estimators)[i])
-    expect_equal(predict(fit, X.test), predict(fit.f, X.test), tolerance = 0.05, label = names(estimators)[i])
+    if (is.list(predict(fit.f)) == TRUE) {
+      expect_equal(unlist(predict(fit)), unlist(predict(fit.f)), tolerance = 0.05, label = names(estimators)[i])
+      expect_equal(unlist(predict(fit, X.test)), unlist(predict(fit.f, X.test)), tolerance = 0.05, label = names(estimators)[i])
+    } else {
+      expect_equal(predict(fit), predict(fit.f), tolerance = 0.05, label = names(estimators)[i])
+      expect_equal(predict(fit, X.test), predict(fit.f, X.test), tolerance = 0.05, label = names(estimators)[i])
+    }
   }
 })
