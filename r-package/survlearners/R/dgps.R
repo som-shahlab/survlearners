@@ -89,12 +89,12 @@ generate_tutorial_survival_data <- function(n, p, p.b = NULL, p.i = NULL, f.b = 
     if (cenM == "dX") {
       cen.scale <- exp(0.5 + 2 * X[ ,1] + 2 * X[ ,2] * W)
     } else if (cenM == "dX.ub") {
-      cen.scale <- exp(0.5 + 1 * X[ ,1] + 1 * W + (1 + 2 * X[ ,2]) * W)
+      cen.scale <- exp(1 + 2 * X[ ,1] + 2 * W + 2 * X[ ,2] * W)
     }
     censor.time <- (numeratorC / (cen.scale ^ rho)) ^ (1 / rho)
     Y <- pmin(failure.time, censor.time); median(Y)
     D <- as.integer(failure.time <= censor.time); table(D); summary(Y[D == 1])
-    cen <- ifelse(D == 0 & Y < t0, 0, 1); table(cen)         # censoring rate = 0.3 at t0 = 0.2
+    cen <- ifelse(D == 0 & Y < t0, 0, 1); table(cen)         # censoring rate = 0.67 (NL, L) at t0 = 0.2
     event <- ifelse(D == 1 & Y < t0, 1, 0); table(event); table(event[W==1])    # observed event rate = 0.3 at t0 = 0.2
 
     # # generate true IPCW for dX.ub setting
