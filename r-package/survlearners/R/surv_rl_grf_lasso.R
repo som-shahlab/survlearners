@@ -11,7 +11,6 @@
 #' @param W.hat Propensity score
 #' @param Y.hat Conditional mean outcome E(Y|X)
 #' @param C.hat Censoring weights
-#' @param penalty.factor User-supplied penalty factor, must be of length the same as number of features in X
 #' @param lambda.choice How to cross-validate; choose from "lambda.min" or "lambda.1se"
 #' @param new.args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
 #' @param new.args.lasso.tau Input arguments for a lasso model that estimates CATE
@@ -45,7 +44,6 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
                               W.hat = NULL,
                               Y.hat = NULL,
                               C.hat = NULL,
-                              penalty.factor = NULL,
                               lambda.choice = "lambda.min",
                               new.args.grf.nuisance = list(),
                               new.args.lasso.tau = list(),
@@ -56,21 +54,6 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
   W <- as.numeric(input$W)
   Y <- input$Y
   D <- input$D
-  nobs <- nrow(X)
-  pobs <- ncol(X)
-
-  x.scl <- scale(X, center = TRUE, scale = TRUE)
-  x.scl <- x.scl[ ,!is.na(colSums(x.scl)), drop = FALSE]
-
-  # penalty factor for tau estimator
-  if (is.null(penalty.factor) || (length(penalty.factor) != pobs)) {
-    if (!is.null(penalty.factor) && length(penalty.factor) != pobs) {
-      warning("penalty.factor supplied is not of the same length as the number of columns in X after removing NA columns. Using all ones instead.")
-    }
-    penalty.factor.tau <- c(0, rep(1, pobs))
-  } else {
-    penalty.factor.tau <- c(0, penalty.factor)
-  }
 
   if (is.null(W.hat)) {
     stop("propensity score needs to be supplied")
@@ -139,27 +122,19 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
   Y.hat.t0 <- Y.hat[D == 1 | Y > t0]
   W.t0 <- W[D == 1 | Y > t0]
   W.hat.t0 <- W.hat[D == 1 | Y > t0]
-  X.t0 <- x.scl[D == 1 | Y > t0,, drop = FALSE]
-  sample.weights.t0 <- 1 / C.hat[D == 1 | Y > t0]
-
+  X.t0 <- X[D == 1 | Y > t0,, drop = FALSE]
+  sample.weights.t0 <- (W.t0 - W.hat.t0)^2 / C.hat[D == 1 | Y > t0]
+  y.tilde <- ((1 - D.t0) - Y.hat.t0) / (W.t0 - W.hat.t0)
   foldid <- sample(rep(seq(k.folds), length = nrow(X.t0)))
-  y.tilde <- (1 - D.t0) - Y.hat.t0
-  x.scl.tilde <- as.matrix(as.numeric(W.t0 - W.hat.t0) * cbind(1, X.t0))
-  x.scl.pred <- cbind(1, X.t0)
-
   args.lasso.tau <- list(weights = sample.weights.t0,
                          foldid = foldid,
                          alpha = 1,
-                         lambda = NULL,
-                         penalty.factor = penalty.factor.tau,
-                         standardize = FALSE)
+                         lambda = NULL)
   args.lasso.tau[names(new.args.lasso.tau)] <- new.args.lasso.tau
-  tau.fit <- do.call(glmnet::cv.glmnet, c(list(x = x.scl.tilde, y = y.tilde), args.lasso.tau))
-  tau.beta <- as.vector(t(coef(tau.fit, s = lambda.choice)[-1]))
-  tau.hat <- x.scl.pred %*% tau.beta
+  tau.fit <- do.call(glmnet::cv.glmnet, c(list(x = X.t0, y = y.tilde), args.lasso.tau))
+  tau.hat <- predict(tau.fit, newx = X, s = lambda.choice)
 
   ret <- list(tau.fit = tau.fit,
-              tau.beta = tau.beta,
               y1.fit = y1.fit,
               y0.fit = y0.fit,
               c.fit = c.fit,
@@ -207,10 +182,7 @@ predict.surv_rl_grf_lasso <- function(object,
                                       ...) {
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
-    newdata.scl <- scale(newdata, center = TRUE, scale = TRUE)
-    newdata.scl <- newdata.scl[ ,!is.na(colSums(newdata.scl)), drop = FALSE]
-    newdata.scl.pred <- cbind(1, newdata.scl)
-    tau.hat <- newdata.scl.pred %*% object$tau.beta
+    tau.hat <- predict(object$tau.fit, newx = newdata, s = "lambda.min")
   }
   else {
     tau.hat <- object$tau.hat

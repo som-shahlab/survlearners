@@ -14,7 +14,6 @@ surv_rl_grf_lasso(
   W.hat = NULL,
   Y.hat = NULL,
   C.hat = NULL,
-  penalty.factor = NULL,
   lambda.choice = "lambda.min",
   new.args.grf.nuisance = list(),
   new.args.lasso.tau = list(),
@@ -39,8 +38,6 @@ surv_rl_grf_lasso(
 \item{Y.hat}{Conditional mean outcome E(Y|X)}
 
 \item{C.hat}{Censoring weights}
-
-\item{penalty.factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 
 \item{lambda.choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
 
