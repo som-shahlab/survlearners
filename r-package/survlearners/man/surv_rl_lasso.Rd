@@ -16,7 +16,6 @@ surv_rl_lasso(
   Y.hat = NULL,
   C.hat = NULL,
   lambda.choice = "lambda.min",
-  penalty.factor = NULL,
   new.args.lasso.nuisance = list(),
   new.args.grf.nuisance = list(),
   new.args.lasso.tau = list(),
@@ -45,8 +44,6 @@ surv_rl_lasso(
 \item{C.hat}{Censoring weights}
 
 \item{lambda.choice}{How to cross-validate; choose from "lambda.min" or "lambda.1se"}
-
-\item{penalty.factor}{User-supplied penalty factor, must be of length the same as number of features in X}
 
 \item{new.args.lasso.nuisance}{Input arguments for a lasso model that estimates nuisance parameters}
 

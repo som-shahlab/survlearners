@@ -89,7 +89,7 @@ surv_fl_lasso <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier"
 
   Z <- W.t0 * D.t0 / W.hat.t0 - (1 - W.t0) * D.t0 / (1 - W.hat.t0)
   tau.fit <- glmnet::cv.glmnet(X.t0, Z, family = "gaussian", weights = sample.weights.t0, nfolds = k.folds, alpha = 1)
-  tau.hat <- -predict(tau.fit, X.t0)
+  tau.hat <- -predict(tau.fit, X, s = "lambda.min")
 
   ret <- list(tau.fit = tau.fit,
               tau.hat = tau.hat)
@@ -135,6 +135,6 @@ predict.surv_fl_lasso <- function(object,
   if (is.null(newdata)) {
     return(object$tau.hat)
   } else {
-    return(-predict(object$tau.fit, newdata))
+    return(-predict(object$tau.fit, newdata, s = "lambda.min"))
   }
 }

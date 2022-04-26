@@ -50,8 +50,8 @@ surv_sl_lasso <- function(X, Y, W, D, t0,
   Y <- input$Y
   D <- input$D
 
-  x.scl <- scale(X, center = TRUE, scale = TRUE)
-  x.scl <- x.scl[ ,!is.na(colSums(x.scl)), drop = FALSE]
+  standardization <- caret::preProcess(X, method=c("center", "scale"))
+  x.scl <- predict(standardization, X)
 
   nobs <- nrow(x.scl)
   pobs <- ncol(x.scl)
@@ -70,9 +70,9 @@ surv_sl_lasso <- function(X, Y, W, D, t0,
     foldid <- sample(rep(seq(k.folds), length = length(W)))
   }
 
-  x.scl.tilde <- cbind(as.numeric(2 * W - 1) * cbind(1, x.scl), x.scl)
-  x.scl.pred1 <- cbind(1, x.scl, x.scl)
-  x.scl.pred0 <- cbind(0, 0 * x.scl, x.scl)
+  x.scl.tilde <- cbind(as.numeric(W - 0.5) * cbind(1, x.scl), x.scl)
+  x.scl.pred1 <- cbind(0.5 * cbind(1, x.scl), x.scl)
+  x.scl.pred0 <- cbind(-0.5 * cbind(1, x.scl), x.scl)
 
   if (is.null(penalty.factor) || (length(penalty.factor) != pobs)) {
     if (!is.null(penalty.factor) && length(penalty.factor) != 2 * pobs + 1) {
@@ -90,11 +90,9 @@ surv_sl_lasso <- function(X, Y, W, D, t0,
                                standardize = FALSE,
                                alpha = alpha)
 
-  s.beta <- t(as.vector(coef(tau.fit, s = lambda.choice)))
-  s.beta.adj <- c(0.5 * s.beta[1:(1 + dim(X)[2])], s.beta[(2 + dim(X)[2]):dim(x.scl.tilde)[2]])
-
-  link1 <- exp(x.scl.pred1 %*% s.beta.adj)
-  link0 <- exp(x.scl.pred0 %*% s.beta.adj)
+  s.beta <- as.vector(coef(tau.fit, s = lambda.choice))
+  link1 <- exp(x.scl.pred1 %*% s.beta)
+  link0 <- exp(x.scl.pred0 %*% s.beta)
   S0.t <- base_surv(fit = tau.fit,
                     Y = Y,
                     D = D,
@@ -107,8 +105,8 @@ surv_sl_lasso <- function(X, Y, W, D, t0,
     S0 <- S0.t[index, ]$survival
   }
 
-  surv1 <- S0 ^ exp(link1)
-  surv0 <- S0 ^ exp(link0)
+  surv1 <- S0 ^ link1
+  surv0 <- S0 ^ link0
 
   tau.hat <- as.numeric(surv1 - surv0)
 
@@ -116,12 +114,12 @@ surv_sl_lasso <- function(X, Y, W, D, t0,
               x.org = x.scl.tilde,
               y.org = Y,
               D.org = D,
-              beta.org = s.beta,
-              s.beta = s.beta.adj,
+              s.beta = s.beta,
               S0.t = S0.t,
               t0 = t0,
               tau.hat = tau.hat,
-              lambda.choice = lambda.choice)
+              lambda.choice = lambda.choice,
+              standardization = standardization)
 
   class(ret) <- "surv_sl_lasso"
   ret
@@ -166,10 +164,9 @@ predict.surv_sl_lasso <- function(object,
                                   ...) {
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
-    newdata.scl <- scale(newdata, center = TRUE, scale = TRUE)
-    newdata.scl <- newdata.scl[ ,!is.na(colSums(newdata.scl)), drop = FALSE]
-    newdata.scl.pred1 <- cbind(1, newdata.scl, newdata.scl)
-    newdata.scl.pred0 <- cbind(0, 0 * newdata.scl, newdata.scl)
+    newdata.scl <- predict(object$standardization, newdata)
+    newdata.scl.pred1 <- cbind(0.5 * cbind(1, newdata.scl), newdata.scl)
+    newdata.scl.pred0 <- cbind(-0.5 * cbind(1, newdata.scl), newdata.scl)
 
     link1 <- exp(newdata.scl.pred1 %*% object$s.beta)
     link0 <- exp(newdata.scl.pred0 %*% object$s.beta)
@@ -184,8 +181,8 @@ predict.surv_sl_lasso <- function(object,
       S0 <- object$S0.t[index, ]$survival
     }
 
-    surv1 <- S0^exp(link1)
-    surv0 <- S0^exp(link0)
+    surv1 <- S0^link1
+    surv0 <- S0^link0
 
     tau.hat <- as.numeric(surv1 - surv0)
   }

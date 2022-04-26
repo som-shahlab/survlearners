@@ -31,7 +31,7 @@ jobs:
         run: |
           ./run.sh install_all
           # Install OSX deps manually
-          sudo Rscript -e "install.packages(c('survival', 'glmnet', 'grf'), type = 'mac.binary')"
+          sudo Rscript -e "install.packages(c('caret', 'survival', 'glmnet', 'grf'), type = 'mac.binary')"
 
       - name: Tmp devel GRF install
         run: |

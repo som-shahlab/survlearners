@@ -22,4 +22,5 @@ VignetteBuilder: knitr
 Imports:
     glmnet,
     grf,
-    survival
+    survival,
+    caret
