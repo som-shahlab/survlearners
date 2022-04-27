@@ -1,0 +1,421 @@
+---
+title: "Visualization of simulation results"
+date: "3/28/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(cowplot)
+library(ghibli)
+library(patchwork)
+```
+
+
+
+```{r}
+method_tbl <- bind_rows( 
+                data.frame(estimator = "csf", metalearner="CSF", baselearner="GRF", trtlearner="GRF", learner="CSF", cenmodel="KM"),
+                data.frame(estimator = "fl_grf", metalearner = "F", baselearner="GRF", trtlearner="GRF", learner="F*G", cenmodel="KM"),
+                data.frame(estimator = "fl_lasso", metalearner = "F", baselearner="Lasso", trtlearner="Lasso", learner="F*L", cenmodel="KM"),
+                data.frame(estimator = "rl_grf", metalearner = "R", baselearner="GRF", trtlearner="GRF", learner="RGG", cenmodel="KM"),
+                data.frame(estimator = "rl_lasso", metalearner = "R", baselearner="Lasso", trtlearner="Lasso", learner="RLL", cenmodel="KM"),
+                data.frame(estimator = "xl_grf", metalearner = "X", baselearner="GRF", trtlearner="GRF", learner="XGG", cenmodel="KM"),
+                data.frame(estimator = "xl_lasso", metalearner = "X", baselearner="Lasso", trtlearner="Lasso", learner="XLL", cenmodel="KM"),
+                data.frame(estimator = "tl_grf", metalearner = "T", baselearner="GRF", trtlearner="GRF", learner="TG*", cenmodel="KM"),
+                data.frame(estimator = "tl_lasso", metalearner = "T", baselearner="Lasso", trtlearner="Lasso", learner="TL*", cenmodel="KM"),
+                data.frame(estimator = "sl_grf", metalearner = "S", baselearner="GRF", trtlearner="GRF", learner="SG*", cenmodel="KM"),
+                data.frame(estimator = "sl_lasso", metalearner = "S", baselearner="Lasso", trtlearner="Lasso", learner="SL*", cenmodel="KM"),
+                data.frame(estimator = "sl_coxph", metalearner = "CPH", baselearner="CPH", trtlearner="CPH", learner="CPH", cenmodel="KM"),
+                data.frame(estimator = "tl_coxph", metalearner = "T", baselearner="CoxPH", trtlearner="CoxPH", learner="cox", cenmodel="KM"),
+                data.frame(estimator = "xl_las_grf", metalearner = "X", baselearner = "GRF", trtlearner = "Lasso", learner="XGL", cenmodel="KM"),
+                data.frame(estimator = "rl_las_grf", metalearner = "R", baselearner = "GRF", trtlearner = "Lasso", learner="RGL", cenmodel="KM"),
+                data.frame(estimator = "fl_grf_sf", metalearner = "F", baselearner="GRF", trtlearner="GRF", learner="F*G", cenmodel="SF"),
+                data.frame(estimator = "fl_lasso_sf", metalearner = "F", baselearner="Lasso", trtlearner="Lasso", learner="F*L", cenmodel="SF"),
+                data.frame(estimator = "rl_grf_sf", metalearner = "R", baselearner="GRF", trtlearner="GRF", learner="RGG", cenmodel="SF"),
+                data.frame(estimator = "rl_lasso_sf", metalearner = "R", baselearner="Lasso", trtlearner="Lasso", learner="RLL", cenmodel="SF"),
+                data.frame(estimator = "rl_grf_lasso_sf", metalearner = "R", baselearner = "GRF", trtlearner = "Lasso", learner="RGL", cenmodel="SF"),
+                data.frame(estimator = "xl_grf_sf", metalearner = "X", baselearner="GRF", trtlearner="GRF", learner="XGG", cenmodel="SF"),
+                data.frame(estimator = "xl_lasso_sf", metalearner = "X", baselearner="Lasso", trtlearner="Lasso", learner="XLL", cenmodel="SF"),
+                data.frame(estimator = "xl_grf_lasso_sf", metalearner = "X", baselearner = "GRF", trtlearner = "Lasso", learner="XGL", cenmodel="SF"),
+                data.frame(estimator = "rl_lasso_sf", metalearner = "R", baselearner = "GRF", trtlearner = "Lasso", learner="RGL", cenmodel="SF")
+) %>% mutate(metalearner = factor(metalearner, levels=c("CPH", "CSF","R", "T", "X", "F", "S")))
+```
+
+```{r}
+ghibli_light <- ghibli_palette("PonyoLight")
+ghibli_medium <- ghibli_palette("PonyoMedium")
+names(ghibli_light) <- levels(method_tbl$metalearner)
+names(ghibli_medium) <- levels(method_tbl$metalearner)
+```
+```{r}
+tbl <- read_csv("full_results_04_26_22.csv")
+```
+
+
+```{r}
+tbl_filtered <- tbl %>%  
+            mutate(f_b_explicit = ifelse(f.b == "L", "Lin.", "Nonlin."),
+                   f_i_explicit = ifelse(f.i == "L", "Lin.", "Nonlin.")) %>%
+            left_join(method_tbl) %>% 
+            filter(estimator != "tl_coxph")
+```
+
+```{r}
+grouping_vars <-  c("p.b", "f.b", "f_b_explicit", "p.i", 
+                    "f.i", "f_i_explicit", "rho", 
+                    "cen.scale", "gamma", "horizon", "pi", 
+                    "n", "dgp", "cenM", 
+                    "learner", "baselearner", "trtlearner", "metalearner")
+```
+
+```{r}
+tbl_sf <- tbl_filtered %>% filter(cenmodel == "SF")
+tbl_km <- tbl_filtered %>% filter(cenmodel == "KM")
+tbl_sf_km <- left_join(tbl_sf, tbl_km, by = c(grouping_vars, "sim"), suffix=c(".SF",".KM")) %>%
+            mutate(mse = mse.SF/mse.KM)
+```
+
+```{r}
+tbl_summary <- tbl_km %>% 
+                group_by(across(all_of(c(grouping_vars,"cenmodel")))) %>%
+                summarize(var_tau =  mean(true.catesp.var),
+                          ymin_mse = quantile(mse / var_tau, 0.1),
+                          lower_mse = quantile(mse / var_tau, 0.25),
+                          middle_mse = median(mse / var_tau),
+                          upper_mse = quantile(mse / var_tau, 0.75), 
+                          ymax_mse = quantile(mse / var_tau, 0.9),
+                          correlation = mean(rcorr),
+                          n_montecarlo=n()) 
+
+tbl_summary_sf <- tbl_sf %>% 
+                group_by(across(all_of(c(grouping_vars,"cenmodel")))) %>%
+                summarize(var_tau =  mean(true.catesp.var),
+                          ymin_mse = quantile(mse / var_tau, 0.1),
+                          lower_mse = quantile(mse / var_tau, 0.25),
+                          middle_mse = median(mse / var_tau),
+                          upper_mse = quantile(mse / var_tau, 0.75), 
+                          ymax_mse = quantile(mse / var_tau, 0.9),
+                          correlation = mean(rcorr),
+                          n_montecarlo=n()) 
+
+tbl_summary_sf_km <- tbl_sf_km %>% 
+                group_by(across(all_of(grouping_vars))) %>%
+                summarize(var_tau =   1,# mean(true.catesp.var.KM),
+                          ymin_mse = quantile(mse / var_tau, 0.1),
+                          lower_mse = quantile(mse / var_tau, 0.25),
+                          middle_mse = median(mse / var_tau),
+                          upper_mse = quantile(mse / var_tau, 0.75), 
+                          ymax_mse = quantile(mse / var_tau, 0.9))   
+```
+
+# Main simulation
+
+
+```{r}
+tbl_main_sim <- tbl_summary %>% 
+                filter(gamma == 0.5, 
+                       rho == 2,
+                       cen.scale == 4,
+                       horizon == 0.2,
+                       pi == 0.5,
+                       cenM == "indX")
+```
+
+
+
+```{r}
+main_sim_plot <- ggplot(tbl_main_sim,           
+                        aes(x=interaction(learner, metalearner), 
+                             y=ymax_mse, 
+                             ymin=ymin_mse, lower=lower_mse, middle=middle_mse, upper=upper_mse, ymax=ymax_mse,
+                             fill=metalearner,
+                             color=metalearner,
+                             label=learner)) + 
+    geom_boxplot(stat = "identity") + 
+    geom_text(angle = 90, nudge_y = 0.3) + 
+    facet_grid( p.b + p.i ~ f_b_explicit + f_i_explicit,
+               labeller = label_bquote(
+                 cols = f[R] * " = " * .(f_b_explicit) * ", " * f[tau] *" = "* .(f_i_explicit),
+                 rows = p[R] * " = " * .(p.b) * ", " * p[tau] *" = "* .(p.i))) +
+    scale_fill_manual(values=ghibli_light) +
+    scale_color_manual(values=ghibli_medium) + 
+    scale_y_log10(expand = expansion(mult = 0.1)) + 
+    ylab(expression("MSE / Var["*tau(X)*"]")) +
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.line.x = element_blank()) 
+main_sim_plot
+  
+```   
+
+```{r}
+save_plot("main_simulation_plots.pdf", main_sim_plot, base_width=10, base_height=7)
+```
+
+
+# Ablations
+
+## Treatment Imbalance
+
+```{r}
+tbl_imbalance <- tbl_summary %>% 
+                 filter(pi == 0.08)
+```
+
+
+
+
+```{r}
+imbalance_plot <- ggplot(tbl_imbalance,
+                         aes(x=interaction(learner, metalearner), 
+                             y=ymax_mse, 
+                             ymin=ymin_mse, lower=lower_mse, middle=middle_mse, upper=upper_mse, ymax=ymax_mse,
+                             fill=metalearner,
+                             color=metalearner,
+                             label=learner)) + 
+    geom_boxplot(stat = "identity") + 
+    geom_text(angle = 90, nudge_y = 0.2) + 
+    facet_grid( . ~ f_b_explicit + f_i_explicit,
+               labeller = label_bquote(
+                 cols = f[R] * " = " * .(f_b_explicit) * ", " * f[tau] *" = "* .(f_i_explicit))) + 
+    scale_fill_manual(values=ghibli_light) +
+    scale_color_manual(values=ghibli_medium) + 
+    scale_y_log10(expand = expansion(mult = 0.1)) + 
+    ylab(expression("MSE / Var["*tau(X)*"]")) + #labs(title = expression("C. Imbalanced treatment assignment")) + 
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.line.x = element_blank()) 
+
+imbalance_plot
+```
+
+```{r}
+save_plot("imbalance_plot.pdf", imbalance_plot, base_width=9, base_height=3)
+```
+
+
+
+
+## HTE strength
+
+```{r}
+tbl_hte_strength <- tbl_summary %>% 
+                 filter(gamma != 0.5)
+```
+
+  
+
+
+```{r}
+hte_strength_plot <- ggplot(tbl_hte_strength,
+                         aes(x=interaction(learner, metalearner), 
+                             y=ymax_mse, 
+                             ymin=ymin_mse, lower=lower_mse, middle=middle_mse, upper=upper_mse, ymax=ymax_mse,
+                             fill=metalearner,
+                             color=metalearner,
+                             label=learner)) + 
+    geom_boxplot(stat = "identity") + 
+    geom_text(angle = 90, nudge_y = 0.35) + 
+    facet_grid(gamma ~ f_b_explicit + f_i_explicit,
+               labeller = label_bquote(
+                 rows = gamma * " = " * .(gamma),
+                 cols = f[R] * " = " * .(f_b_explicit) * ", " * f[tau] *" = "* .(f_i_explicit))) + 
+    scale_fill_manual(values=ghibli_light) +
+    scale_color_manual(values=ghibli_medium) + 
+    scale_y_log10(expand = expansion(mult = 0.1)) + 
+    ylab(expression("MSE / Var["*tau(X)*"]")) + #labs(title=expression("A. Varying HTE strength")) + 
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.line.x = element_blank()) 
+
+hte_strength_plot
+```
+
+```{r}
+save_plot("hte_strength_plot.pdf", hte_strength_plot, base_width=9, base_height=5.3)
+```
+
+## Time-of-interest
+
+
+
+
+```{r}
+tbl_horizon <- tbl_summary %>% 
+                 filter(horizon %in% c(0.02,  0.35))
+```
+
+```{r}
+horizon_plot <- ggplot(tbl_horizon,
+                         aes(x=interaction(learner, metalearner), 
+                             y=ymax_mse, 
+                             ymin=ymin_mse, lower=lower_mse, middle=middle_mse, upper=upper_mse, ymax=ymax_mse,
+                             fill=metalearner,
+                             color=metalearner,
+                             label=learner)) + 
+    geom_boxplot(stat = "identity") + 
+    geom_text(angle = 90, nudge_y = 0.3) + 
+    facet_grid(horizon ~ f_b_explicit + f_i_explicit,
+               labeller = label_bquote(
+                 rows = t[0] * " = " * .(horizon),
+                 cols = f[R] * " = " * .(f_b_explicit) * ", " * f[tau] *" = "* .(f_i_explicit))) + 
+    scale_fill_manual(values=ghibli_light) +
+    scale_color_manual(values=ghibli_medium) + 
+    scale_y_log10(expand = expansion(mult = 0.1)) + 
+    ylab(expression("MSE / Var["*tau(X)*"]")) + #labs(title=expression("B. Varying time of interest "*t[0])) + 
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.line.x = element_blank()) 
+
+horizon_plot
+```
+
+```{r}
+save_plot("horizon_plot.pdf", horizon_plot, base_width=9, base_height=5.3)
+```
+
+
+## Combine ablation plots
+
+```{r}
+ablation_plots <- hte_strength_plot + 
+          horizon_plot +
+          imbalance_plot + 
+          plot_layout(ncol=1, heights=c(2,2,1.15))
+ablation_plots
+```
+
+```{r}
+save_plot("ablation_plots.pdf", ablation_plots, base_width=9, base_height=12)
+```
+
+# Censoring ablations
+
+## Censoring strength
+
+
+```{r}
+indx_cen4 <- 'C~symbol("^")~X*","*W~"("*kappa*"="*4*")"'
+indx_cen2 <-  'C~symbol("^")~X*","*W~"("*kappa*"="*2*")"'
+dx_exp <- 'C%~%X[1]+X[2]*W'
+dxub_exp <- 'C%~%X[1]+X[2]*W+W'
+
+tbl_censoring_model <- tbl_summary %>% 
+                filter(gamma == 0.5, 
+                       horizon == 0.2,
+                       f.b == "NL",
+                       f.i == "L",
+                       p.b == 1,
+                       rho == 2,
+                       p.i == 1,
+                       pi == 0.5) %>%
+                mutate(censoring_pretty = factor(case_when(
+                                            (cenM == "indX" & cen.scale == 4) ~ indx_cen4,
+                                            (cenM == "indX" & cen.scale == 6) ~ indx_cen6,
+                                            cenM == "dX" ~ dx_exp,
+                                            cenM == "dX.ub" ~ dxub_exp
+                                            ), levels = c(indx_cen4, indx_cen6, dx_exp, dxub_exp) )
+                )
+```
+
+```{r}
+censoring_strength_plot <- ggplot(tbl_censoring_model,
+                         aes(x=interaction(learner, metalearner), 
+                             y=ymax_mse, 
+                             ymin=ymin_mse, lower=lower_mse, middle=middle_mse, upper=upper_mse, ymax=ymax_mse,
+                             fill=metalearner,
+                             color=metalearner,
+                             label=learner)) + 
+    geom_boxplot(stat = "identity") + 
+    geom_text(angle = 90, nudge_y = 0.2) + 
+    facet_grid( .~ censoring_pretty, labeller = label_parsed) + 
+    scale_fill_manual(values = ghibli_light) +
+    scale_color_manual(values = ghibli_medium) +
+    scale_y_log10(expand = expansion(mult = 0.1)) + 
+    ylab(expression("MSE(KM) / Var["*tau(X)*"]")) +
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.line.x = element_blank()) 
+
+censoring_strength_plot
+```
+
+```{r}
+save_plot("censoring_km.pdf", censoring_strength_plot, base_width=10, base_height=3)
+```
+```{r}
+tbl_censoring_diff_NL <- tbl_summary_sf_km %>% 
+                filter(gamma == 0.5, 
+                       horizon == 0.2,
+                       f.b == "NL",
+                       f.i == "L",
+                       rho == 2,
+                       p.b == 1,
+                       p.i == 1,
+                       pi == 0.5)  %>%
+                mutate(censoring_pretty = factor(case_when(
+                                            (cenM == "indX" & cen.scale == 4) ~ indx_cen4,
+                                            (cenM == "indX" & cen.scale == 2) ~ indx_cen2,
+                                            cenM == "dX" ~ dx_exp,
+                                            cenM == "dX.ub" ~ dxub_exp
+                                            ), levels = c(indx_cen4, indx_cen6, dx_exp, dxub_exp) )
+                )
+```
+
+
+
+```{r}
+censoring_diff_NL_plot <- ggplot(tbl_censoring_diff_NL,
+                         aes(x=interaction(learner, metalearner), 
+                             y=ymax_mse, 
+                             ymin=ymin_mse, lower=lower_mse, middle=middle_mse, upper=upper_mse, ymax=ymax_mse,
+                             fill=metalearner,
+                             color=metalearner,
+                             label=learner)) + 
+    geom_boxplot(stat = "identity") + 
+    geom_text(angle = 90, nudge_y = 0.08) + 
+    geom_hline(yintercept =1, linetype="dotted", alpha=0.4) + 
+    facet_grid( .~ censoring_pretty, labeller = label_parsed) + 
+    scale_fill_manual(values = ghibli_light) +
+    scale_color_manual(values = ghibli_medium) +
+    scale_y_log10 (expand = expansion(mult = 0.1)) + 
+    ylab(expression("MSE(GRF) / MSE(KM)")) +
+    theme_cowplot() + 
+    theme(legend.position = "none",
+          strip.background = element_rect(fill="ivory2"),
+          axis.text.x = element_blank(),
+          axis.title.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.line.x = element_blank()) 
+
+censoring_diff_NL_plot
+```
+
+```{r}
+save_plot("censoring_sf_to_km.pdf", censoring_diff_NL_plot, base_width=9, base_height=3)
+```
