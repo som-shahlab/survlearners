@@ -129,30 +129,19 @@ predict.surv_tl_lasso <- function(object,
     return(object$tau.hat)
   } else {
     if (is.null(t0)) {
-      surf1 <- pred_surv(fit = object$fit1,
-                         S0 = object$bsurv1,
-                         X = newdata,
-                         t0 = object$t0,
-                         lambda = object$fit1$lambda.min)
-
-      surf0 <- pred_surv(fit = object$fit0,
-                         S0 = object$bsurv0,
-                         X = newdata,
-                         t0 = object$t0,
-                         lambda = object$fit0$lambda.min)
-    } else {
-      surf1 <- pred_surv(fit = object$fit1,
-                         S0 = object$bsurv1,
-                         X = newdata,
-                         t0 = t0,
-                         lambda = object$fit1$lambda.min)
-
-      surf0 <- pred_surv(fit = object$fit0,
-                         S0 = object$bsurv0,
-                         X = newdata,
-                         t0 = t0,
-                         lambda = object$fit0$lambda.min)
+    t0 <- object$t0
     }
+    surf1 <- pred_surv(fit = object$fit1,
+                       S0 = object$bsurv1,
+                       X = newdata,
+                       t0 = t0,
+                       lambda = object$fit1$lambda.min)
+
+    surf0 <- pred_surv(fit = object$fit0,
+                       S0 = object$bsurv0,
+                       X = newdata,
+                       t0 = t0,
+                       lambda = object$fit0$lambda.min)
     return(surf1 - surf0)
   }
 }

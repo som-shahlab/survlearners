@@ -45,7 +45,7 @@ surv_tl_coxph <- function(X, Y, W, D, t0) {
   } else {
     bh <- bh.dat1[index, 1]
   }
-  est.r1 <- predict(coxph.fit1, newdata = data.frame(X), type="risk")
+  est.r1 <- predict(coxph.fit1, newdata = data.frame(X), type = "risk")
   surf1 <- exp(-bh) ^ est.r1
 
   # Model for W = 0
@@ -57,7 +57,7 @@ surv_tl_coxph <- function(X, Y, W, D, t0) {
   } else {
     bh <- bh.dat0[index, 1]
   }
-  est.r0 <- predict(coxph.fit0, newdata = data.frame(X), type="risk")
+  est.r0 <- predict(coxph.fit0, newdata = data.frame(X), type = "risk")
   surf0 <- exp(-bh) ^ est.r0
 
   tau.hat <- surf1 - surf0
@@ -113,12 +113,10 @@ predict.surv_tl_coxph <- function(object,
     return(object$tau.hat)
   } else {
     if (is.null(t0)) {
-      index1 <- findInterval(object$t0, object$bh1$time)
-      index0 <- findInterval(object$t0, object$bh0$time)
-    } else {
-      index1 <- findInterval(t0, object$bh1$time)
-      index0 <- findInterval(t0, object$bh0$time)
+      t0 <- object$t0
     }
+    index1 <- findInterval(t0, object$bh1$time)
+    index0 <- findInterval(t0, object$bh0$time)
 
     if (index1 == 0) {
       bh1 <- 0
@@ -132,10 +130,10 @@ predict.surv_tl_coxph <- function(object,
       bh0 <- object$bh0[index0, 1]
     }
 
-    est.r1 <- predict(object$fit1, newdata = data.frame(newdata), type="risk")
+    est.r1 <- predict(object$fit1, newdata = data.frame(newdata), type = "risk")
     surf1 <- exp(-bh1) ^ est.r1
 
-    est.r0 <- predict(object$fit0, newdata = data.frame(newdata), type="risk")
+    est.r0 <- predict(object$fit0, newdata = data.frame(newdata), type = "risk")
     surf0 <- exp(-bh0) ^ est.r0
 
     return(surf1 - surf0)

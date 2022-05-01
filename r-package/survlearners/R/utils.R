@@ -5,18 +5,18 @@ base_surv <- function(fit, Y, D, X, lambda) {
   Y <- as.numeric(as.character(sort(unique(tab[ ,1]))))
   D <- tab[ ,2]  # number of events at each unique time
 
-  betaHat <- as.vector((fit$glmnet.fit$beta)[ ,fit$lambda == lambda])
+  betaHat <- as.vector(fit$glmnet.fit$beta[ ,fit$lambda == lambda])
   h0 <- rep(NA, length(Y))
   for (l in 1:length(Y)) {
     h0[l] <- D[l] / sum(exp(X[data$t.event >= Y[l], rownames(fit$glmnet.fit$beta)] %*% betaHat))
   }
 
   S0 <- exp(-cumsum(h0))
-  outcome <- data.frame(time = Y,survival = S0)
+  outcome <- data.frame(time = Y, survival = S0)
   outcome
 }
 pred_surv <- function(fit, S0, X, t0, lambda) {
-  link <- predict(fit$glmnet.fit,X,type = "link")[ ,fit$lambda == lambda]
+  link <- predict(fit$glmnet.fit, X, type = "link")[ ,fit$lambda == lambda]
   colnames(link) <- NULL
 
   if (length(t0)>1) {

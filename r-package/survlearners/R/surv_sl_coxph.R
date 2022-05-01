@@ -124,8 +124,8 @@ predict.surv_sl_coxph <- function(object,
       bh <- bh.dat[index, 1]
     }
 
-    x.pred1 <- data.frame(0.5, 0.5 * newdata, newdata)
-    x.pred0 <- data.frame(-0.5, -0.5 * newdata, newdata)
+    x.pred1 <- data.frame(0.5 * cbind(1, newdata), newdata)
+    x.pred0 <- data.frame(-0.5 * cbind(1, newdata), newdata)
 
     link1 <- exp(as.matrix(x.pred1) %*% object$s.beta)
     link0 <- exp(as.matrix(x.pred0) %*% object$s.beta)
