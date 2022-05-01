@@ -111,12 +111,10 @@ predict.surv_tl_grf <- function(object,
     return(object$tau.hat)
   } else {
     if (is.null(t0)) {
-      surf1 <- predict(object$fit1, newdata, failure.times = object$t0)$predictions
-      surf0 <- predict(object$fit0, newdata, failure.times = object$t0)$predictions
-    } else {
-      surf1 <- predict(object$fit1, newdata, failure.times = t0)$predictions
-      surf0 <- predict(object$fit0, newdata, failure.times = t0)$predictions
+      t0 <- object$t0
     }
+    surf1 <- predict(object$fit1, newdata, failure.times = t0)$predictions
+    surf0 <- predict(object$fit0, newdata, failure.times = t0)$predictions
     return(surf1 - surf0)
   }
 }

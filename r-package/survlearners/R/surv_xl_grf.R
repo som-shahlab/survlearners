@@ -88,8 +88,10 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
   # Propensity score
   if (is.null(W.hat)) {
     stop("propensity score needs to be supplied")
-  } else {
+  } else if (length(W.hat) == 1) {
     W.hat <- rep(W.hat, length(W))
+  } else if (length(W.hat) != nrow(X)) {
+    stop("W.hat has incorrect length.")
   }
 
   # CATE function

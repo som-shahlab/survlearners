@@ -52,8 +52,8 @@ surv_sl_grf <- function(X, Y, W, D, t0, new.args.grf.nuisance = list()) {
   args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
   tau.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = D), args.grf.nuisance))
-  surf1 <- predict(tau.fit, cbind(rep(1, nrow(X)), X), failure.times = t0)$predictions
-  surf0 <- predict(tau.fit, cbind(rep(0, nrow(X)), X), failure.times = t0)$predictions
+  surf1 <- predict(tau.fit, cbind(1, X), failure.times = t0)$predictions
+  surf0 <- predict(tau.fit, cbind(0, X), failure.times = t0)$predictions
 
   tau.hat <- surf1 - surf0
 
@@ -105,12 +105,10 @@ predict.surv_sl_grf <- function(object,
     return(object$tau.hat)
   } else {
     if (is.null(t0)) {
-      surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata), failure.times = object$t0)$predictions
-      surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata), failure.times = object$t0)$predictions
-    } else {
-      surf1 <- predict(object$tau.fit, cbind(rep(1, nrow(newdata)), newdata), failure.times = t0)$predictions
-      surf0 <- predict(object$tau.fit, cbind(rep(0, nrow(newdata)), newdata), failure.times = t0)$predictions
+      t0 <- object$t0
     }
+    surf1 <- predict(object$tau.fit, cbind(1, newdata), failure.times = t0)$predictions
+    surf0 <- predict(object$tau.fit, cbind(0, newdata), failure.times = t0)$predictions
     return(surf1 - surf0)
   }
 }

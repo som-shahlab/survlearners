@@ -103,7 +103,6 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
           C.hat[fold.id == z] <- kmc$surv[match(U[fold.id == z], kmc$time)]
         }
     } else if (cen.fit == "survival.forest") {
-      args.grf.nuisance$compute.oob.predictions <- TRUE
       args.grf.nuisance$alpha <- 0.05
       c.fit <- do.call(grf::survival_forest, c(list(X = cbind(W, X), Y = Y, D = 1 - D), args.grf.nuisance))
       C.hat <- predict(c.fit, failure.times = U, prediction.times = "time")$predictions
