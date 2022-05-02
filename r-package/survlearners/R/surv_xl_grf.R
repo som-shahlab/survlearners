@@ -131,7 +131,6 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
 #'
 #' @param object An surv_xl_grf object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
-#' @param W.hat The propensity score
 #' @param ... Additional arguments (currently not used)
 #'
 #' @examples
@@ -160,20 +159,13 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
 #' @export
 predict.surv_xl_grf <- function(object,
                                 newdata = NULL,
-                                W.hat = NULL,
                                 ...) {
   if (is.null(newdata)) {
     return(object$tau.hat)
   } else {
     XLtau1 <- -predict(object$tau.fit1, data.frame(newdata))
     XLtau0 <- -predict(object$tau.fit0, data.frame(newdata))
-    if (is.null(W.hat)) {
-      W.hat <- rep(object$W.hat[1], nrow(newdata))
-    } else {
-      if (length(W.hat) == 1) {
-      W.hat <- rep(W.hat, nrow(newdata))
-      }
-    }
+    W.hat <- rep(object$W.hat[1], nrow(newdata))
     return(as.vector(XLtau1 * (1 - W.hat) + XLtau0 * W.hat))
   }
 }
