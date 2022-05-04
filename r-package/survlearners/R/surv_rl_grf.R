@@ -86,10 +86,13 @@ surv_rl_grf <- function(X, Y, W, D,
   args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
   if (is.null(Y.hat)) {
+    S1.hat <- S0.hat <- rep(NA, nrow(X))
     y1.fit <- do.call(grf::survival_forest, c(list(X = X[W == 1,, drop = FALSE], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
-    S1.hat <- predict(y1.fit, X, failure.times = t0)$predictions
+    S1.hat[W==1] <- predict(y1.fit, failure.times = t0)$predictions
+    S1.hat[W==0] <- predict(y1.fit, X[W==0,, drop = FALSE], failure.times = t0)$predictions
     y0.fit <- do.call(grf::survival_forest, c(list(X = X[W == 0,, drop = FALSE], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
-    S0.hat <- predict(y0.fit, X, failure.times = t0)$predictions
+    S0.hat[W==0] <- predict(y0.fit, failure.times = t0)$predictions
+    S0.hat[W==1] <- predict(y0.fit, X[W==1,, drop = FALSE], failure.times = t0)$predictions
     Y.hat  <- W.hat * S1.hat + (1 - W.hat) * S0.hat
   } else {
     y1.fit <- NULL
