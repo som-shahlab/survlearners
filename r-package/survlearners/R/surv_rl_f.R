@@ -126,7 +126,7 @@ surv_rl_f <- function(X, Y, W, D,
   args.cf <- list(sample.weights = sample.weights, Y.hat = Y.hat.t0, W.hat = W.hat.t0)
   args.cf[names(new.args.cf)] <- new.args.cf
   tau.fit <- do.call(grf::causal_forest, c(list(X = X.t0, Y = Y.t0, W = W.t0), args.cf))
-  tau.hat <- predict(tau.fit, X)
+  tau.hat <- predict(tau.fit)
 
   ret <- list(tau.fit = tau.fit,
               tau.hat = tau.hat,
