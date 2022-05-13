@@ -9,6 +9,7 @@
 #' @param t0 The prediction time of interest
 #' @param k.folds Number of folds for cross validation
 #' @param W.hat Propensity score
+#' @param Y.hat Conditional mean outcome E(Y|X)
 #' @param C.hat Censoring weights
 #' @param new.args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
 #' @param new.args.cf Input arguments for a causal_forest model that estimates CATE
@@ -40,6 +41,7 @@ surv_rl_f <- function(X, Y, W, D,
                       t0 = NULL,
                       k.folds = NULL,
                       W.hat = NULL,
+                      Y.hat = NULL,
                       C.hat = NULL,
                       new.args.grf.nuisance = list(),
                       new.args.cf = list(),
@@ -75,6 +77,20 @@ surv_rl_f <- function(X, Y, W, D,
                             seed = runif(1, 0, .Machine$integer.max))
   args.grf.nuisance[names(new.args.grf.nuisance)] <- new.args.grf.nuisance
 
+  if (is.null(Y.hat)) {
+    S1.hat <- S0.hat <- rep(NA, nrow(X))
+    y1.fit <- do.call(grf::survival_forest, c(list(X = X[W == 1,, drop = FALSE], Y = Y[W == 1], D = D[W == 1]), args.grf.nuisance))
+    S1.hat[W==1] <- predict(y1.fit, failure.times = t0)$predictions
+    S1.hat[W==0] <- predict(y1.fit, X[W==0,, drop = FALSE], failure.times = t0)$predictions
+    y0.fit <- do.call(grf::survival_forest, c(list(X = X[W == 0,, drop = FALSE], Y = Y[W == 0], D = D[W == 0]), args.grf.nuisance))
+    S0.hat[W==0] <- predict(y0.fit, failure.times = t0)$predictions
+    S0.hat[W==1] <- predict(y0.fit, X[W==1,, drop = FALSE], failure.times = t0)$predictions
+    Y.hat  <- W.hat * S1.hat + (1 - W.hat) * S0.hat
+  } else {
+    y1.fit <- NULL
+    y0.fit <- NULL
+  }
+
   if (is.null(C.hat)) {
     U <- pmin(Y, t0)                         # truncated follow-up time by t0
     if (cen.fit == "Kaplan-Meier") {
@@ -102,11 +118,12 @@ surv_rl_f <- function(X, Y, W, D,
   Y.t0 <- S.t0[D == 1 | Y > t0]
   W.t0 <- W[D == 1 | Y > t0]
   W.hat.t0 <- W.hat[D == 1 | Y > t0]
+  Y.hat.t0 <- Y.hat[D == 1 | Y > t0]
   X.t0 <- X[D == 1 | Y > t0,, drop = FALSE]
   C.hat.t0 <- C.hat[D == 1 | Y > t0]
   sample.weights <- 1 / C.hat.t0
 
-  args.cf <- list(sample.weights = sample.weights, W.hat = W.hat.t0)
+  args.cf <- list(sample.weights = sample.weights, Y.hat = Y.hat.t0, W.hat = W.hat.t0)
   args.cf[names(new.args.cf)] <- new.args.cf
   tau.fit <- do.call(grf::causal_forest, c(list(X = X.t0, Y = Y.t0, W = W.t0), args.cf))
   tau.hat <- predict(tau.fit, X)
@@ -115,6 +132,7 @@ surv_rl_f <- function(X, Y, W, D,
               tau.hat = tau.hat,
               sample.weights = sample.weights,
               c.fit = c.fit,
+              Y.hat = Y.hat,
               W.hat = W.hat,
               C.hat = C.hat)
   class(ret) <- "surv_rl_f"

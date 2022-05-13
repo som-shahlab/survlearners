@@ -12,6 +12,7 @@ surv_rl_f(
   t0 = NULL,
   k.folds = NULL,
   W.hat = NULL,
+  Y.hat = NULL,
   C.hat = NULL,
   new.args.grf.nuisance = list(),
   new.args.cf = list(),
@@ -32,6 +33,8 @@ surv_rl_f(
 \item{k.folds}{Number of folds for cross validation}
 
 \item{W.hat}{Propensity score}
+
+\item{Y.hat}{Conditional mean outcome E(Y|X)}
 
 \item{C.hat}{Censoring weights}
 
