@@ -50,8 +50,10 @@ surv_sl_lasso <- function(X, Y, W, D, t0,
   Y <- input$Y
   D <- input$D
 
-  standardization <- caret::preProcess(X, method=c("center", "scale"))
-  x.scl <- predict(standardization, X)
+  x.mean <- colMeans(X)
+  x.sd <- apply(X, 2, sd)
+  x.sd[x.sd == 0] <- 1 # in case Xj is constant.
+  x.scl <- scale(X, center = x.mean, scale = x.sd)
 
   nobs <- nrow(x.scl)
   pobs <- ncol(x.scl)
@@ -119,7 +121,7 @@ surv_sl_lasso <- function(X, Y, W, D, t0,
               t0 = t0,
               tau.hat = tau.hat,
               lambda.choice = lambda.choice,
-              standardization = standardization)
+              standardization = list(x.mean = x.mean, x.sd = x.sd))
 
   class(ret) <- "surv_sl_lasso"
   ret
@@ -164,7 +166,7 @@ predict.surv_sl_lasso <- function(object,
                                   ...) {
   if (!is.null(newdata)) {
     newdata <- sanitize_x(newdata)
-    newdata.scl <- predict(object$standardization, newdata)
+    newdata.scl <- scale(newdata, center = object$standardization$x.mean, scale = object$standardization$x.sd)
     newdata.scl.pred1 <- cbind(0.5 * cbind(1, newdata.scl), newdata.scl)
     newdata.scl.pred0 <- cbind(-0.5 * cbind(1, newdata.scl), newdata.scl)
 
