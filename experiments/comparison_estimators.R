@@ -92,6 +92,20 @@ cate_rl_lasso_sf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "surviv
   cate
 }
 
+cate_rl_f <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier", alpha = 0.05){
+  fit <- surv_rl_f(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit,
+                   new.args.grf.nuisance = list(alpha = alpha))
+  cate <- as.numeric(unlist(predict(fit, data.test$X)))
+  cate
+}
+
+cate_rl_f_sf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "survival.forest", alpha = 0.05){
+  fit <- surv_rl_f(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit,
+                   new.args.grf.nuisance = list(alpha = alpha))
+  cate <- as.numeric(unlist(predict(fit, data.test$X)))
+  cate
+}
+
 cate_rl_grf <- function(data, data.test, t0, W.hat = 0.5, cen.fit = "Kaplan-Meier", alpha = 0.05){
   fit <- surv_rl_grf(data$X, data$Y, data$W, data$D, t0 = t0, W.hat = W.hat, cen.fit = cen.fit,
                      new.args.grf.nuisance = list(alpha = alpha))
