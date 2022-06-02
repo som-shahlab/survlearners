@@ -1,6 +1,11 @@
-#' @title R-learner of grf and lasso
+#' @title R-learner with random survival forest and Lasso
 #'
-#' @description  R-learner, implemented via the grf package for nuisance parameter estimation and lasso for target parameter
+#' @description Estimating conditional average treatment effects (CATEs) for
+#' survival outcomes using R-learner with random survival forest for nuisance outcomes
+#' (implemented via the grf package) and penalized regression Lasso for CATEs
+#' (implemented via the glmnet package).
+#' The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+#' where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
 #'
 #' @param X The baseline covariates
 #' @param Y The follow-up time
@@ -147,9 +152,11 @@ surv_rl_grf_lasso <- function(X, Y, W, D,
   ret
 }
 
-#' predict for surv_rl_grf_lasso
+#' Predict with a R-learner with random survival forest and Lasso
 #'
-#' get estimated tau(X) using the trained surv_rl_grf_lasso model
+#' Obtain estimated tau(X) using a trained R-learner with random survival forest and Lasso model
+#'
+#' Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 #'
 #' @param object A surv_rl_grf_lasso object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data

@@ -1,6 +1,10 @@
-#' @title R-learner of lasso
+#' @title R-learner with Lasso
 #'
-#' @description  R-learner, implemented via glmnet (lasso)
+#' @description Estimating conditional average treatment effects (CATEs) for
+#' survival outcomes using R-learner with penalized regression models Lasso
+#' (implemented via the glmnet package).
+#' The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+#' where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
 #'
 #' @param X The baseline covariates
 #' @param Y The follow-up time
@@ -176,9 +180,11 @@ surv_rl_lasso <- function(X, Y, W, D,
 }
 
 
-#' predict for surv_rl_lasso
+#' Predict with a R-learner with Lasso
 #'
-#' get estimated tau(X) using the trained surv_rl_lasso model
+#' Obtain estimated tau(X) using a trained R-learner with Lasso model
+#'
+#' Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 #'
 #' @param object An surv_rl_lasso object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data

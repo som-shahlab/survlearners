@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_xl_grf_lasso.R
 \name{surv_xl_grf_lasso}
 \alias{surv_xl_grf_lasso}
-\title{X-learner of lasso and grf}
+\title{X-learner with random survival forest and Lasso}
 \usage{
 surv_xl_grf_lasso(
   X,
@@ -39,8 +39,12 @@ surv_xl_grf_lasso(
 A surv_xl_grf_lasso object
 }
 \description{
-X-learner, implemented via grf (for nuisance parameter estimation)
-and glmnet (lasso) with "coxph" distribution (for target function CATE estimation)
+Estimating conditional average treatment effects (CATEs) for
+survival outcomes using X-learner with random survival for nuisance outcomes
+(implemented via the grf package) and penalized regression Lasso for CATEs
+(implemented via the glmnet package).
+The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
 }
 \examples{
 \donttest{

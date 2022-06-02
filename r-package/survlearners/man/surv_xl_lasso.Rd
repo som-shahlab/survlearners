@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_xl_lasso.R
 \name{surv_xl_lasso}
 \alias{surv_xl_lasso}
-\title{X-learner of lasso}
+\title{X-learner with Lasso}
 \usage{
 surv_xl_lasso(
   X,
@@ -39,7 +39,11 @@ surv_xl_lasso(
 A surv_xl_lasso object
 }
 \description{
-X-learner, implemented via glmnet (lasso) with "coxph" distribution
+Estimating conditional average treatment effects (CATEs) for
+survival outcomes using X-learner with penalized regression models Lasso
+(implemented via the glmnet package).
+The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
 }
 \examples{
 \donttest{

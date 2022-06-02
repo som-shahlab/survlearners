@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_sl_lasso.R
 \name{predict.surv_sl_lasso}
 \alias{predict.surv_sl_lasso}
-\title{predict for surv_sl_lasso}
+\title{Predict with a S-learner with Lasso}
 \usage{
 \method{predict}{surv_sl_lasso}(object, newdata = NULL, t0 = NULL, ...)
 }
@@ -19,7 +19,10 @@
 A vector of estimated conditional average treatment effects
 }
 \description{
-get estimated tau(X) using the trained surv_sl_lasso model
+Obtain estimated tau(X) using a trained S-learner with Lasso model
+}
+\details{
+Remark: CATE predictions can be made at any time point on the estimated survival curve
 }
 \examples{
 \donttest{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_rl_grf.R
 \name{surv_rl_grf}
 \alias{surv_rl_grf}
-\title{R-learner of grf}
+\title{R-learner with grf}
 \usage{
 surv_rl_grf(
   X,

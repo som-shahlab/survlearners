@@ -1,6 +1,14 @@
-#' @title R-learner of random forest
+#' @title R-learner with causal forest
 #'
-#' @description  R-learner, implemented via the causal_forest function in grf package
+#' @description Estimating conditional average treatment effects (CATEs) for
+#' survival outcomes using R-learner with random forest, which is essentially the
+#' inverse-probability-censoring-weighted causal forest (implemented via the grf package).
+#' The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+#' where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
+#'
+#' Remark: A random survival forest model is used for estimating nuisance parameters
+#' (i.e., nuisance outcomes and inverse-probability-censoring weights), and the estimated nuisances
+#' are given as inputs of a causal forest model to estimate the target parameter CATEs
 #'
 #' @param X The baseline covariates
 #' @param Y The follow-up time
@@ -139,9 +147,11 @@ surv_rl_f <- function(X, Y, W, D,
   ret
 }
 
-#' predict for surv_rl_f
+#' Predict with a R-learner with causal forest
 #'
-#' get estimated tau(X) using the trained surv_rl_f model
+#' Obtain estimated tau(X) using a trained R-learner with causal forest model
+#'
+#' Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 #'
 #' @param object A surv_rl_f object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data

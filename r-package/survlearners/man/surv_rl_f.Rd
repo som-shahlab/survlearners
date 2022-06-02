@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_rl_f.R
 \name{surv_rl_f}
 \alias{surv_rl_f}
-\title{R-learner of random forest}
+\title{R-learner with causal forest}
 \usage{
 surv_rl_f(
   X,
@@ -48,7 +48,15 @@ surv_rl_f(
 A surv_rl_f object
 }
 \description{
-R-learner, implemented via the causal_forest function in grf package
+Estimating conditional average treatment effects (CATEs) for
+survival outcomes using R-learner with random forest, which is essentially the
+inverse-probability-censoring-weighted causal forest (implemented via the grf package).
+The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
+
+Remark: A random survival forest model is used for estimating nuisance parameters
+(i.e., nuisance outcomes and inverse-probability-censoring weights), and the estimated nuisances
+are given as inputs of a causal forest model to estimate the target parameter CATEs
 }
 \examples{
 \donttest{
