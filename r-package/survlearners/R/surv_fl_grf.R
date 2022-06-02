@@ -1,6 +1,14 @@
-#' @title F-learner of grf
+#' @title M-learner with random (survival) forest
 #'
-#' @description  F-learner, implemented via survival_forest in the grf package
+#' @description Estimating conditional average treatment effects (CATEs) for
+#' survival outcomes using M-learner with random (survival) forest predictive models
+#' (implemented via the grf package).
+#' The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+#' where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
+#'
+#' Remark: A random survival forest model is used for estimating nuisance parameters
+#' (i.e., inverse-probability-censoring weights), and a regression forest model
+#' is ued for estimating the target parameter CATEs
 #'
 #' @param X The baseline covariates
 #' @param Y The follow-up time
@@ -99,9 +107,11 @@ surv_fl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
   ret
 }
 
-#' predict for surv_fl_grf
+#' Predict with an M-learner with random (survvial) forest
 #'
-#' get estimated tau(X) using the trained surv_fl_grf model
+#' Obtain estimated tau(X) using a trained M-learner with random (survvial) forest model
+#'
+#' Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 #'
 #' @param object An surv_fl_grf object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data

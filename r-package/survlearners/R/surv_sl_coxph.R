@@ -1,6 +1,10 @@
-#' @title S-learner of Cox PH
+#' @title S-learner with Cox regression
 #'
-#' @description  S-learner, implemented via Cox proportional hazard models
+#' @description Estimating conditional average treatment effects (CATEs) for
+#' survival outcomes using S-learner with Cox proportional hazard models
+#' (implemented via the survival package).
+#' The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+#' where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
 #'
 #' @param X The baseline covariates
 #' @param Y The follow-up time
@@ -73,9 +77,11 @@ surv_sl_coxph <- function(X, Y, W, D, t0) {
   ret
 }
 
-#' predict for surv_sl_coxph
+#' Predict for a S-learner with Cox regression
 #'
-#' get estimated tau(X) using the trained surv_sl_coxph model
+#' Obtain estimated tau(X) using a trained S-learner with Cox regression
+#'
+#' Remark: CATE predictions can be made at any time point on the estimated survival curve
 #'
 #' @param object A surv_sl_coxph object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data

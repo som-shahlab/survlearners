@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_fl_lasso.R
 \name{predict.surv_fl_lasso}
 \alias{predict.surv_fl_lasso}
-\title{predict for surv_fl_lasso}
+\title{Predict with an M-learner with Lasso}
 \usage{
 \method{predict}{surv_fl_lasso}(object, newdata = NULL, ...)
 }
@@ -17,7 +17,10 @@
 A vector of estimated conditional average treatment effects
 }
 \description{
-get estimated tau(X) using the trained surv_fl_lasso model
+Obtain estimated tau(X) using a trained M-learner with Lasso model
+}
+\details{
+Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 }
 \examples{
 \donttest{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_tl_grf.R
 \name{surv_tl_grf}
 \alias{surv_tl_grf}
-\title{T-learner of grf}
+\title{T-learner with random survival forest}
 \usage{
 surv_tl_grf(X, Y, W, D, t0, new.args.grf.nuisance = list())
 }
@@ -23,7 +23,11 @@ surv_tl_grf(X, Y, W, D, t0, new.args.grf.nuisance = list())
 A surv_tl_grf object
 }
 \description{
-T-learner, implemented via survival_forest (grf package)
+Estimating conditional average treatment effects (CATEs) for
+survival outcomes using T-learner with random survival forest predictive models
+(implemented via the grf package).
+The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
 }
 \examples{
 \donttest{

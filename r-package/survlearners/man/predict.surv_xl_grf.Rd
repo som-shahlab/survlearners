@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_xl_grf.R
 \name{predict.surv_xl_grf}
 \alias{predict.surv_xl_grf}
-\title{predict for surv_xl_grf}
+\title{Predict with a X-learner with random (survvial) forest}
 \usage{
 \method{predict}{surv_xl_grf}(object, newdata = NULL, ...)
 }
@@ -17,7 +17,10 @@
 A vector of estimated conditional average treatment effects
 }
 \description{
-get estimated tau(X) using the trained surv_xl_grf model
+Obtain estimated tau(X) using a trained X-learner with random (survvial) forest model
+}
+\details{
+Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 }
 \examples{
 \donttest{

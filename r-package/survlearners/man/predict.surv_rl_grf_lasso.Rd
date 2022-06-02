@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_rl_grf_lasso.R
 \name{predict.surv_rl_grf_lasso}
 \alias{predict.surv_rl_grf_lasso}
-\title{predict for surv_rl_grf_lasso}
+\title{Predict with a R-learner with random survival forest and Lasso}
 \usage{
 \method{predict}{surv_rl_grf_lasso}(object, newdata = NULL, ...)
 }
@@ -17,7 +17,10 @@
 A vector of predicted conditional average treatment effects
 }
 \description{
-get estimated tau(X) using the trained surv_rl_grf_lasso model
+Obtain estimated tau(X) using a trained R-learner with random survival forest and Lasso model
+}
+\details{
+Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 }
 \examples{
 \donttest{

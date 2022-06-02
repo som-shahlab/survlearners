@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_tl_coxph.R
 \name{predict.surv_tl_coxph}
 \alias{predict.surv_tl_coxph}
-\title{predict for surv_tl_coxph}
+\title{Predict for a T-learner with Cox regression}
 \usage{
 \method{predict}{surv_tl_coxph}(object, newdata = NULL, t0 = NULL, ...)
 }
@@ -19,7 +19,10 @@
 A vector of estimated conditional average treatment effects
 }
 \description{
-get estimated tau(X) using the trained surv_tl_coxph model
+Obtain estimated tau(X) using a trained T-learner with Cox regression
+}
+\details{
+Remark: CATE predictions can be made at any time point on the estimated survival curve
 }
 \examples{
 \donttest{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_tl_coxph.R
 \name{surv_tl_coxph}
 \alias{surv_tl_coxph}
-\title{T-learner of Cox PH}
+\title{T-learner with Cox regression}
 \usage{
 surv_tl_coxph(X, Y, W, D, t0)
 }
@@ -21,7 +21,11 @@ surv_tl_coxph(X, Y, W, D, t0)
 A surv_tl_coxph object
 }
 \description{
-T-learner, implemented via Cox proportional hazard models
+Estimating conditional average treatment effects (CATEs) for
+survival outcomes using T-learner with Cox proportional hazard models
+(implemented via the survival package).
+The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
 }
 \examples{
 \donttest{

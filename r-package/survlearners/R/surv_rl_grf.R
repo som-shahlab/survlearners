@@ -1,4 +1,4 @@
-#' @title R-learner of grf
+#' @title R-learner with grf
 #'
 #' @description  R-learner, implemented via the grf package
 #'

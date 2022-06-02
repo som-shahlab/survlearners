@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_fl_grf.R
 \name{surv_fl_grf}
 \alias{surv_fl_grf}
-\title{F-learner of grf}
+\title{M-learner with random (survival) forest}
 \usage{
 surv_fl_grf(
   X,
@@ -39,7 +39,15 @@ surv_fl_grf(
 A surv_fl_grf object
 }
 \description{
-F-learner, implemented via survival_forest in the grf package
+Estimating conditional average treatment effects (CATEs) for
+survival outcomes using M-learner with random (survival) forest predictive models
+(implemented via the grf package).
+The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
+
+Remark: A random survival forest model is used for estimating nuisance parameters
+(i.e., inverse-probability-censoring weights), and a regression forest model
+is ued for estimating the target parameter CATEs
 }
 \examples{
 \donttest{
