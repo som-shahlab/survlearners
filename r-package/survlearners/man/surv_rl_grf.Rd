@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_rl_grf.R
 \name{surv_rl_grf}
 \alias{surv_rl_grf}
-\title{R-learner of grf}
+\title{R-learner with causal forest}
 \usage{
 surv_rl_grf(
   X,
@@ -15,7 +15,7 @@ surv_rl_grf(
   Y.hat = NULL,
   C.hat = NULL,
   new.args.grf.nuisance = list(),
-  new.args.grf.tau = list(),
+  new.args.cf = list(),
   cen.fit = "Kaplan-Meier"
 )
 }
@@ -40,15 +40,23 @@ surv_rl_grf(
 
 \item{new.args.grf.nuisance}{Input arguments for a grf model that estimates nuisance parameters}
 
-\item{new.args.grf.tau}{Input arguments for a grf model that estimates CATE}
+\item{new.args.cf}{Input arguments for a causal_forest model that estimates CATE}
 
 \item{cen.fit}{The choice of model fitting for censoring}
 }
 \value{
-A surv_rl_grf_fit object
+A surv_rl_grf object
 }
 \description{
-R-learner, implemented via the grf package
+Estimating conditional average treatment effects (CATEs) for
+survival outcomes using R-learner with random forest, which is essentially the
+inverse-probability-censoring-weighted causal forest (implemented via the grf package).
+The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
+
+Remark: A random survival forest model is used for estimating nuisance parameters
+(i.e., nuisance outcomes and inverse-probability-censoring weights), and the estimated nuisances
+are given as inputs of a causal forest model to estimate the target parameter CATEs
 }
 \examples{
 \donttest{

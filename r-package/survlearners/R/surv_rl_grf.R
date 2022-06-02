@@ -1,6 +1,14 @@
-#' @title R-learner of grf
+#' @title R-learner with causal forest
 #'
-#' @description  R-learner, implemented via the grf package
+#' @description Estimating conditional average treatment effects (CATEs) for
+#' survival outcomes using R-learner with random forest, which is essentially the
+#' inverse-probability-censoring-weighted causal forest (implemented via the grf package).
+#' The CATE is defined as tau(X) = p(Y(1) > t0 | X = x) - p(Y(0) > t0 | X = x),
+#' where Y(1) and Y(0) are counterfactual survival times under the treated and controlled arms, respectively.
+#'
+#' Remark: A random survival forest model is used for estimating nuisance parameters
+#' (i.e., nuisance outcomes and inverse-probability-censoring weights), and the estimated nuisances
+#' are given as inputs of a causal forest model to estimate the target parameter CATEs
 #'
 #' @param X The baseline covariates
 #' @param Y The follow-up time
@@ -12,7 +20,7 @@
 #' @param Y.hat Conditional mean outcome E(Y|X)
 #' @param C.hat Censoring weights
 #' @param new.args.grf.nuisance Input arguments for a grf model that estimates nuisance parameters
-#' @param new.args.grf.tau Input arguments for a grf model that estimates CATE
+#' @param new.args.cf Input arguments for a causal_forest model that estimates CATE
 #' @param cen.fit The choice of model fitting for censoring
 #' @examples
 #' \donttest{
@@ -35,25 +43,17 @@
 #' cate <- predict(surv.rl.grf.fit)
 #' cate.test <- predict(surv.rl.grf.fit, X.test)
 #' }
-#' @return A surv_rl_grf_fit object
+#' @return A surv_rl_grf object
 #' @export
 surv_rl_grf <- function(X, Y, W, D,
-                        t0 = NULL,
-                        k.folds = NULL,
-                        W.hat = NULL,
-                        Y.hat = NULL,
-                        C.hat = NULL,
-                        new.args.grf.nuisance = list(),
-                        new.args.grf.tau = list(),
-                        cen.fit = "Kaplan-Meier") {
-
-  input <- sanitize_input(X, Y, W, D)
-  X <- input$X
-  W <- as.numeric(input$W)
-  Y <- input$Y
-  D <- input$D
-  nobs <- nrow(X)
-  pobs <- ncol(X)
+                      t0 = NULL,
+                      k.folds = NULL,
+                      W.hat = NULL,
+                      Y.hat = NULL,
+                      C.hat = NULL,
+                      new.args.grf.nuisance = list(),
+                      new.args.cf = list(),
+                      cen.fit = "Kaplan-Meier") {
 
   if (is.null(k.folds)) {
     k.folds <- floor(max(3, min(10, length(Y) / 4)))
@@ -122,55 +122,36 @@ surv_rl_grf <- function(X, Y, W, D,
   }
 
   # CATE function
-  D.t0 <- D
-  D.t0[D == 1 & Y > t0] <- 0
-  D.t0 <- D.t0[D == 1 | Y > t0]
-  Y.hat.t0 <- Y.hat[D == 1 | Y > t0]
+  S.t0 <- as.numeric(Y > t0)
+  Y.t0 <- S.t0[D == 1 | Y > t0]
   W.t0 <- W[D == 1 | Y > t0]
   W.hat.t0 <- W.hat[D == 1 | Y > t0]
+  Y.hat.t0 <- Y.hat[D == 1 | Y > t0]
   X.t0 <- X[D == 1 | Y > t0,, drop = FALSE]
   C.hat.t0 <- C.hat[D == 1 | Y > t0]
+  sample.weights <- 1 / C.hat.t0
 
-  y.tilde <- (1 - D.t0) - Y.hat.t0
-  w.tilde <- W.t0 - W.hat.t0
-  pseudo.outcome <- y.tilde / w.tilde
-  sample.weights <- w.tilde^2 / C.hat.t0
-
-  args.grf.tau <- list(sample.weights = sample.weights,
-                       num.trees = 2000,
-                       clusters = NULL,
-                       sample.fraction = 0.5,
-                       mtry = min(ceiling(sqrt(ncol(X)) + 20), ncol(X)),
-                       min.node.size = 5,
-                       honesty = TRUE,
-                       honesty.fraction = 0.5,
-                       honesty.prune.leaves = TRUE,
-                       imbalance.penalty = 0,
-                       ci.group.size = 2,
-                       compute.oob.predictions = TRUE,
-                       num.threads = NULL,
-                       seed = runif(1, 0, .Machine$integer.max))
-  args.grf.tau[names(new.args.grf.tau)] <- new.args.grf.tau
-  tau.fit <- do.call(grf::regression_forest, c(list(X = X.t0, Y = pseudo.outcome), args.grf.tau))
-  tau.hat <- predict(tau.fit, data.frame(X))
+  args.cf <- list(sample.weights = sample.weights, Y.hat = Y.hat.t0, W.hat = W.hat.t0)
+  args.cf[names(new.args.cf)] <- new.args.cf
+  tau.fit <- do.call(grf::causal_forest, c(list(X = X.t0, Y = Y.t0, W = W.t0), args.cf))
+  tau.hat <- predict(tau.fit, X)$predictions
 
   ret <- list(tau.fit = tau.fit,
-              pseudo.outcome = pseudo.outcome,
+              tau.hat = tau.hat,
               sample.weights = sample.weights,
-              y1.fit = y1.fit,
-              y0.fit = y0.fit,
               c.fit = c.fit,
-              W.hat = W.hat,
               Y.hat = Y.hat,
-              C.hat = C.hat,
-              tau.hat = tau.hat)
-  class(ret) <- "surv_rl_grf"
+              W.hat = W.hat,
+              C.hat = C.hat)
+  class(ret) <- "surv_rl_f"
   ret
 }
 
-#' predict for surv_rl_grf
+#' Predict with a R-learner with causal forest
 #'
-#' get estimated tau(X) using the trained surv_rl_grf model
+#' Obtain estimated tau(X) using a trained R-learner with causal forest model
+#'
+#' Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 #'
 #' @param object A surv_rl_grf object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
@@ -201,10 +182,9 @@ surv_rl_grf <- function(X, Y, W, D,
 #' @return A vector of predicted conditional average treatment effects
 #' @export
 predict.surv_rl_grf <- function(object,
-                                newdata = NULL,
-                                ...) {
+                              newdata = NULL,
+                              ...) {
   if (!is.null(newdata)) {
-    newdata <- sanitize_x(newdata)
     tau.hat <- predict(object$tau.fit, newdata)$predictions
   } else {
     tau.hat <- object$tau.hat

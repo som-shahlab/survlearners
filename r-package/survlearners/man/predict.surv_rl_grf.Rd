@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv_rl_grf.R
 \name{predict.surv_rl_grf}
 \alias{predict.surv_rl_grf}
-\title{predict for surv_rl_grf}
+\title{Predict with a R-learner with causal forest}
 \usage{
 \method{predict}{surv_rl_grf}(object, newdata = NULL, ...)
 }
@@ -17,7 +17,10 @@
 A vector of predicted conditional average treatment effects
 }
 \description{
-get estimated tau(X) using the trained surv_rl_grf model
+Obtain estimated tau(X) using a trained R-learner with causal forest model
+}
+\details{
+Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 }
 \examples{
 \donttest{
