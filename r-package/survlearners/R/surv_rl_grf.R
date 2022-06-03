@@ -39,13 +39,13 @@
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.f.fit <- surv_rl_f(X, Y, W, D, t0, W.hat = 0.5)
-#' cate <- predict(surv.rl.f.fit)
-#' cate.test <- predict(surv.rl.f.fit, X.test)
+#' surv.rl.grf.fit <- surv_rl_grf(X, Y, W, D, t0, W.hat = 0.5)
+#' cate <- predict(surv.rl.grf.fit)
+#' cate.test <- predict(surv.rl.grf.fit, X.test)
 #' }
-#' @return A surv_rl_f object
+#' @return A surv_rl_grf object
 #' @export
-surv_rl_f <- function(X, Y, W, D,
+surv_rl_grf <- function(X, Y, W, D,
                       t0 = NULL,
                       k.folds = NULL,
                       W.hat = NULL,
@@ -143,7 +143,7 @@ surv_rl_f <- function(X, Y, W, D,
               Y.hat = Y.hat,
               W.hat = W.hat,
               C.hat = C.hat)
-  class(ret) <- "surv_rl_f"
+  class(ret) <- "surv_rl_grf"
   ret
 }
 
@@ -153,7 +153,7 @@ surv_rl_f <- function(X, Y, W, D,
 #'
 #' Remark: CATE predictions can only be made at the time point used to define the outcome in the trained model
 #'
-#' @param object A surv_rl_f object
+#' @param object A surv_rl_grf object
 #' @param newdata Covariate matrix to make predictions on. If null, return the tau(X) predictions on the training data
 #' @param ... Additional arguments (currently not used)
 #'
@@ -174,14 +174,14 @@ surv_rl_f <- function(X, Y, W, D,
 #' n.test <- 500
 #' X.test <- matrix(rnorm(n.test * p), n.test, p)
 #'
-#' surv.rl.f.fit <- surv_rl_f(X, Y, W, D, t0, W.hat = 0.5)
-#' cate <- predict(surv.rl.f.fit)
-#' cate.test <- predict(surv.rl.f.fit, X.test)
+#' surv.rl.grf.fit <- surv_rl_grf(X, Y, W, D, t0, W.hat = 0.5)
+#' cate <- predict(surv.rl.grf.fit)
+#' cate.test <- predict(surv.rl.grf.fit, X.test)
 #' }
 #'
 #' @return A vector of predicted conditional average treatment effects
 #' @export
-predict.surv_rl_f <- function(object,
+predict.surv_rl_grf <- function(object,
                               newdata = NULL,
                               ...) {
   if (!is.null(newdata)) {
