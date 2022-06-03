@@ -115,12 +115,12 @@ surv_xl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
   tau.fit1 <- grf::regression_forest(X.t0[W.t0 == 1,, drop = FALSE],
                                      D.t0[W.t0 == 1] - Tgrf0.t0[W.t0 == 1],
                                      sample.weights = sample.weights.t0[W.t0 == 1])
-  XLtau1 <- -predict(tau.fit1, data.frame(X))
+  XLtau1 <- -predict(tau.fit1, data.frame(X))$predictions
 
   tau.fit0 <- grf::regression_forest(X.t0[W.t0 == 0,, drop = FALSE],
                                      Tgrf1.t0[W.t0 == 0] - D.t0[W.t0 == 0],
                                      sample.weights = sample.weights.t0[W.t0 == 0])
-  XLtau0 <- -predict(tau.fit0, data.frame(X))
+  XLtau0 <- -predict(tau.fit0, data.frame(X))$predictions
 
   # weighted CATE
   tau.hat <- as.vector(XLtau1 * (1 - W.hat) + XLtau0 * W.hat)
@@ -173,8 +173,8 @@ predict.surv_xl_grf <- function(object,
   if (is.null(newdata)) {
     return(object$tau.hat)
   } else {
-    XLtau1 <- -predict(object$tau.fit1, data.frame(newdata))
-    XLtau0 <- -predict(object$tau.fit0, data.frame(newdata))
+    XLtau1 <- -predict(object$tau.fit1, data.frame(newdata))$predictions
+    XLtau0 <- -predict(object$tau.fit0, data.frame(newdata))$predictions
     W.hat <- rep(object$W.hat[1], nrow(newdata))
     return(as.vector(XLtau1 * (1 - W.hat) + XLtau0 * W.hat))
   }
