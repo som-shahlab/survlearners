@@ -99,7 +99,7 @@ surv_fl_grf <- function(X, Y, W, D, t0, W.hat = NULL, cen.fit = "Kaplan-Meier",
 
   Z <- W.t0 * D.t0 / W.hat.t0 - (1 - W.t0) * D.t0 / (1 - W.hat.t0)
   tau.fit <- grf::regression_forest(X.t0, Z, sample.weights = sample.weights.t0)
-  tau.hat <- -predict(tau.fit, X)
+  tau.hat <- -predict(tau.fit, X)$predictions
 
   ret <- list(tau.fit = tau.fit,
               tau.hat = tau.hat)
@@ -147,6 +147,6 @@ predict.surv_fl_grf <- function(object,
   if (is.null(newdata)) {
     return(object$tau.hat)
   } else {
-    return(-predict(object$tau.fit, newdata))
+    return(-predict(object$tau.fit, newdata)$predictions)
   }
 }
