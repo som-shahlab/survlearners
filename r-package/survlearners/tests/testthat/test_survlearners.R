@@ -2,7 +2,7 @@ estimators <- list(
   surv_fl_grf = surv_fl_grf,
   surv_fl_lasso = surv_fl_lasso,
   surv_rl_grf_lasso = surv_rl_grf_lasso,
-  surv_rl_f = surv_rl_f,
+  surv_rl_grf = surv_rl_grf,
   surv_rl_lasso = surv_rl_lasso,
   surv_sl_coxph = surv_sl_coxph,
   surv_sl_grf = surv_sl_grf,
