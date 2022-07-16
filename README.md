@@ -55,20 +55,20 @@ cate <- predict(fit, X.test)
 This work was supported by R01 HL144555 from the National Heart, Lung, and Blood Institute (NHLBI).
 
 ### References
-Xu, Y., Ignatiadis, N., Sverdrup E., Fleming S., Wager, S.,  and Shah, N. (2022). **Handbook of Matching and Weighting Adjustments for Causal Inference. Chapter: Treatment Heterogeneity with Survival Outcomes.** Chapman \& Hall/CRC Press (forthcoming). [arXiv]()
+Xu, Y., Ignatiadis, N., Sverdrup E., Fleming S., Wager, S.,  and Shah, N. (2022). **Handbook of Matching and Weighting Adjustments for Causal Inference. Chapter: Treatment Heterogeneity with Survival Outcomes.** Chapman \& Hall/CRC Press (forthcoming). [<a href=" ">arxiv</a>]
 
-Athey S., Tibshirani J., and Wager S. (2019). **Generalized random forests.** The Annals of Statistics, 47(2):1148–1178. [Paper](https://projecteuclid.org/journals/annals-of-statistics/volume-47/issue-2/Generalized-random-forests/10.1214/18-AOS1709.full)
+Athey S., Tibshirani J., and Wager S. (2019). **Generalized random forests.** The Annals of Statistics, 47(2):1148–1178. [<a href="https://projecteuclid.org/journals/annals-of-statistics/volume-47/issue-2/Generalized-random-forests/10.1214/18-AOS1709.full">paper</a>]
 
-Tibshirani R. (1997). **The lasso method for variable selection in the Cox model.** Statistics in medicine, 16(4):385–395. [Paper](https://onlinelibrary.wiley.com/doi/abs/10.1002/(SICI)1097-0258(19970228)16:4%3C385::AID-SIM380%3E3.0.CO;2-3)
+Tibshirani R. (1997). **The lasso method for variable selection in the Cox model.** Statistics in medicine, 16(4):385–395. [<a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/(SICI)1097-0258(19970228)16:4%3C385::AID-SIM380%3E3.0.CO;2-3">paper</a>]
 
-Van der Laan M. J. and Robins J. M. (2003). **Unified methods for censored longitudinal data and causality,** volume 5. Springer. [Paper](https://link.springer.com/book/10.1007/978-0-387-21700-0)
+Van der Laan M. J. and Robins J. M. (2003). **Unified methods for censored longitudinal data and causality,** volume 5. Springer. [<a href="https://link.springer.com/book/10.1007/978-0-387-21700-0">paper</a>]
 
-Tsiatis. A. A. (2006). Semiparametric theory and missing data. [Paper](https://link.springer.com/book/10.1007/0-387-37345-4)
+Tsiatis. A. A. (2006). Semiparametric theory and missing data. [<a href="https://link.springer.com/book/10.1007/0-387-37345-4">paper</a>]
 
-Tian L., Alizadeh A., Gentles A., and Tibshirani R. (2014). **A simple method for estimating interactions between a treatment and a large number of covariates.** Journal of the American Statistical Association, 109. [Paper](https://www.tandfonline.com/doi/full/10.1080/01621459.2014.951443)
+Tian L., Alizadeh A., Gentles A., and Tibshirani R. (2014). **A simple method for estimating interactions between a treatment and a large number of covariates.** Journal of the American Statistical Association, 109. [<a href="https://www.tandfonline.com/doi/full/10.1080/01621459.2014.951443">paper</a>]
 
-Kunzel S. R., Sekhon J. S., Bickel P. J., and Yu B. (2019). **Metalearners for estimating heterogeneous treatment effects using machine learning.** Proceedings of the national academy of sciences, 116(10):4156–4165, 2019. [paper](https://www.pnas.org/doi/abs/10.1073/pnas.1804597116)
+Kunzel S. R., Sekhon J. S., Bickel P. J., and Yu B. (2019). **Metalearners for estimating heterogeneous treatment effects using machine learning.** Proceedings of the national academy of sciences, 116(10):4156–4165, 2019. [<a href="https://www.pnas.org/doi/abs/10.1073/pnas.1804597116">paper</a>]
 
-Nie X. and Wager S. (2021). **Quasi-oracle estimation of heterogeneous treatment effects.** Biometrika, 108(2):299–319. [Paper](https://academic.oup.com/biomet/article/108/2/299/5911092?login=true)
+Nie X. and Wager S. (2021). **Quasi-oracle estimation of heterogeneous treatment effects.** Biometrika, 108(2):299–319. [<a href="https://academic.oup.com/biomet/article/108/2/299/5911092?login=true">paper</a>]
 
-Cui Y., Kosorok M. R., Sverdrup E., Wager S., and Zhu R. (2020). **Estimating heterogeneous treatment effects with right-censored data via causal survival forests.** [arXiv](https://arxiv.org/abs/2001.09887)
+Cui Y., Kosorok M. R., Sverdrup E., Wager S., and Zhu R. (2020). **Estimating heterogeneous treatment effects with right-censored data via causal survival forests.** [<a href="https://arxiv.org/abs/2001.09887">arxiv</a>]
