@@ -262,7 +262,7 @@ where $\hat{m}(\cdot) = e \hat{\mu}_{(1)}(\cdot) + (1-e)\hat{\mu}_{(0)}(\cdot)$ 
 
 To show the weighted representation, we rewrite the above loss function using a weighted least squares objective as:
 $$\tau(\cdot) \in \mathrm{argmin}_{\widetilde{\tau}(\cdot)} \left\{\mathbb{E}\left[\hat{K}_i(W_i-e)^2\left(\frac{Y_i-\hat{m}(X_i)}{W_i-e}-\widetilde{\tau}(X_i)\right)^2\right] \right\}, $$
-where $Y^{*, R} = \frac{Y_i-\hat{m}(X_i)}{W_i-e}-\tilde{\tau}(X_i)\right$ is the constructed score by the R-learner.
+where $Y^{*, R} = \frac{Y_i-\hat{m}(X_i)}{W_i-e}$ is the constructed score by the R-learner.
 
 We point out several remarks about R-learner:
 
@@ -319,7 +319,7 @@ cate <- predict(surv.rl.grf.lasso.fit)
 cate.test <- predict(surv.rl.grf.lasso.fit, X.test)
 ```
 
-Hopefully, at this point, we are clear about the main ideas of the five metalearners and *how* to implement them for survival outcomes via the survlearners package. Given all these advanced statistical tools for estimating treatment heterogeneity, it is crucial to know *when* to apply each approach in light of the specific characteristics of a dataset. For interested readers, please refer to the [Benchmarking Metalearners]() tutorial for an overview of our benchmarking study of these metalearners under various data generating processes and a set of practical recommendations and considerations when choosing a CATE estimation approach in applied research.
+Hopefully, at this point, we are clear about the main ideas of the five metalearners and *how* to implement them for survival outcomes via the survlearners package. Given all these advanced statistical tools for estimating treatment heterogeneity, it is crucial to know *when* to apply each approach in light of the specific characteristics of a dataset. For interested readers, please refer to the [Metalearners selection](https://som-shahlab.github.io/survlearners/articles/select_metalearners.html) tutorial for an overview of our benchmarking study of these metalearners under various data generating processes and a set of practical recommendations and considerations when choosing a CATE estimation approach in applied research.
 
 
 ## Funding
