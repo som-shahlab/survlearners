@@ -6,9 +6,9 @@ navbar:
     menu:
       - text: "Treatment heterogeneity for Survival Outcomes"
         href: articles/metaleaners.html
-      - text: "Selection of metalearners"
+      - text: "Metalearners selection"
         href: articles/select_metalearners.html
-      - text: "A case study using metalearners"
+      - text: "A case study with metalearners"
         href: articles/case_study.html
   - text: "Reference"
     href: reference/index.html
