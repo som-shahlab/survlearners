@@ -230,7 +230,7 @@ X-learner with random survival forest:
 ```{R}
 surv.xl.grf.fit <- surv_xl_grf(X, Y, W, D, t0, W.hat = 0.5)
 cate <- predict(surv.xl.grf.fit)
-cate.test <- predict(surv.xl.grf.fit, X.test)$predictions
+cate.test <- as.vector(predict(surv.xl.grf.fit, X.test))
 
 # Plot the estimated CATE against true CATE
 df <- data.frame(cate.test = cate.test, true.cate = true.cate)
