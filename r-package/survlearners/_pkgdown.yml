@@ -1,0 +1,14 @@
+url: https://github.com/som-shahlab/survlearners
+navbar:
+  type: default
+  left:
+    - text: "Tutorials" # A collection of smaller vignettes, this list is kept alphabetical
+    menu:
+      - text: "Treatment heterogeneity for Survival Outcomes"
+        href: articles/metaleaners.html
+      - text: "Selection of metalearners"
+        href: articles/select_metalearners.html
+      - text: "A case study using metalearners"
+        href: articles/case_study.html
+  - text: "Reference"
+    href: reference/index.html
