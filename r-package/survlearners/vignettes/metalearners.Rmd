@@ -25,25 +25,25 @@ library(ggplot2)
 This vignette provides a tutorial on how to estimate heterogeneous treatment effects for survival outcomes using the five popular metalearners (S-, T-, X-, R, and M-learners) available in the R package [survlearners](https://github.com/som-shahlab/survlearners). Metalearners are specific meta-algorithms that leverage predictive models to solve the causal task of treatment effect estimation. For all metalearners, we consider two popular machine learning methods, Lasso [@tibshirani1997lasso; @goeman2010l1] and random (survival) forest [@Breiman2001; @ishwaran2008random; @Athey2019], for developing predictive models. Moreover, while the metaleaners have been developed for uncensored continuous or binary data, we explain how they are adapted in suvrlearners to the the survival setting through inverse probability of censoring weighting. For a detailed tutorial of these metalearners with mathematical underpinning, as well as a benchmarking study of the five metaleaners via a comprehensive simulation study, please refer to the Chapter named [Treatment heterogeneity for survival outcomes]() in the **Handbook of Matching and Weighting Adjustments for Causal Inference**. The outline of this tutorial is as follows: We first describe the problem set up then demonstrate the usage of each metaleanrers through simulation examples. In the end, we show an illustration of these metalearners on a real application: Estimating treatment heterogeneity in the Systolic Blood Pressure Intervention Trial (SPRINT) and the Action to Control Cardiovascular Risk in Diabetes (ACCORD) trial.
 
 ## Problem set up
-We discuss the problem of conditional average treatment effect (CATE) estimation under the potential outcome framework in causal inference [@Neyman1923; @Rubin1974]. Consider a randomized controlled trial that provides $N$ independent and identically distributed subject-level data, indexed by $i \in \mathcal{I} = \{1, 2, \dotsc, N\}$. Patient baseline covariates are denoted by $X_i = (X_{i1},\dotsc,X_{id}) \in \mathbb{R}^d$ and the treatment variable is $W_i \in \{0,1\}$. Let $T_i(w)$ be the potential survival time if subject $i$ had been assigned the treatment $w$ and $C_i$ be the censoring time. Then, $T_i = W_i T_i(1)+ (1-W_i)T_i(0)$, and the observed follow-up time is $U_i=\mathrm{min}(T_i, C_i)$ with the corresponding non-censoring indicator $\Delta_i = \ind{T_i \leq C_i}$. Our observed dataset is $\dataset = \{(X_i, W_i, U_i, \Delta_i): i \in \mathcal{I}\}$. We also reserve the notation $\mathcal{I}_0 = \{ i \in \mathcal{I}: W_i=0\}$ for the index set of control units and $\dataset_0 = \{(X_i, 0, U_i, \Delta_i): i \in \mathcal{I}_0\}$ for the control dataset. We define $\mathcal{I}_1$ and $\dataset_1$ analogously for the treated units.
+We discuss the problem of conditional average treatment effect (CATE) estimation under the potential outcome framework in causal inference [@Neyman1923; @Rubin1974]. Consider a randomized controlled trial that provides $N$ independent and identically distributed subject-level data, indexed by $i \in \mathcal{I} = \{1, 2, \dotsc, N\}$. Patient baseline covariates are denoted by $X_i = (X_{i1},\dotsc,X_{id}) \in \mathbb{R}^d$ and the treatment variable is $W_i \in \{0,1\}$. Let $T_i(w)$ be the potential survival time if subject $i$ had been assigned the treatment $w$ and $C_i$ be the censoring time. Then, $T_i = W_i T_i(1)+ (1-W_i)T_i(0)$, and the observed follow-up time is $U_i=\mathrm{min}(T_i, C_i)$ with the corresponding non-censoring indicator $\Delta_i = \mathbb{1}\{T_i \leq C_i\}$. Our observed dataset is $\mathcal{O} = \{(X_i, W_i, U_i, \Delta_i): i \in \mathcal{I}\}$. We also reserve the notation $\mathcal{I}_0 = \{ i \in \mathcal{I}: W_i=0\}$ for the index set of control units and $\mathcal{O}_0 = \{(X_i, 0, U_i, \Delta_i): i \in \mathcal{I}_0\}$ for the control dataset. We define $\mathcal{I}_1$ and $\mathcal{O}_1$ analogously for the treated units.
 
 The Conditional Average Treatment Effect (CATE) for the probability of survival beyond a pre-specified time $t_0$ is:
 
 $$\tau(x) = \mathbb{E}[Y_i(1)-Y_i(0) \mid X_i=x],$$
-where $Y_i(w) = \ind{T_i(w) > t_0}$ is the indicator of survival beyond time $t_0$. We also write $Y_i = Y_i(W_i)$.
+where $Y_i(w) = \mathbb{1}\{T_i(w) > t_0\}$ is the indicator of survival beyond time $t_0$. We also write $Y_i = Y_i(W_i)$.
 
 To ensure the CATE is identifiable, we make the following assumptions @ROSENBAUM1983; some of which already appeared implicitly in the notations above:
 *Consistency*: The observed survival time in real data is almost always the same as the potential outcome under the actual treatment assignment, i.e., $T_i=T_i(W_i)$.
 
-*Randomized controlled trial (RCT)*: The treatment assignment is randomized and such that $W_i$ is independent of $(X_i, T_i(1), T_i(0))$, i.e., $W_i \independent (X_i, T_i(1), T_i(0))$ and $\mathbb P[W_i=1] = e$ with known $0<e<1$.
+*Randomized controlled trial (RCT)*: The treatment assignment is randomized and such that $W_i$ is independent of $(X_i, T_i(1), T_i(0))$, i.e., $W_i \perp \!\!\! \perp (X_i, T_i(1), T_i(0))$ and $\mathbb P[W_i=1] = e$ with known $0<e<1$.
 
-*Noninformative censoring*: Censoring is independent of survival time conditional on treatment assignment and covariates, i.e., $C_i \independent T_i\,\mid\,X_i, W_i$.
+*Noninformative censoring*: Censoring is independent of survival time conditional on treatment assignment and covariates, i.e., $C_i \perp \!\!\! \perp T_i\,\mid\,X_i, W_i$.
 
 *Positivity*: There exists subjects who are at risk beyond the time horizon $t_0$, i.e., $\mathbb{P}[C_i > t_0\,\mid\,X_i, W_i] \geq \eta_{C}$ for some $\eta_{C}>0$.
 
 To apply metalearners under observational studies, we replace the above RCT assumption by the following two assumptions:
 
-*Unconfoundedness*: The potential survival times are independent of the treatment assignment $W_i$ conditionally on baseline covariates, that is, $W_i \independent (T_i(1), T_i(0)) | X_i$.
+*Unconfoundedness*: The potential survival times are independent of the treatment assignment $W_i$ conditionally on baseline covariates, that is, $W_i \perp \!\!\! \perp (T_i(1), T_i(0)) | X_i$.
 
 *Overlap*: There exists $\eta \in (0,1)$ such that the propensity score $e(x) = \mathbb P[W_i=1 |X_i=x]$ satisfies $\eta \leq e(x) \leq 1-\eta$ for all $x$ in the support of $X_i$.
 
@@ -171,13 +171,13 @@ In order to directly learn the CATE function by predictive modeling of $Y_i^{*}=
 ## Censoring adjustments
 The "missing data" or "right censoring" issue can be handled using Inverse Probability Censoring Weights (IPCW) [@kohler2002prediction; @Laan2003]. Specifically, We create a dataset with only \emph{complete} cases, which are defined as subjects who had an event before $t_0$ or finished the follow-up until $t_0$ without developing an event, i.e.,  $\mathcal{I}_{\text{comp}} = \{i \in \mathcal{I} : \Delta_i=1 \text{ or } U_i \geq t_0\}$. Next, we estimate the survival function of the censoring time as follows:
 $$ S^C(u, x, w) = \mathbb{P}[C_i \geq u \mid X_i=x, W_i=w]$$
-Based on $\widehat{S^C}(\cdot)$, we then re-weight every subject  $i \in \mathcal{I}_{\text{comp}}$ by $\what{K}_i$, an estimate of the inverse of the probability of not being censored, namely:
+Based on $\widehat{S^C}(\cdot)$, we then re-weight every subject  $i \in \mathcal{I}_{\text{comp}}$ by $\hat{K}_i$, an estimate of the inverse of the probability of not being censored, namely:
 $$\widehat{K}_i = 1\Big/\widehat{S^C}\left(\min\{U_i, t_0\}, X_i, W_i\right).$$
 The IPCW adjustment removes censoring bias, but it can be inefficient and unstable when the censoring rate is high in a study and a majority of the censoring events happened before $t_0$. It also may be more sensitive to misspecification of the censoring model. In such cases, one can consider a doubly robust correction similar to the augmented inverse-propensity weighting estimator of @Robins1994. We do not dive into the details here and refer to interested readers to @tsiatis2006semiparametric.
 
 For each of the three learners (M, X, R), @survlearners provide two options for estimating cenosring weights, a Kaplan-Meier (KM) estimator or a random survival forest. The KM estimator is appropriate under completely independent censoring, i.e., $C_i \perp \!\!\! \perp \{T_i, X_i, W_i\}$. Otherwise, a random survival forest should be used to model the dependence between $C_i$ and the other variables. Besides, @survlearners estimate $\hat{K}_i$ out-of-bag (e.g., cross-fitting) to avoid overfitting @Chernozhukov2018.
 
-If we hypothetically had access to the oracle scores $Y_i^{*}$ that satisfy $\mathbb E[Y_i^* \mid X_i=x] = \tau(x)\; \text{  or  }\; \mathbb E[Y_i^* \mid X_i=x]$ for the uncensored samples $i \in \mathcal{I}_{\text{comp}}$ and weights $\what{K}_i$, then we could estimate CATEs via weighted predictive modeling as $\hat{\tau}(\cdot) = \mathcal{M}(Y^{*} \sim X; \; \hat{K})$, where $\mathcal{M}$ symbolizes an arbitrary model. In the subsections below, we describe how each metalearner this challenge that---even in the absence of censoring---the oracle scores $Y_i^{*}$ are not available, due to the fundamental challenge of causal inference.
+If we hypothetically had access to the oracle scores $Y_i^{*}$ that satisfy $\mathbb E[Y_i^* \mid X_i=x] = \tau(x)\; \text{  or  }\; \mathbb E[Y_i^* \mid X_i=x]$ for the uncensored samples $i \in \mathcal{I}_{\text{comp}}$ and weights $\hat{K}_i$, then we could estimate CATEs via weighted predictive modeling as $\hat{\tau}(\cdot) = \mathcal{M}(Y^{*} \sim X; \; \hat{K})$, where $\mathcal{M}$ symbolizes an arbitrary model. In the subsections below, we describe how each metalearner this challenge that---even in the absence of censoring---the oracle scores $Y_i^{*}$ are not available, due to the fundamental challenge of causal inference.
 
 ## M-learner
 The *modified outcome method (M-learner)* [@Signorovitch2007; @Tian2014; @Athey2016] leverages the aforementioned insight with the following score based on the @horvitz1952generalization transformation / inverse propensity weighting (IPW):
@@ -264,7 +264,7 @@ $$\tau(\cdot) \in \mathrm{argmin}_{\widetilde{\tau}(\cdot)} \left\{\mathbb{E}\le
 where $Y^{*, R} = \frac{Y_i-\hat{m}(X_i)}{W_i-e}-\widetilde{\tau}(X_i)\right$ is the constructed score by the R-learner.
 
 We point out several remarks about R-learner:
-1) R-learner is robust to a biased estimation of the outcome nuisance parameter, i.e., even if $\hat{m}(.)$ is not a good approximation to $m(\cdot)$, the R-learner may perform well @Nie2020. In fact, if $e = 0.5$ and we estimate $\what{m}(\cdot) \approx 0$ (even though $m(\cdot) \neq 0$), the R-learner predictions are very similar to the predictions of the M-learner. On the other hand, when $\what{m}(\cdot) \approx m(\cdot)$, then centering by $\what{m}(X_i)$ helps stabilize the estimation compared to the M-learner.
+1) R-learner is robust to a biased estimation of the outcome nuisance parameter, i.e., even if $\hat{m}(.)$ is not a good approximation to $m(\cdot)$, the R-learner may perform well @Nie2020. In fact, if $e = 0.5$ and we estimate $\hat{m}(\cdot) \approx 0$ (even though $m(\cdot) \neq 0$), the R-learner predictions are very similar to the predictions of the M-learner. On the other hand, when $\hat{m}(\cdot) \approx m(\cdot)$, then centering by $\hat{m}(X_i)$ helps stabilize the estimation compared to the M-learner.
 
 2) For the weighted least squares objective with weights $(W_i-e)^2$, under unbalanced treatment assignment, e.g., when there are less treated units ($e < 0.5$), then the R-learner upweights the treated units compared to control units by the factor $(1-e)^2/e^2$. The upweighting of treated units by the R-learner is similar to the behaviour of the X-learner (shown above). In fact, the predictions of R-learner and X-learner (when used with the same predictive models) are almost identical in the case of strong imbalance $(e \approx 0)$ @Nie2020.
 
@@ -322,3 +322,5 @@ Hopefully, at this point, we are clear about the main ideas of the five metalear
 
 ## Funding
 This work was supported by R01 HL144555 from the National Heart, Lung, and Blood Institute (NHLBI).
+
+## References
