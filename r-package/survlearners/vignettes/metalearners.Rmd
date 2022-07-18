@@ -19,7 +19,6 @@ options(warn = -1)
 
 ```{r setup}
 library(survlearners)
-library(ggplot2)
 ```
 
 This vignette provides a tutorial on how to estimate heterogeneous treatment effects for survival outcomes using the five popular metalearners (S-, T-, X-, R, and M-learners) available in the R package [survlearners](https://github.com/som-shahlab/survlearners). Metalearners are specific meta-algorithms that leverage predictive models to solve the causal task of treatment effect estimation. For all metalearners, we consider two popular machine learning methods, Lasso [@tibshirani1997lasso; @goeman2010l1] and random (survival) forest [@Breiman2001; @ishwaran2008random; @Athey2019], for developing predictive models. Moreover, while the metaleaners have been developed for uncensored continuous or binary data, we explain how they are adapted in suvrlearners to the the survival setting through inverse probability of censoring weighting. For a detailed tutorial of these metalearners with mathematical underpinning, as well as a benchmarking study of the five metaleaners via a comprehensive simulation study, please refer to the Chapter named [Treatment heterogeneity for survival outcomes]() in the **Handbook of Matching and Weighting Adjustments for Causal Inference**. The outline of this tutorial is as follows: We first describe the problem set up then demonstrate the usage of each metaleanrers through simulation examples. In the end, we show an illustration of these metalearners on a real application: Estimating treatment heterogeneity in the Systolic Blood Pressure Intervention Trial (SPRINT) and the Action to Control Cardiovascular Risk in Diabetes (ACCORD) trial. 
@@ -76,6 +75,7 @@ X.test <- matrix(rnorm(n.test * p), n.test, p)
 
 Generate the true CATE in the simulated test data
 ```{R}
+t0 <- 0.2 
 true.cate <- rep(NA, n)
 for (i in 1:n) {
           cox.ft0 <- (-log(runif(10000)) / exp(X.test[i,1] + (-0.5 - X.test[i,2]) * 0))^2
@@ -86,7 +86,6 @@ for (i in 1:n) {
 
 When $\hat{\mu}$ is learned using a Lasso Cox PH model @glmnet at the time of interest $t_0=0.2$:
 ```{r}
-t0 <- 0.2  
 surv.sl.lasso.fit <- surv_sl_lasso(X, Y, W, D, t0)
 cate <- predict(surv.sl.lasso.fit)
 cate.test <- predict(surv.sl.lasso.fit, X.test)
