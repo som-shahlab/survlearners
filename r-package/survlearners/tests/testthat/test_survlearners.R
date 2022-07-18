@@ -45,11 +45,11 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
     }
 
     if (is.list(predict(fit.f)) == TRUE) {
-      expect_equal(unlist(predict(fit)), -1 * unlist(predict(fit.f)), tolerance = 0.2, label = names(estimators)[i])
-      expect_equal(unlist(predict(fit, X.test)), -1 * unlist(predict(fit.f, X.test)), tolerance = 0.2, label = names(estimators)[i])
+      expect_equal(unlist(predict(fit)), -1 * unlist(predict(fit.f)), tolerance = 0.1, label = names(estimators)[i])
+      expect_equal(unlist(predict(fit, X.test)), -1 * unlist(predict(fit.f, X.test)), tolerance = 0.1, label = names(estimators)[i])
     } else {
-      expect_equal(predict(fit), -1 * predict(fit.f), tolerance = 0.2, label = names(estimators)[i])
-      expect_equal(predict(fit, X.test), -1 * predict(fit.f, X.test), tolerance = 0.2, label = names(estimators)[i])
+      expect_equal(predict(fit), -1 * predict(fit.f), tolerance = 0.1, label = names(estimators)[i])
+      expect_equal(predict(fit, X.test), -1 * predict(fit.f, X.test), tolerance = 0.1, label = names(estimators)[i])
     }
   }
 })
@@ -83,11 +83,11 @@ test_that("estimators are ~ invariant to shifting Y by constant", {
       fit.f <- estimator(X, Y + 100, W, D, t0 + 100)
     }
     if (is.list(predict(fit.f)) == TRUE) {
-      expect_equal(unlist(predict(fit)), unlist(predict(fit.f)), tolerance = 0.5, label = names(estimators)[i])
-      expect_equal(unlist(predict(fit, X.test)), unlist(predict(fit.f, X.test)), tolerance = 0.5, label = names(estimators)[i])
+      expect_equal(unlist(predict(fit)), unlist(predict(fit.f)), tolerance = 0.05, label = names(estimators)[i])
+      expect_equal(unlist(predict(fit, X.test)), unlist(predict(fit.f, X.test)), tolerance = 0.05, label = names(estimators)[i])
     } else {
-      expect_equal(predict(fit), predict(fit.f), tolerance = 0.5, label = names(estimators)[i])
-      expect_equal(predict(fit, X.test), predict(fit.f, X.test), tolerance = 0.5, label = names(estimators)[i])
+      expect_equal(predict(fit), predict(fit.f), tolerance = 0.05, label = names(estimators)[i])
+      expect_equal(predict(fit, X.test), predict(fit.f, X.test), tolerance = 0.05, label = names(estimators)[i])
     }
   }
 })

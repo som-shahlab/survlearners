@@ -58,6 +58,7 @@ jobs:
         working-directory: r-package/survlearners
         run: |
           sudo Rscript -e "install.packages('pkgdown', type = 'mac.binary')"
+          sudo Rscript -e “install.packages(c(‘ggplot2’, 'rmarkdown'), type = ‘mac.binary’)”
           Rscript -e "pkgdown::build_site()"
 
       - name: Deploy to GitHub pages
