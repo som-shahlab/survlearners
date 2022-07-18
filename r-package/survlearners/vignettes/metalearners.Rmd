@@ -319,7 +319,7 @@ cate <- predict(surv.rl.grf.lasso.fit)
 cate.test <- predict(surv.rl.grf.lasso.fit, X.test)
 ```
 
-Hopefully, at this point, we are clear about the main ideas of the five metalearners and *how* to implement them for survival outcomes via the survlearners package. Given all these advanced statistical tools for estimating treatment heterogeneity, it is crucial to know *when* to apply each approach in light of the specific characteristics of a dataset. For interested readers, please refer to the [Benchmarking Metalearners]() tutorial for an overview of our benchmarking study of these metalearners under various data generating processes and a set of practical recommendations and considerations when choosing a CATE estimation approach in applied research.
+Hopefully, at this point, we are clear about the main ideas of the five metalearners and *how* to implement them for survival outcomes via the survlearners package. Given all these advanced statistical tools for estimating treatment heterogeneity, it is crucial to know *when* to apply each approach in light of the specific characteristics of a dataset. For interested readers, please refer to the [Metalearners selection](https://som-shahlab.github.io/survlearners/articles/select_metalearners.html) tutorial for an overview of our benchmarking study of these metalearners under various data generating processes and a set of practical recommendations and considerations when choosing a CATE estimation approach in applied research.
 
 
 ## Funding
