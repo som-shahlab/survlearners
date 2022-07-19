@@ -59,6 +59,7 @@ jobs:
         run: |
           sudo Rscript -e "install.packages('pkgdown', type = 'mac.binary')"
           sudo Rscript -e "install.packages(c('ggplot2', 'rmarkdown'), type = 'mac.binary')"
+          cp ../../README.md .
           Rscript -e "pkgdown::build_site()"
 
       - name: Deploy to GitHub pages
