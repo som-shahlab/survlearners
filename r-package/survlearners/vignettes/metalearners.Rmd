@@ -115,7 +115,7 @@ cate.test <- predict(surv.sl.grf.fit, X.test)
 df <- data.frame(cate.test = cate.test, true.cate = true.cate)
 ggplot(df, aes(x = cate.test, y = true.cate)) +
   geom_point(alpha = 0.5) +
-  xlab("Estimated CATE by S-learner with Lasso") +
+  xlab("Estimated CATE by S-learner with Random Survival Forest") +
   ylab("True CATE") +
   xlim(c(-0.8, 0.8)) +
   ylim(c(-0.8, 0.8)) +
@@ -139,7 +139,7 @@ cate.test <- predict(surv.tl.lasso.fit, X.test)
 df <- data.frame(cate.test = cate.test, true.cate = true.cate)
 ggplot(df, aes(x = cate.test, y = true.cate)) +
   geom_point(alpha = 0.5) +
-  xlab("Estimated CATE by S-learner with Lasso") +
+  xlab("Estimated CATE by T-learner with Lasso") +
   ylab("True CATE") +
   xlim(c(-0.8, 0.8)) +
   ylim(c(-0.8, 0.8)) +
@@ -157,7 +157,7 @@ cate.test <- predict(surv.tl.grf.fit, X.test)
 df <- data.frame(cate.test = cate.test, true.cate = true.cate)
 ggplot(df, aes(x = cate.test, y = true.cate)) +
   geom_point(alpha = 0.5) +
-  xlab("Estimated CATE by S-learner with Lasso") +
+  xlab("Estimated CATE by T-learner with Random Survival Forest") +
   ylab("True CATE") +
   xlim(c(-0.8, 0.8)) +
   ylim(c(-0.8, 0.8)) +
@@ -219,7 +219,7 @@ cate.test <- predict(surv.xl.lasso.fit, X.test)
 df <- data.frame(cate.test = cate.test, true.cate = true.cate)
 ggplot(df, aes(x = cate.test, y = true.cate)) +
   geom_point(alpha = 0.5) +
-  xlab("Estimated CATE by R-learner with Lasso") +
+  xlab("Estimated CATE by X-learner with Lasso") +
   ylab("True CATE") +
   xlim(c(-0.8, 0.8)) +
   ylim(c(-0.8, 0.8)) +
@@ -238,7 +238,7 @@ df <- data.frame(cate.test = cate.test, true.cate = true.cate)
 
 ggplot(df, aes(x = cate.test, y = true.cate)) +
   geom_point(alpha = 0.5) +
-  xlab("Estimated CATE by S-learner with Lasso") +
+  xlab("Estimated CATE by X-learner with Random Survival Forest") +
   ylab("True CATE") +
   xlim(c(-0.8, 0.8)) +
   ylim(c(-0.8, 0.8)) +
@@ -304,7 +304,7 @@ cate.test <- predict(surv.rl.grf.fit, X.test)
 df <- data.frame(cate.test = cate.test, true.cate = true.cate)
 ggplot(df, aes(x = cate.test, y = true.cate)) +
   geom_point(alpha = 0.5) +
-  xlab("Estimated CATE by R-learner with Lasso") +
+  xlab("Estimated CATE by the Inverse-probability-censoring-weighted Causal Forest") +
   ylab("True CATE") +
   xlim(c(-0.8, 0.8)) +
   ylim(c(-0.8, 0.8)) +
