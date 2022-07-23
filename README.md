@@ -1,6 +1,6 @@
 [![ci](https://github.com/som-shahlab/survlearners/actions/workflows/main.yml/badge.svg)](https://github.com/som-shahlab/survlearners/actions/workflows/main.yml)
 
-# Benchmarking Metalearners for Survival Data
+# Metalearners for Survival Data
 
 This repository contains the extended implementations of five state-of-the-art metalearners for survival outcomes. Metalearners are specific meta-algortihms that leverage predictive models, e.g., machine learning models, to solve the causal task of estimating treatment heterogeneity. While metalearners (S-, T-, X-, M-, and R-learners) have been developed for uncensored continuous or binary data, suvrlearners provide their adapted executions to the survival setting through inverse probability of censoring weighting when combined with two popular machine learning strategies (Lasso and generalized random forests).
 
