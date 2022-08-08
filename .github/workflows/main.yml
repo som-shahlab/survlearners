@@ -33,12 +33,6 @@ jobs:
           # Install OSX deps manually
           sudo Rscript -e "install.packages(c('survival', 'glmnet', 'grf'), type = 'mac.binary')"
 
-      - name: Tmp devel GRF install
-        run: |
-          git clone http://github.com/grf-labs/grf.git && cd grf/r-package/grf
-          sudo Rscript -e "install.packages('RcppEigen', type = 'mac.binary')"
-          R CMD build . && R CMD install .
-
       - name: Test
         working-directory: r-package/survlearners
         run: |
