@@ -34,7 +34,7 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
     if ("W.hat" %in% names(formals(estimator))) {
       fit <- estimator(X, Y, W, D, t0, W.hat = W.hat)
     } else if ("weights" %in% names(formals(estimator))) {
-      fit <- estimator(X, Y, W, D, t0, weights = weights)
+      fit <- estimator(X, Y, W, D, t0, weights = NULL)
     } else {
       fit <- estimator(X, Y, W, D, t0)
     }
@@ -43,7 +43,7 @@ test_that("estimators are ~ invariant to flipping treatment indicator", {
     if ("W.hat" %in% names(formals(estimator))) {
       fit.f <- estimator(X, Y, 1 - W, D, t0, W.hat = W.hat)
     } else if ("weights" %in% names(formals(estimator))) {
-      fit.f <- estimator(X, Y, 1 - W, D, t0, weights = weights)
+      fit.f <- estimator(X, Y, 1 - W, D, t0, weights = NULL)
     } else {
       fit.f <- estimator(X, Y, 1 - W, D, t0)
     }
