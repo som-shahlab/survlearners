@@ -50,7 +50,7 @@ surv_sl_coxph <- function(X, Y, W, D, t0, weights = NULL) {
   formula <- as.formula(paste0("survival::Surv(Y, D) ~ ", paste(colnames(x.tilde), sep=" ", collapse = "+")))
   tmpdat <- data.frame(Y, D, x.tilde)
 
-  if(is.null(weights) = FALSE) {
+  if(is.null(weights) == FALSE) {
     tau.fit <- survival::coxph(formula, weights = weights, data = tmpdat)
   } else {
     tau.fit <- survival::coxph(formula, data = tmpdat)
