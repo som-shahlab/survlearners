@@ -31,7 +31,7 @@ jobs:
         run: |
           ./run.sh install_all
           # Install OSX deps manually
-          sudo Rscript -e "install.packages(c('survival', 'glmnet', 'grf'), type = 'mac.binary')"
+          sudo Rscript -e "install.packages(c('survival', 'glmnet', 'grf'))"
 
       - name: Test
         working-directory: r-package/survlearners
@@ -51,8 +51,8 @@ jobs:
       - name: Build pkgdown
         working-directory: r-package/survlearners
         run: |
-          sudo Rscript -e "install.packages('pkgdown', type = 'mac.binary')"
-          sudo Rscript -e "install.packages(c('ggplot2', 'rmarkdown'), type = 'mac.binary')"
+          sudo Rscript -e "install.packages('pkgdown')"
+          sudo Rscript -e "install.packages(c('ggplot2', 'rmarkdown'))"
           cp ../../README.md .
           Rscript -e "pkgdown::build_site()"
 
