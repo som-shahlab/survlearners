@@ -11,7 +11,7 @@
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param t0 The prediction time of interest
-#' @param weights The case weights
+#' @param weights The (optional) case weights
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
@@ -56,7 +56,7 @@ surv_sl_coxph <- function(X, Y, W, D, t0, weights = NULL) {
   } else {
     tau.fit <- survival::coxph(formula, data = tmpdat)
   }
-  
+
   bh.dat <- survival::basehaz(tau.fit, centered = FALSE)
   index <- findInterval(t0, bh.dat$time)
   if (index == 0) {
