@@ -11,6 +11,7 @@
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param t0 The prediction time of interest
+#' @param weights The (optional) case weights
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
@@ -34,7 +35,7 @@
 #' }
 #' @return A surv_sl_coxph object
 #' @export
-surv_sl_coxph <- function(X, Y, W, D, t0) {
+surv_sl_coxph <- function(X, Y, W, D, t0, weights = NULL) {
 
   input <- sanitize_input(X, Y, W, D)
   X <- input$X
@@ -50,7 +51,13 @@ surv_sl_coxph <- function(X, Y, W, D, t0) {
   formula <- as.formula(paste0("survival::Surv(Y, D) ~ ", paste(colnames(x.tilde), sep=" ", collapse = "+")))
   tmpdat <- data.frame(Y, D, x.tilde)
 
-  tau.fit <- survival::coxph(formula, data = tmpdat)
+  if(is.null(weights)) {
+    tau.fit <- survival::coxph(formula, data = tmpdat)
+  } else {
+    # add simple check length(weights) == length(Y)
+    tau.fit <- survival::coxph(formula, weights = weights, data = tmpdat)
+  }
+
   bh.dat <- survival::basehaz(tau.fit, centered = FALSE)
   index <- findInterval(t0, bh.dat$time)
   if (index == 0) {

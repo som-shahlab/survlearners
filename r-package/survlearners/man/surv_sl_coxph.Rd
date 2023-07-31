@@ -4,7 +4,7 @@
 \alias{surv_sl_coxph}
 \title{S-learner with Cox regression}
 \usage{
-surv_sl_coxph(X, Y, W, D, t0)
+surv_sl_coxph(X, Y, W, D, t0, weights = NULL)
 }
 \arguments{
 \item{X}{The baseline covariates}
@@ -16,6 +16,8 @@ surv_sl_coxph(X, Y, W, D, t0)
 \item{D}{The event indicator}
 
 \item{t0}{The prediction time of interest}
+
+\item{weights}{The (optional) case weights}
 }
 \value{
 A surv_sl_coxph object
