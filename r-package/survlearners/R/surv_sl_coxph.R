@@ -11,6 +11,7 @@
 #' @param W The treatment variable (0 or 1)
 #' @param D The event indicator
 #' @param t0 The prediction time of interest
+#' @param weights The case weights
 #' @examples
 #' \donttest{
 #' n <- 1000; p <- 25
